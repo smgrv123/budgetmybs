@@ -1,14 +1,14 @@
-import { upsertProfile } from "@/db";
-import { useMutation } from "@tanstack/react-query";
-import { Link } from "expo-router";
-import { Pressable, Text } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { upsertProfile } from '@/db';
+import { useMutation } from '@tanstack/react-query';
+import { Link } from 'expo-router';
+import { Pressable, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function NavigationScreen() {
   const addData = useMutation({
     mutationFn: () =>
       upsertProfile({
-        name: "Sumrit Grover",
+        name: 'Sumrit Grover',
         salary: 100000,
         frivolousBudget: 10000,
         monthlySavingsTarget: 10000,

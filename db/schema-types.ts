@@ -11,7 +11,7 @@ import type {
   monthlySnapshotsTable,
   profileTable,
   savingsGoalsTable,
-} from "./schema";
+} from './schema';
 
 // ============================================
 // INFERRED TYPES FROM SCHEMA
@@ -43,55 +43,34 @@ export type NewMonthlySnapshot = typeof monthlySnapshotsTable.$inferInsert;
 // ============================================
 
 // Profile
-export type CreateProfileInput = Omit<
-  Profile,
-  "id" | "createdAt" | "updatedAt"
->;
+export type CreateProfileInput = Omit<Profile, 'id' | 'createdAt' | 'updatedAt'>;
 export type UpdateProfileInput = Partial<CreateProfileInput>;
 
 // Fixed Expenses
-export type CreateFixedExpenseInput = Pick<
-  FixedExpense,
-  "name" | "type" | "amount"
-> &
-  Partial<Pick<FixedExpense, "customType" | "dayOfMonth">>;
-export type UpdateFixedExpenseInput = Partial<
-  Omit<FixedExpense, "id" | "createdAt" | "updatedAt">
->;
+export type CreateFixedExpenseInput = Pick<FixedExpense, 'name' | 'type' | 'amount'> &
+  Partial<Pick<FixedExpense, 'customType' | 'dayOfMonth'>>;
+export type UpdateFixedExpenseInput = Partial<Omit<FixedExpense, 'id' | 'createdAt' | 'updatedAt'>>;
 
 // Debts
-export type CreateDebtInput = Omit<
-  Debt,
-  "id" | "isActive" | "createdAt" | "updatedAt"
-> &
-  Partial<Pick<Debt, "customType" | "startDate">>;
-export type UpdateDebtInput = Partial<
-  Omit<Debt, "id" | "createdAt" | "updatedAt">
->;
+export type CreateDebtInput = Omit<Debt, 'id' | 'isActive' | 'createdAt' | 'updatedAt'> &
+  Partial<Pick<Debt, 'customType' | 'startDate'>>;
+export type UpdateDebtInput = Partial<Omit<Debt, 'id' | 'createdAt' | 'updatedAt'>>;
 
 // Categories
-export type CreateCategoryInput = Pick<Category, "name" | "type"> &
-  Partial<Pick<Category, "customType" | "icon" | "color">>;
-export type UpdateCategoryInput = Partial<Omit<Category, "id" | "createdAt">>;
+export type CreateCategoryInput = Pick<Category, 'name' | 'type'> &
+  Partial<Pick<Category, 'customType' | 'icon' | 'color'>>;
+export type UpdateCategoryInput = Partial<Omit<Category, 'id' | 'createdAt'>>;
 
 // Expenses
-export type CreateExpenseInput = Pick<Expense, "amount" | "categoryId"> &
-  Partial<Pick<Expense, "description" | "date" | "wasImpulse">>;
-export type UpdateExpenseInput = Partial<Omit<Expense, "id" | "createdAt">>;
+export type CreateExpenseInput = Pick<Expense, 'amount' | 'categoryId'> &
+  Partial<Pick<Expense, 'description' | 'date' | 'wasImpulse'>>;
+export type UpdateExpenseInput = Partial<Omit<Expense, 'id' | 'createdAt'>>;
 
 // Savings Goals
-export type CreateSavingsGoalInput = Pick<
-  SavingsGoal,
-  "name" | "type" | "targetAmount"
-> &
-  Partial<Pick<SavingsGoal, "customType" | "icon">>;
-export type UpdateSavingsGoalInput = Partial<
-  Omit<SavingsGoal, "id" | "createdAt" | "updatedAt">
->;
+export type CreateSavingsGoalInput = Pick<SavingsGoal, 'name' | 'type' | 'targetAmount'> &
+  Partial<Pick<SavingsGoal, 'customType' | 'icon'>>;
+export type UpdateSavingsGoalInput = Partial<Omit<SavingsGoal, 'id' | 'createdAt' | 'updatedAt'>>;
 
 // Monthly Snapshots
-export type CreateMonthlySnapshotInput = Pick<
-  MonthlySnapshot,
-  "month" | "frivolousBudget"
-> &
-  Partial<Pick<MonthlySnapshot, "rolloverFromPrevious">>;
+export type CreateMonthlySnapshotInput = Pick<MonthlySnapshot, 'month' | 'frivolousBudget'> &
+  Partial<Pick<MonthlySnapshot, 'rolloverFromPrevious'>>;

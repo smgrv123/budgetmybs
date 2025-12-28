@@ -1,88 +1,88 @@
-import { db } from "./client";
-import { categoriesTable } from "./schema";
-import { CategoryTypeEnum } from "./types";
+import { db } from './client';
+import { categoriesTable } from './schema';
+import { CategoryTypeEnum } from './types';
 
 /**
  * Predefined categories with icons and colors
  */
 const PREDEFINED_CATEGORIES = [
   {
-    name: "Food & Dining",
+    name: 'Food & Dining',
     type: CategoryTypeEnum.FOOD,
-    icon: "🍔",
-    color: "#FF6B6B",
+    icon: '🍔',
+    color: '#FF6B6B',
     isPredefined: 1,
     isActive: 1,
   },
   {
-    name: "Shopping",
+    name: 'Shopping',
     type: CategoryTypeEnum.SHOPPING,
-    icon: "🛍️",
-    color: "#4ECDC4",
+    icon: '🛍️',
+    color: '#4ECDC4',
     isPredefined: 1,
     isActive: 1,
   },
   {
-    name: "Entertainment",
+    name: 'Entertainment',
     type: CategoryTypeEnum.ENTERTAINMENT,
-    icon: "🎬",
-    color: "#45B7D1",
+    icon: '🎬',
+    color: '#45B7D1',
     isPredefined: 1,
     isActive: 1,
   },
   {
-    name: "Healthcare",
+    name: 'Healthcare',
     type: CategoryTypeEnum.HEALTHCARE,
-    icon: "💊",
-    color: "#96CEB4",
+    icon: '💊',
+    color: '#96CEB4',
     isPredefined: 1,
     isActive: 1,
   },
   {
-    name: "Education",
+    name: 'Education',
     type: CategoryTypeEnum.EDUCATION,
-    icon: "📚",
-    color: "#FFEAA7",
+    icon: '📚',
+    color: '#FFEAA7',
     isPredefined: 1,
     isActive: 1,
   },
   {
-    name: "Personal Care",
+    name: 'Personal Care',
     type: CategoryTypeEnum.PERSONAL_CARE,
-    icon: "💅",
-    color: "#DDA0DD",
+    icon: '💅',
+    color: '#DDA0DD',
     isPredefined: 1,
     isActive: 1,
   },
   {
-    name: "Gifts",
+    name: 'Gifts',
     type: CategoryTypeEnum.GIFTS,
-    icon: "🎁",
-    color: "#FFB6C1",
+    icon: '🎁',
+    color: '#FFB6C1',
     isPredefined: 1,
     isActive: 1,
   },
   {
-    name: "Travel",
+    name: 'Travel',
     type: CategoryTypeEnum.TRAVEL,
-    icon: "✈️",
-    color: "#87CEEB",
+    icon: '✈️',
+    color: '#87CEEB',
     isPredefined: 1,
     isActive: 1,
   },
   {
-    name: "Fitness",
+    name: 'Fitness',
     type: CategoryTypeEnum.FITNESS,
-    icon: "💪",
-    color: "#98D8C8",
+    icon: '💪',
+    color: '#98D8C8',
     isPredefined: 1,
     isActive: 1,
   },
   {
-    name: "Other",
+    name: 'Other',
     type: CategoryTypeEnum.OTHER,
-    icon: "📦",
-    color: "#B0B0B0",
+    icon: '📦',
+    color: '#B0B0B0',
     isPredefined: 1,
     isActive: 1,
   },
@@ -97,9 +97,9 @@ export const seedCategories = async (): Promise<void> => {
 
   if (existing.length === 0) {
     await db.insert(categoriesTable).values(PREDEFINED_CATEGORIES);
-    console.log("✅ Seeded predefined categories");
+    console.log('✅ Seeded predefined categories');
   } else {
-    console.log("⏭️ Categories already exist, skipping seed");
+    console.log('⏭️ Categories already exist, skipping seed');
   }
 };
 
@@ -110,5 +110,5 @@ export const seedCategories = async (): Promise<void> => {
 export const forceReseedCategories = async (): Promise<void> => {
   await db.delete(categoriesTable);
   await db.insert(categoriesTable).values(PREDEFINED_CATEGORIES);
-  console.log("✅ Force reseeded predefined categories");
+  console.log('✅ Force reseeded predefined categories');
 };

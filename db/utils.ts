@@ -2,7 +2,7 @@
  * Date and time utility functions using dayjs
  */
 
-import dayjs from "dayjs";
+import dayjs from 'dayjs';
 
 // ============================================
 // DATE FORMATTING
@@ -13,7 +13,7 @@ import dayjs from "dayjs";
  * @returns Current month string (e.g., "2025-12")
  */
 export const getCurrentMonth = (): string => {
-  return dayjs().format("YYYY-MM");
+  return dayjs().format('YYYY-MM');
 };
 
 /**
@@ -22,7 +22,7 @@ export const getCurrentMonth = (): string => {
  * @returns Formatted date string (e.g., "2025-12-28")
  */
 export const formatDate = (date?: Date | string | dayjs.Dayjs): string => {
-  return dayjs(date).format("YYYY-MM-DD");
+  return dayjs(date).format('YYYY-MM-DD');
 };
 
 /**
@@ -30,7 +30,7 @@ export const formatDate = (date?: Date | string | dayjs.Dayjs): string => {
  * @returns Current date string
  */
 export const getCurrentDate = (): string => {
-  return dayjs().format("YYYY-MM-DD");
+  return dayjs().format('YYYY-MM-DD');
 };
 
 /**
@@ -39,7 +39,7 @@ export const getCurrentDate = (): string => {
  * @returns Month string in YYYY-MM format
  */
 export const getMonthFromDate = (date: string): string => {
-  return dayjs(date).format("YYYY-MM");
+  return dayjs(date).format('YYYY-MM');
 };
 
 /**
@@ -48,7 +48,7 @@ export const getMonthFromDate = (date: string): string => {
  * @returns Date string in YYYY-MM-DD format
  */
 export const getFirstDayOfMonth = (month: string): string => {
-  return dayjs(month).startOf("month").format("YYYY-MM-DD");
+  return dayjs(month).startOf('month').format('YYYY-MM-DD');
 };
 
 /**
@@ -57,7 +57,7 @@ export const getFirstDayOfMonth = (month: string): string => {
  * @returns Date string in YYYY-MM-DD format
  */
 export const getLastDayOfMonth = (month: string): string => {
-  return dayjs(month).endOf("month").format("YYYY-MM-DD");
+  return dayjs(month).endOf('month').format('YYYY-MM-DD');
 };
 
 /**
@@ -66,7 +66,7 @@ export const getLastDayOfMonth = (month: string): string => {
  * @returns Previous month string
  */
 export const getPreviousMonth = (month?: string): string => {
-  return dayjs(month).subtract(1, "month").format("YYYY-MM");
+  return dayjs(month).subtract(1, 'month').format('YYYY-MM');
 };
 
 /**
@@ -75,7 +75,7 @@ export const getPreviousMonth = (month?: string): string => {
  * @returns Next month string
  */
 export const getNextMonth = (month?: string): string => {
-  return dayjs(month).add(1, "month").format("YYYY-MM");
+  return dayjs(month).add(1, 'month').format('YYYY-MM');
 };
 
 /**
@@ -84,7 +84,7 @@ export const getNextMonth = (month?: string): string => {
  * @returns True if date is in current month
  */
 export const isCurrentMonth = (date: string): boolean => {
-  return dayjs(date).isSame(dayjs(), "month");
+  return dayjs(date).isSame(dayjs(), 'month');
 };
 
 /**
@@ -93,7 +93,7 @@ export const isCurrentMonth = (date: string): boolean => {
  * @returns Month name (e.g., "December 2025")
  */
 export const getMonthName = (month: string): string => {
-  return dayjs(month).format("MMMM YYYY");
+  return dayjs(month).format('MMMM YYYY');
 };
 
 /**
@@ -102,7 +102,7 @@ export const getMonthName = (month: string): string => {
  * @returns Short month name (e.g., "Dec 2025")
  */
 export const getShortMonthName = (month: string): string => {
-  return dayjs(month).format("MMM YYYY");
+  return dayjs(month).format('MMM YYYY');
 };
 
 export const generateUUID = (): string => {
@@ -113,13 +113,13 @@ export const generateUUID = (): string => {
       return cryptoObj.randomUUID();
     }
   } catch {
-    console.error("crypto.randomUUID not supported");
+    console.error('crypto.randomUUID not supported');
   }
 
   // Fallback: RFC 4122 UUID v4
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (char) => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (char) => {
     const r = (Math.random() * 16) | 0;
-    const v = char === "x" ? r : (r & 0x3) | 0x8;
+    const v = char === 'x' ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
 };

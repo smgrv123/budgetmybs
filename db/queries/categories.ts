@@ -1,7 +1,7 @@
-import { and, eq } from "drizzle-orm";
-import { db } from "../client";
-import { categoriesTable } from "../schema";
-import type { CreateCategoryInput, UpdateCategoryInput } from "../schema-types";
+import { and, eq } from 'drizzle-orm';
+import { db } from '../client';
+import { categoriesTable } from '../schema';
+import type { CreateCategoryInput, UpdateCategoryInput } from '../schema-types';
 
 // ============================================
 // GET ALL CATEGORIES
@@ -9,10 +9,7 @@ import type { CreateCategoryInput, UpdateCategoryInput } from "../schema-types";
 
 export const getAllCategories = async (activeOnly = true) => {
   if (activeOnly) {
-    return db
-      .select()
-      .from(categoriesTable)
-      .where(eq(categoriesTable.isActive, 1));
+    return db.select().from(categoriesTable).where(eq(categoriesTable.isActive, 1));
   }
   return db.select().from(categoriesTable);
 };
@@ -25,9 +22,7 @@ export const getPredefinedCategories = async () => {
   return db
     .select()
     .from(categoriesTable)
-    .where(
-      and(eq(categoriesTable.isPredefined, 1), eq(categoriesTable.isActive, 1))
-    );
+    .where(and(eq(categoriesTable.isPredefined, 1), eq(categoriesTable.isActive, 1)));
 };
 
 // ============================================
@@ -38,9 +33,7 @@ export const getCustomCategories = async () => {
   return db
     .select()
     .from(categoriesTable)
-    .where(
-      and(eq(categoriesTable.isPredefined, 0), eq(categoriesTable.isActive, 1))
-    );
+    .where(and(eq(categoriesTable.isPredefined, 0), eq(categoriesTable.isActive, 1)));
 };
 
 // ============================================
@@ -48,11 +41,7 @@ export const getCustomCategories = async () => {
 // ============================================
 
 export const getCategoryById = async (id: string) => {
-  const result = await db
-    .select()
-    .from(categoriesTable)
-    .where(eq(categoriesTable.id, id))
-    .limit(1);
+  const result = await db.select().from(categoriesTable).where(eq(categoriesTable.id, id)).limit(1);
 
   return result[0] ?? null;
 };
@@ -80,15 +69,8 @@ export const createCategory = async (data: CreateCategoryInput) => {
 // UPDATE CATEGORY
 // ============================================
 
-export const updateCategory = async (
-  id: string,
-  updateData: UpdateCategoryInput
-) => {
-  const result = await db
-    .update(categoriesTable)
-    .set(updateData)
-    .where(eq(categoriesTable.id, id))
-    .returning();
+export const updateCategory = async (id: string, updateData: UpdateCategoryInput) => {
+  const result = await db.update(categoriesTable).set(updateData).where(eq(categoriesTable.id, id)).returning();
 
   return result[0];
 };

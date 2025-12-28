@@ -1,7 +1,7 @@
-import { eq, sql } from "drizzle-orm";
-import { db } from "../client";
-import { debtsTable } from "../schema";
-import type { CreateDebtInput, UpdateDebtInput } from "../schema-types";
+import { eq, sql } from 'drizzle-orm';
+import { db } from '../client';
+import { debtsTable } from '../schema';
+import type { CreateDebtInput, UpdateDebtInput } from '../schema-types';
 
 // ============================================
 // GET ALL DEBTS
@@ -19,11 +19,7 @@ export const getDebts = async (activeOnly = true) => {
 // ============================================
 
 export const getDebtById = async (id: string) => {
-  const result = await db
-    .select()
-    .from(debtsTable)
-    .where(eq(debtsTable.id, id))
-    .limit(1);
+  const result = await db.select().from(debtsTable).where(eq(debtsTable.id, id)).limit(1);
 
   return result[0] ?? null;
 };
@@ -98,7 +94,7 @@ export const updateDebt = async (id: string, updateData: UpdateDebtInput) => {
 
 export const makeEmiPayment = async (id: string) => {
   const debt = await getDebtById(id);
-  if (!debt) throw new Error("Debt not found");
+  if (!debt) throw new Error('Debt not found');
 
   const monthlyInterest = (debt.remaining * debt.interestRate) / 100 / 12;
   const principalPaid = debt.emiAmount - monthlyInterest;

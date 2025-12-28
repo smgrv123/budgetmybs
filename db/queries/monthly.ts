@@ -1,16 +1,12 @@
-import { eq, like, sql } from "drizzle-orm";
-import { db } from "../client";
-import {
-  categoriesTable,
-  expensesTable,
-  monthlySnapshotsTable,
-} from "../schema";
-import type { CreateMonthlySnapshotInput } from "../schema-types";
-import { getCurrentMonth, getPreviousMonth } from "../utils";
-import { getTotalMonthlyEmi } from "./debts";
-import { getTotalSpentByMonth } from "./expenses";
-import { getTotalFixedExpenses } from "./fixed-expenses";
-import { getTotalMonthlySavingsTarget } from "./savings";
+import { eq, like, sql } from 'drizzle-orm';
+import { db } from '../client';
+import { categoriesTable, expensesTable, monthlySnapshotsTable } from '../schema';
+import type { CreateMonthlySnapshotInput } from '../schema-types';
+import { getCurrentMonth, getPreviousMonth } from '../utils';
+import { getTotalMonthlyEmi } from './debts';
+import { getTotalSpentByMonth } from './expenses';
+import { getTotalFixedExpenses } from './fixed-expenses';
+import { getTotalMonthlySavingsTarget } from './savings';
 
 // ============================================
 // GET MONTHLY SNAPSHOT
@@ -32,9 +28,7 @@ export const getMonthlySnapshot = async (month?: string) => {
 // CREATE MONTHLY SNAPSHOT
 // ============================================
 
-export const createMonthlySnapshot = async (
-  data: CreateMonthlySnapshotInput
-) => {
+export const createMonthlySnapshot = async (data: CreateMonthlySnapshotInput) => {
   const result = await db
     .insert(monthlySnapshotsTable)
     .values({
@@ -64,8 +58,7 @@ export const initializeCurrentMonth = async (frivolousBudget: number) => {
 
   if (previousSnapshot && !previousSnapshot.isClosed) {
     const prevSpent = await getTotalSpentByMonth(prevMonth);
-    const totalBudget =
-      previousSnapshot.frivolousBudget + previousSnapshot.rolloverFromPrevious;
+    const totalBudget = previousSnapshot.frivolousBudget + previousSnapshot.rolloverFromPrevious;
     rollover = Math.max(0, totalBudget - prevSpent);
     await closeMonth(prevMonth);
   }
@@ -122,14 +115,13 @@ export const getRemainingFrivolousBudget = async (month?: string) => {
 export const getMonthlySummary = async (month?: string) => {
   const targetMonth = month ?? getCurrentMonth();
 
-  const [snapshot, variableSpent, fixedTotal, emiTotal, savingsTarget] =
-    await Promise.all([
-      getMonthlySnapshot(targetMonth),
-      getTotalSpentByMonth(targetMonth),
-      getTotalFixedExpenses(),
-      getTotalMonthlyEmi(),
-      getTotalMonthlySavingsTarget(),
-    ]);
+  const [snapshot, variableSpent, fixedTotal, emiTotal, savingsTarget] = await Promise.all([
+    getMonthlySnapshot(targetMonth),
+    getTotalSpentByMonth(targetMonth),
+    getTotalFixedExpenses(),
+    getTotalMonthlyEmi(),
+    getTotalMonthlySavingsTarget(),
+  ]);
 
   const frivolousBudget = snapshot?.frivolousBudget ?? 0;
   const rollover = snapshot?.rolloverFromPrevious ?? 0;
@@ -158,51 +150,47 @@ export const getMonthlySummary = async (month?: string) => {
 export const getPieChartData = async (month?: string) => {
   const targetMonth = month ?? getCurrentMonth();
 
-  const [fixedTotal, emiTotal, savingsTarget, categoryBreakdown] =
-    await Promise.all([
-      getTotalFixedExpenses(),
-      getTotalMonthlyEmi(),
-      getTotalMonthlySavingsTarget(),
-      db
-        .select({
-          categoryId: expensesTable.categoryId,
-          categoryName: categoriesTable.name,
-          categoryColor: categoriesTable.color,
-          total: sql<number>`SUM(${expensesTable.amount})`,
-        })
-        .from(expensesTable)
-        .leftJoin(
-          categoriesTable,
-          eq(expensesTable.categoryId, categoriesTable.id)
-        )
-        .where(like(expensesTable.date, `${targetMonth}%`))
-        .groupBy(expensesTable.categoryId),
-    ]);
+  const [fixedTotal, emiTotal, savingsTarget, categoryBreakdown] = await Promise.all([
+    getTotalFixedExpenses(),
+    getTotalMonthlyEmi(),
+    getTotalMonthlySavingsTarget(),
+    db
+      .select({
+        categoryId: expensesTable.categoryId,
+        categoryName: categoriesTable.name,
+        categoryColor: categoriesTable.color,
+        total: sql<number>`SUM(${expensesTable.amount})`,
+      })
+      .from(expensesTable)
+      .leftJoin(categoriesTable, eq(expensesTable.categoryId, categoriesTable.id))
+      .where(like(expensesTable.date, `${targetMonth}%`))
+      .groupBy(expensesTable.categoryId),
+  ]);
 
   const pieData = [
     {
-      name: "Fixed Expenses",
+      name: 'Fixed Expenses',
       value: fixedTotal,
-      color: "#FF6B6B",
-      type: "fixed" as const,
+      color: '#FF6B6B',
+      type: 'fixed' as const,
     },
     {
-      name: "EMI Payments",
+      name: 'EMI Payments',
       value: emiTotal,
-      color: "#4ECDC4",
-      type: "debt" as const,
+      color: '#4ECDC4',
+      type: 'debt' as const,
     },
     {
-      name: "Savings",
+      name: 'Savings',
       value: savingsTarget,
-      color: "#45B7D1",
-      type: "savings" as const,
+      color: '#45B7D1',
+      type: 'savings' as const,
     },
     ...categoryBreakdown.map((cat) => ({
-      name: cat.categoryName ?? "Unknown",
+      name: cat.categoryName ?? 'Unknown',
       value: cat.total,
-      color: cat.categoryColor ?? "#B0B0B0",
-      type: "variable" as const,
+      color: cat.categoryColor ?? '#B0B0B0',
+      type: 'variable' as const,
     })),
   ].filter((item) => item.value > 0);
 
@@ -213,10 +201,7 @@ export const getPieChartData = async (month?: string) => {
 // UPDATE MONTHLY SNAPSHOT BUDGET
 // ============================================
 
-export const updateMonthlySnapshotBudget = async (
-  month: string,
-  frivolousBudget: number
-) => {
+export const updateMonthlySnapshotBudget = async (month: string, frivolousBudget: number) => {
   await db
     .update(monthlySnapshotsTable)
     .set({

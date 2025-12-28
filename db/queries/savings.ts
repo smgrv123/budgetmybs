@@ -1,10 +1,7 @@
-import { eq, sql } from "drizzle-orm";
-import { db } from "../client";
-import { savingsGoalsTable } from "../schema";
-import type {
-  CreateSavingsGoalInput,
-  UpdateSavingsGoalInput,
-} from "../schema-types";
+import { eq, sql } from 'drizzle-orm';
+import { db } from '../client';
+import { savingsGoalsTable } from '../schema';
+import type { CreateSavingsGoalInput, UpdateSavingsGoalInput } from '../schema-types';
 
 // ============================================
 // GET ALL SAVINGS GOALS
@@ -12,10 +9,7 @@ import type {
 
 export const getSavingsGoals = async (activeOnly = true) => {
   if (activeOnly) {
-    return db
-      .select()
-      .from(savingsGoalsTable)
-      .where(eq(savingsGoalsTable.isActive, 1));
+    return db.select().from(savingsGoalsTable).where(eq(savingsGoalsTable.isActive, 1));
   }
   return db.select().from(savingsGoalsTable);
 };
@@ -25,11 +19,7 @@ export const getSavingsGoals = async (activeOnly = true) => {
 // ============================================
 
 export const getSavingsGoalById = async (id: string) => {
-  const result = await db
-    .select()
-    .from(savingsGoalsTable)
-    .where(eq(savingsGoalsTable.id, id))
-    .limit(1);
+  const result = await db.select().from(savingsGoalsTable).where(eq(savingsGoalsTable.id, id)).limit(1);
 
   return result[0] ?? null;
 };
@@ -70,10 +60,7 @@ export const createSavingsGoal = async (data: CreateSavingsGoalInput) => {
 // UPDATE SAVINGS GOAL
 // ============================================
 
-export const updateSavingsGoal = async (
-  id: string,
-  updateData: UpdateSavingsGoalInput
-) => {
+export const updateSavingsGoal = async (id: string, updateData: UpdateSavingsGoalInput) => {
   const result = await db
     .update(savingsGoalsTable)
     .set({

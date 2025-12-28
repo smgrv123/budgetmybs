@@ -1,8 +1,8 @@
-import { useMigrations } from "drizzle-orm/expo-sqlite/migrator";
-import { PropsWithChildren } from "react";
-import { Text, View } from "react-native";
-import migrations from "../drizzle/migrations";
-import { db } from "./client";
+import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
+import { PropsWithChildren } from 'react';
+import { Text, View } from 'react-native';
+import migrations from '../drizzle/migrations';
+import { db } from './client';
 
 /**
  * Database Provider Component
@@ -16,14 +16,12 @@ export function DatabaseProvider({ children }: PropsWithChildren) {
       <View
         style={{
           flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: "#1a1a1a",
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: '#1a1a1a',
         }}
       >
-        <Text style={{ color: "#ff6b6b", fontSize: 16 }}>
-          Migration error: {error.message}
-        </Text>
+        <Text style={{ color: '#ff6b6b', fontSize: 16 }}>Migration error: {error.message}</Text>
       </View>
     );
   }
@@ -33,14 +31,12 @@ export function DatabaseProvider({ children }: PropsWithChildren) {
       <View
         style={{
           flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: "#1a1a1a",
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: '#1a1a1a',
         }}
       >
-        <Text style={{ color: "#ffffff", fontSize: 16 }}>
-          Initializing database...
-        </Text>
+        <Text style={{ color: '#ffffff', fontSize: 16 }}>Initializing database...</Text>
       </View>
     );
   }

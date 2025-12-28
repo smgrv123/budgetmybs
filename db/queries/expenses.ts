@@ -1,8 +1,8 @@
-import { and, between, desc, eq, like, sql } from "drizzle-orm";
-import { db } from "../client";
-import { categoriesTable, expensesTable } from "../schema";
-import type { CreateExpenseInput, UpdateExpenseInput } from "../schema-types";
-import { getCurrentMonth } from "../utils";
+import { and, between, desc, eq, like, sql } from 'drizzle-orm';
+import { db } from '../client';
+import { categoriesTable, expensesTable } from '../schema';
+import type { CreateExpenseInput, UpdateExpenseInput } from '../schema-types';
+import { getCurrentMonth } from '../utils';
 
 // ============================================
 // GET ALL EXPENSES
@@ -22,9 +22,7 @@ export const getExpenses = async (options?: {
   }
 
   if (options?.startDate && options?.endDate) {
-    conditions.push(
-      between(expensesTable.date, options.startDate, options.endDate)
-    );
+    conditions.push(between(expensesTable.date, options.startDate, options.endDate));
   } else if (options?.startDate) {
     conditions.push(sql`${expensesTable.date} >= ${options.startDate}`);
   } else if (options?.endDate) {
@@ -144,12 +142,7 @@ export const getImpulsePurchaseStats = async (month?: string) => {
       count: sql<number>`COUNT(${expensesTable.id})`,
     })
     .from(expensesTable)
-    .where(
-      and(
-        like(expensesTable.date, `${targetMonth}%`),
-        eq(expensesTable.wasImpulse, 1)
-      )
-    );
+    .where(and(like(expensesTable.date, `${targetMonth}%`), eq(expensesTable.wasImpulse, 1)));
 
   return {
     total: result[0]?.total ?? 0,
@@ -178,15 +171,8 @@ export const createExpense = async (data: CreateExpenseInput) => {
 // UPDATE EXPENSE
 // ============================================
 
-export const updateExpense = async (
-  id: string,
-  updateData: UpdateExpenseInput
-) => {
-  const result = await db
-    .update(expensesTable)
-    .set(updateData)
-    .where(eq(expensesTable.id, id))
-    .returning();
+export const updateExpense = async (id: string, updateData: UpdateExpenseInput) => {
+  const result = await db.update(expensesTable).set(updateData).where(eq(expensesTable.id, id)).returning();
 
   return result[0];
 };

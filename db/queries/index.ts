@@ -4,7 +4,7 @@
  */
 
 // Profile queries
-export { getProfile, updateProfile, upsertProfile } from "./profile";
+export { getProfile, updateProfile, upsertProfile } from './profile';
 
 // Fixed expenses queries
 export {
@@ -14,7 +14,7 @@ export {
   getFixedExpensesByType,
   getTotalFixedExpenses,
   updateFixedExpense,
-} from "./fixed-expenses";
+} from './fixed-expenses';
 
 // Debts queries
 export {
@@ -26,7 +26,7 @@ export {
   getTotalRemainingDebt,
   makeEmiPayment,
   updateDebt,
-} from "./debts";
+} from './debts';
 
 // Categories queries
 export {
@@ -37,7 +37,7 @@ export {
   getCustomCategories,
   getPredefinedCategories,
   updateCategory,
-} from "./categories";
+} from './categories';
 
 // Expenses queries
 export {
@@ -50,7 +50,7 @@ export {
   getSpendingByCategory,
   getTotalSpentByMonth,
   updateExpense,
-} from "./expenses";
+} from './expenses';
 
 // Savings goals queries
 export {
@@ -60,7 +60,7 @@ export {
   getSavingsGoals,
   getTotalMonthlySavingsTarget,
   updateSavingsGoal,
-} from "./savings";
+} from './savings';
 
 // Monthly snapshot queries
 export {
@@ -72,4 +72,4 @@ export {
   getRemainingFrivolousBudget,
   initializeCurrentMonth,
   updateMonthlySnapshotBudget,
-} from "./monthly";
+} from './monthly';

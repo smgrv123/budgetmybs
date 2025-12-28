@@ -1,11 +1,8 @@
-import { and, eq, sql } from "drizzle-orm";
-import { db } from "../client";
-import { fixedExpensesTable } from "../schema";
-import type {
-  CreateFixedExpenseInput,
-  UpdateFixedExpenseInput,
-} from "../schema-types";
-import type { FixedExpenseType } from "../types";
+import { and, eq, sql } from 'drizzle-orm';
+import { db } from '../client';
+import { fixedExpensesTable } from '../schema';
+import type { CreateFixedExpenseInput, UpdateFixedExpenseInput } from '../schema-types';
+import type { FixedExpenseType } from '../types';
 
 // ============================================
 // GET ALL FIXED EXPENSES
@@ -13,10 +10,7 @@ import type { FixedExpenseType } from "../types";
 
 export const getFixedExpenses = async (activeOnly = true) => {
   if (activeOnly) {
-    return db
-      .select()
-      .from(fixedExpensesTable)
-      .where(eq(fixedExpensesTable.isActive, 1));
+    return db.select().from(fixedExpensesTable).where(eq(fixedExpensesTable.isActive, 1));
   }
   return db.select().from(fixedExpensesTable);
 };
@@ -29,9 +23,7 @@ export const getFixedExpensesByType = async (type: FixedExpenseType) => {
   return db
     .select()
     .from(fixedExpensesTable)
-    .where(
-      and(eq(fixedExpensesTable.type, type), eq(fixedExpensesTable.isActive, 1))
-    );
+    .where(and(eq(fixedExpensesTable.type, type), eq(fixedExpensesTable.isActive, 1)));
 };
 
 // ============================================
@@ -70,10 +62,7 @@ export const createFixedExpense = async (data: CreateFixedExpenseInput) => {
 // UPDATE FIXED EXPENSE
 // ============================================
 
-export const updateFixedExpense = async (
-  id: string,
-  updateData: UpdateFixedExpenseInput
-) => {
+export const updateFixedExpense = async (id: string, updateData: UpdateFixedExpenseInput) => {
   const result = await db
     .update(fixedExpensesTable)
     .set({

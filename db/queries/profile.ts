@@ -1,7 +1,7 @@
-import { eq, sql } from "drizzle-orm";
-import { db } from "../client";
-import { profileTable } from "../schema";
-import type { CreateProfileInput, UpdateProfileInput } from "../schema-types";
+import { eq, sql } from 'drizzle-orm';
+import { db } from '../client';
+import { profileTable } from '../schema';
+import type { CreateProfileInput, UpdateProfileInput } from '../schema-types';
 
 // ============================================
 // GET PROFILE
@@ -39,7 +39,7 @@ export const upsertProfile = async (data: CreateProfileInput) => {
 
 export const updateProfile = async (updateData: UpdateProfileInput) => {
   const existing = await getProfile();
-  if (!existing) throw new Error("Profile not found");
+  if (!existing) throw new Error('Profile not found');
 
   const result = await db
     .update(profileTable)
