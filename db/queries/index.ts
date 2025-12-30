@@ -73,3 +73,6 @@ export {
   initializeCurrentMonth,
   updateMonthlySnapshotBudget,
 } from './monthly';
+
+// Account queries (delete/reset)
+export { clearUserData } from './account';
