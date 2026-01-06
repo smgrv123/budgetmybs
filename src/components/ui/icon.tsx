@@ -1,7 +1,8 @@
-import { Colors, IconFamily, IconSize } from '@/constants/theme';
 import { Feather, FontAwesome, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import type { IconProps } from '@expo/vector-icons/build/createIconSet';
 import type { FC } from 'react';
+
+import { Colors, IconFamily, IconSize } from '@/constants/theme';
 
 type IconSizeKey = keyof typeof IconSize;
 

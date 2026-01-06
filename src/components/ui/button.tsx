@@ -1,35 +1,16 @@
-import type { ButtonVariantType, ComponentSizeType } from '@/constants/theme';
-import {
-  BorderRadius,
-  ButtonVariant,
-  Colors,
-  ComponentHeight,
-  ComponentSize,
-  FontSize,
-  FontWeight,
-  Opacity,
-  Spacing,
-} from '@/constants/theme';
 import type { FC } from 'react';
 import type { PressableProps, ViewStyle } from 'react-native';
 import { ActivityIndicator, Pressable, StyleSheet } from 'react-native';
 
+import type { ButtonVariantType, ComponentSizeType } from '@/constants/theme';
+import { BorderRadius, ButtonVariant, Colors, ComponentSize, Opacity } from '@/constants/theme';
+
 export interface BButtonProps extends PressableProps {
-  /** Visual variant */
   variant?: ButtonVariantType;
-  /** Button size */
   size?: ComponentSizeType;
-  /** Loading state - shows spinner and disables button */
   loading?: boolean;
-  /** Full width button */
   fullWidth?: boolean;
 }
-
-const sizeStyles: Record<ComponentSizeType, { height: number; paddingHorizontal: number; fontSize: number }> = {
-  [ComponentSize.SM]: { height: ComponentHeight.sm, paddingHorizontal: Spacing.md, fontSize: FontSize.sm },
-  [ComponentSize.MD]: { height: ComponentHeight.md, paddingHorizontal: Spacing.base, fontSize: FontSize.base },
-  [ComponentSize.LG]: { height: ComponentHeight.lg, paddingHorizontal: Spacing.xl, fontSize: FontSize.md },
-};
 
 const getBackgroundColor = (variant: ButtonVariantType, pressed: boolean): string => {
   if (variant === ButtonVariant.OUTLINE || variant === ButtonVariant.GHOST) {
@@ -69,7 +50,6 @@ const BButton: FC<BButtonProps> = ({
   ...props
 }) => {
   const isDisabled = disabled || loading;
-  const currentSize = sizeStyles[size];
 
   return (
     <Pressable
@@ -80,8 +60,6 @@ const BButton: FC<BButtonProps> = ({
         {
           backgroundColor: getBackgroundColor(variant, pressed),
           borderColor: getBorderColor(variant),
-          height: currentSize.height,
-          paddingHorizontal: currentSize.paddingHorizontal,
           opacity: isDisabled ? Opacity.disabled : Opacity.full,
         },
         fullWidth && styles.fullWidth,
@@ -108,10 +86,6 @@ const styles = StyleSheet.create({
   },
   outline: {
     borderWidth: 1.5,
-  },
-  text: {
-    fontWeight: FontWeight.semibold,
-    textAlign: 'center',
   },
 });
 

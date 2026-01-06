@@ -9,7 +9,6 @@ export default function HomeScreen() {
     queryFn: getProfile,
   });
 
-  console.log(data);
   if (isLoading) {
     return <Text>Loading...</Text>;
   }

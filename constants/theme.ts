@@ -11,6 +11,7 @@ import { Platform } from 'react-native';
 
 export const SpacingValue = {
   NONE: 'none',
+  XXS: 'xxs',
   XS: 'xs',
   SM: 'sm',
   MD: 'md',
@@ -84,23 +85,23 @@ export type ModalPositionType = (typeof ModalPosition)[keyof typeof ModalPositio
 // COLORS
 // ============================================
 
-const tintColorLight = '#0a7ea4';
 const tintColorDark = '#fff';
 
 export const Colors = {
   light: {
     text: '#000000',
     textSecondary: '#6B7280',
-    textMuted: '#9CA3AF',
+    textMuted: '#717182',
     background: '#FFFFFF',
-    backgroundSecondary: '#F3F4F6',
-    tint: tintColorLight,
+    backgroundSecondary: '#F3F3F5',
+    tint: '#4F6BED',
     icon: '#687076',
     tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
-    border: '#E5E7EB',
-    borderFocused: tintColorLight,
-    error: '#DC2626',
+    tabIconSelected: '#4F6BED',
+    border: 'rgba(0, 0, 0, 0.1)',
+    borderFocused: '#4F6BED',
+    borderDashed: 'rgba(0, 0, 0, 0.2)',
+    error: '#D4183D',
     errorBackground: '#FEE2E2',
     success: '#16A34A',
     successBackground: '#DCFCE7',
@@ -108,12 +109,25 @@ export const Colors = {
     warningBackground: '#FEF3C7',
     overlay: 'rgba(0, 0, 0, 0.5)',
     // Button variants
-    primary: '#0a7ea4',
-    primaryPressed: '#086F8E',
+    primary: '#4F6BED',
+    primaryPressed: '#3D56D4',
     secondary: '#6B7280',
     secondaryPressed: '#4B5563',
-    danger: '#DC2626',
+    danger: '#D4183D',
     dangerPressed: '#B91C1C',
+    // Card colors
+    card: '#FFFFFF',
+    cardSecondary: '#F9FAFB',
+    // Step indicator
+    stepActive: '#4F6BED',
+    stepCompleted: '#16A34A',
+    stepInactive: '#E5E7EB',
+    stepText: '#717182',
+    // Input
+    inputBackground: '#F3F3F5',
+    // Muted
+    muted: '#ECECF0',
+    accent: '#E9EBEF',
   },
   dark: {
     text: '#ECEDEE',
@@ -205,6 +219,7 @@ export const LineHeight = {
 
 export const Spacing: Record<SpacingValueType, number> = {
   [SpacingValue.NONE]: 0,
+  [SpacingValue.XXS]: normalize(2),
   [SpacingValue.XS]: normalize(4),
   [SpacingValue.SM]: normalize(8),
   [SpacingValue.MD]: normalize(12),

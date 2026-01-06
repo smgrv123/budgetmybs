@@ -1,18 +1,10 @@
-import type { ComponentSizeType } from '@/constants/theme';
-import {
-  BorderRadius,
-  ButtonVariant,
-  Colors,
-  ComponentHeight,
-  ComponentSize,
-  FontSize,
-  Opacity,
-  Spacing,
-} from '@/constants/theme';
 import type { FC, ReactNode } from 'react';
 import { useState } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 import { FlatList, Pressable, StyleSheet } from 'react-native';
+
+import type { ComponentSizeType } from '@/constants/theme';
+import { BorderRadius, Colors, ComponentHeight, ComponentSize, FontSize, Opacity, Spacing } from '@/constants/theme';
 import BButton from './button';
 import BIcon from './icon';
 import BModal from './modal';
@@ -25,27 +17,16 @@ export interface DropdownOption {
 }
 
 export interface BDropdownProps {
-  /** Array of options */
   options: DropdownOption[];
-  /** Currently selected value */
   value?: string | number | null;
-  /** Called when selection changes */
   onValueChange: (value: string | number) => void;
-  /** Placeholder text when no value selected */
   placeholder?: string;
-  /** Dropdown size */
   size?: ComponentSizeType;
-  /** Label above dropdown */
   label?: string;
-  /** Error message */
   error?: string;
-  /** Disabled state */
   disabled?: boolean;
-  /** Modal title */
   modalTitle?: string;
-  /** Override trigger button styles */
   style?: StyleProp<ViewStyle>;
-  /** Override container styles */
   containerStyle?: StyleProp<ViewStyle>;
 }
 
@@ -84,12 +65,15 @@ const BDropdown: FC<BDropdownProps> = ({
 
     return (
       <BButton
-        label={item.label}
-        variant={ButtonVariant.GHOST}
+        variant="ghost"
         onPress={() => handleSelect(item)}
         style={[styles.option, isSelected && styles.optionSelected]}
-        textStyle={[styles.optionText, { fontSize: currentSize.fontSize }, isSelected && styles.optionTextSelected]}
-      />
+      >
+        <BText style={[styles.optionText, { fontSize: currentSize.fontSize }, isSelected && styles.optionTextSelected]}>
+          {item.label}
+        </BText>
+        {isSelected && <BIcon name="checkmark" size="sm" color={Colors.light.primary} />}
+      </BButton>
     );
   };
 
@@ -98,8 +82,12 @@ const BDropdown: FC<BDropdownProps> = ({
       data={options}
       keyExtractor={(item) => String(item.value)}
       renderItem={renderOption}
-      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={true}
+      nestedScrollEnabled={true}
+      bounces={true}
       style={styles.optionsList}
+      contentContainerStyle={styles.optionsContent}
     />
   );
 
@@ -142,8 +130,14 @@ const BDropdown: FC<BDropdownProps> = ({
         onClose={() => setIsOpen(false)}
         title={modalTitle}
         position="bottom"
-        content={renderModalContent()}
-      />
+        showCloseButton={true}
+        closeOnBackdrop={true}
+        swipeDirection={undefined}
+        animationIn="fadeIn"
+        animationOut="fadeOut"
+      >
+        {renderModalContent()}
+      </BModal>
     </BView>
   );
 };
@@ -169,8 +163,13 @@ const styles = StyleSheet.create({
   optionsList: {
     maxHeight: 300,
   },
+  optionsContent: {
+    paddingBottom: Spacing.sm,
+  },
   option: {
-    justifyContent: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.sm,
     borderRadius: BorderRadius.sm,

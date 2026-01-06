@@ -1,7 +1,6 @@
 import { Spacing, SpacingValue, TextVariant } from '@/constants/theme';
-import { clearUserData, upsertProfile } from '@/db';
-import { BButton, BText, BView } from '@/src/components';
-import Input from '@/src/components/input';
+import { upsertProfile } from '@/db';
+import { BButton, BInput, BText, BView } from '@/src/components';
 import { useMutation } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useState } from 'react';
@@ -21,17 +20,6 @@ export default function NavigationScreen() {
         frivolousBudget: Number(frivolousBudget),
         monthlySavingsTarget: Number(monthlySavingsTarget),
       }),
-  });
-
-  const clearData = useMutation({
-    mutationFn: (mode: 'reset' | 'delete' = 'reset') => clearUserData(mode),
-    onSuccess: (result) => {
-      if (result.success) {
-        Alert.alert('Success', result.message);
-      } else {
-        Alert.alert('Error', result.message);
-      }
-    },
   });
 
   const userInputData = [
@@ -72,7 +60,7 @@ export default function NavigationScreen() {
           data={userInputData}
           renderItem={({ item }) => (
             <BView paddingY={SpacingValue.XS} flex>
-              <Input
+              <BInput
                 {...item}
                 placeholderTextColor={'#000'}
                 labelVariant={TextVariant.SUBHEADING}
@@ -90,6 +78,15 @@ export default function NavigationScreen() {
         }}
       >
         <BText>Add Data</BText>
+      </BButton>
+
+      {/* Test Onboarding Flow */}
+      <BButton
+        variant="secondary"
+        onPress={() => router.push('/onboarding/welcome')}
+        style={{ marginTop: 16, marginHorizontal: 10 }}
+      >
+        <BText>🚀 Test Onboarding Flow</BText>
       </BButton>
 
       {/* <Pressable style={styles.resetButton} onPress={() => clearData.mutate('reset')}>
@@ -117,21 +114,5 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     gap: Spacing.xs,
-  },
-  resetButton: {
-    marginTop: 20,
-    padding: 10,
-    backgroundColor: '#f0f0f0',
-    alignItems: 'center',
-    borderRadius: 5,
-    marginHorizontal: 10,
-  },
-  deleteButton: {
-    marginTop: 10,
-    padding: 10,
-    backgroundColor: '#ff4444',
-    alignItems: 'center',
-    borderRadius: 5,
-    marginHorizontal: 10,
   },
 });

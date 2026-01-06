@@ -22,6 +22,7 @@ export default function RootLayout() {
         <ThemeProvider value={colorScheme === 'light' ? DarkTheme : DefaultTheme}>
           <Stack>
             <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="onboarding" options={{ headerShown: false }} />
             <Stack.Screen name="navigation" />
           </Stack>
           <StatusBar style="auto" />

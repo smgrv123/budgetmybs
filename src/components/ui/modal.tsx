@@ -1,10 +1,11 @@
 import type { ModalPositionType } from '@/constants/theme';
 import { BorderRadius, Colors, ModalPosition, Opacity, Shadows, Spacing } from '@/constants/theme';
-import type { FC, ReactNode } from 'react';
+import type { FC } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
-import { Dimensions, KeyboardAvoidingView, Platform, Pressable, StyleSheet } from 'react-native';
+import { Dimensions, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 import type { ModalProps as RNModalProps } from 'react-native-modal';
 import RNModal from 'react-native-modal';
+import BButton from './button';
 import BIcon from './icon';
 import BText from './text';
 import BView from './view';
@@ -19,7 +20,7 @@ export interface BModalProps extends Partial<RNModalProps> {
   /** Modal title (optional) */
   title?: string;
   /** Modal content */
-  content: ReactNode;
+  // content: ReactNode;
   /** Show close button in header */
   showCloseButton?: boolean;
   /** Close on backdrop press */
@@ -36,7 +37,7 @@ const BModal: FC<BModalProps> = ({
   isVisible,
   onClose,
   title,
-  content,
+  children,
   showCloseButton = true,
   closeOnBackdrop = true,
   position = ModalPosition.CENTER,
@@ -75,19 +76,13 @@ const BModal: FC<BModalProps> = ({
                 <BView />
               )}
               {showCloseButton && (
-                <Pressable
-                  onPress={onClose}
-                  hitSlop={8}
-                  style={({ pressed }) => ({
-                    opacity: pressed ? Opacity.pressed : Opacity.full,
-                  })}
-                >
+                <BButton variant="ghost" onPress={onClose}>
                   <BIcon name="close" size="base" color={Colors.light.textSecondary} />
-                </Pressable>
+                </BButton>
               )}
             </BView>
           )}
-          <BView style={[styles.content, contentStyle]}>{content}</BView>
+          <BView style={[styles.content, contentStyle]}>{children}</BView>
         </BView>
       </KeyboardAvoidingView>
     </RNModal>

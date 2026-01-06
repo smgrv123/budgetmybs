@@ -40,9 +40,9 @@ const variantStyles: Record<
     lineHeight: FontSize.sm * LineHeight.normal,
   },
   [TextVariant.LABEL]: {
-    fontSize: FontSize.sm,
+    fontSize: FontSize.md,
     fontWeight: FontWeight.medium,
-    lineHeight: FontSize.sm * LineHeight.tight,
+    lineHeight: FontSize.md * LineHeight.tight,
   },
 };
 
