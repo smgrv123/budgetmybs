@@ -6,7 +6,8 @@ import {
   FIXED_EXPENSE_STEP_CONFIG,
   parseFixedExpenseFormData,
 } from '@/constants/setup-form.config';
-import { BListStep, BText } from '@/src/components';
+import BListStep from '@/src/components/onboarding/listStep';
+import { BText } from '@/src/components/ui';
 import { useOnboardingStore } from '@/src/store';
 
 export interface FixedExpensesStepProps {

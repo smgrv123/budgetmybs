@@ -7,7 +7,8 @@ import {
   parseDebtFormData,
 } from '@/constants/setup-form.config';
 import { Colors, Spacing } from '@/constants/theme';
-import { BListStep, BText, BView } from '@/src/components';
+import BListStep from '@/src/components/onboarding/listStep';
+import { BText, BView } from '@/src/components/ui';
 import { calculateEMI, useOnboardingStore } from '@/src/store';
 
 export interface DebtsStepProps {

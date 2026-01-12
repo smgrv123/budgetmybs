@@ -1,6 +1,12 @@
 import { OnboardingStepId } from '@/constants/onboarding.config';
 import { OnboardingStrings } from '@/constants/onboarding.strings';
-import { BDebtsStep, BFixedExpensesStep, BOnboardingLayout, BProfileStep, BSavingsStep } from '@/src/components';
+import {
+  BDebtsStep,
+  BFixedExpensesStep,
+  BOnboardingLayout,
+  BProfileStep,
+  BSavingsStep,
+} from '@/src/components/onboarding';
 import { router } from 'expo-router';
 import { useCallback, useState } from 'react';
 

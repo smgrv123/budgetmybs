@@ -1,6 +1,7 @@
 import { OnboardingStrings } from '@/constants/onboarding.strings';
 import { BorderRadius, Colors, Spacing } from '@/constants/theme';
-import { BFeatureCard, BLink, BSafeAreaView, BText, BView } from '@/src/components';
+import { BFeatureCard } from '@/src/components/onboarding';
+import { BLink, BSafeAreaView, BText, BView } from '@/src/components/ui';
 import { FlatList, StyleSheet } from 'react-native';
 
 const { welcome } = OnboardingStrings;

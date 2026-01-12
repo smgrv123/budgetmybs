@@ -6,7 +6,8 @@ import {
   SAVINGS_FIELD_CONFIGS,
   SAVINGS_STEP_CONFIG,
 } from '@/constants/setup-form.config';
-import { BListStep, BText } from '@/src/components';
+import BListStep from '@/src/components/onboarding/listStep';
+import { BText } from '@/src/components/ui';
 import { useOnboardingStore } from '@/src/store';
 
 export interface SavingsStepProps {

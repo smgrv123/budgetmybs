@@ -1,6 +1,6 @@
 import { DebtTypeOptions, FixedExpenseTypeOptions, SavingsTypeOptions } from '@/constants/onboarding.config';
 import { OnboardingStrings } from '@/constants/onboarding.strings';
-import type { FormField } from '@/src/components';
+import type { FormField } from '@/src/components/onboarding';
 import { debtSchema, fixedExpenseSchema, profileSchema, savingsGoalSchema } from '@/src/validation/onboarding';
 import { ReactNode } from 'react';
 

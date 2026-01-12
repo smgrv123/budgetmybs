@@ -1,118 +1,43 @@
-import { Spacing, SpacingValue, TextVariant } from '@/constants/theme';
-import { upsertProfile } from '@/db';
-import { BButton, BInput, BText, BView } from '@/src/components';
-import { useMutation } from '@tanstack/react-query';
-import { router } from 'expo-router';
-import { useState } from 'react';
-import { Alert, FlatList, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-export default function NavigationScreen() {
-  const [name, setName] = useState('');
-  const [salary, setSalary] = useState('');
-  const [frivolousBudget, setFrivolousBudget] = useState('');
-  const [monthlySavingsTarget, setMonthlySavingsTarget] = useState('');
+import { Colors, Spacing, TextVariant } from '@/constants/theme';
+import { BIcon, BSafeAreaView, BText, BView } from '@/src/components';
+import { useProfile } from '@/src/hooks';
+import { Redirect } from 'expo-router';
+import { StyleSheet } from 'react-native';
 
-  const addData = useMutation({
-    mutationFn: () =>
-      upsertProfile({
-        name,
-        salary: Number(salary),
-        frivolousBudget: Number(frivolousBudget),
-        monthlySavingsTarget: Number(monthlySavingsTarget),
-      }),
-  });
+/**
+ * Root index screen - handles routing based on onboarding status
+ * If user has completed onboarding (profile exists) -> Dashboard
+ * If not -> Onboarding welcome screen
+ */
+export default function RootScreen() {
+  const { profile, isProfileLoading } = useProfile();
 
-  const userInputData = [
-    {
-      label: 'Name',
-      placeholder: 'Enter your name',
-      value: name,
-      onChangeText: (text: string) => setName(text),
-      keyboardType: 'default' as const,
-    },
-    {
-      label: 'Salary',
-      placeholder: 'Enter your salary',
-      value: salary,
-      onChangeText: setSalary,
-      keyboardType: 'numeric' as const,
-    },
-    {
-      label: 'Frivolous Budget',
-      placeholder: 'Enter your frivolous budget',
-      value: frivolousBudget,
-      onChangeText: setFrivolousBudget,
-      keyboardType: 'numeric' as const,
-    },
-    {
-      label: 'Monthly Savings Target',
-      placeholder: 'Enter your monthly savings target',
-      value: monthlySavingsTarget,
-      onChangeText: setMonthlySavingsTarget,
-      keyboardType: 'numeric' as const,
-    },
-  ];
+  // Show loading state while checking profile
+  if (isProfileLoading) {
+    return (
+      <BSafeAreaView style={styles.container}>
+        <BView flex center>
+          <BIcon name="sync" color={Colors.light.primary} size="lg" />
+          <BText variant={TextVariant.BODY} muted style={{ marginTop: Spacing.md }}>
+            Loading...
+          </BText>
+        </BView>
+      </BSafeAreaView>
+    );
+  }
 
-  return (
-    <SafeAreaView>
-      <BView gap={SpacingValue.MD} padding={SpacingValue.MD} style={styles.formContainer}>
-        <FlatList
-          data={userInputData}
-          renderItem={({ item }) => (
-            <BView paddingY={SpacingValue.XS} flex>
-              <BInput
-                {...item}
-                placeholderTextColor={'#000'}
-                labelVariant={TextVariant.SUBHEADING}
-                containerStyle={styles.inputContainer}
-              />
-            </BView>
-          )}
-        />
-      </BView>
-      <BButton
-        onPress={() => {
-          addData.mutate();
-          if (addData.isSuccess) router.push('/navigation');
-          else Alert.alert('Error', 'Something went wrong');
-        }}
-      >
-        <BText>Add Data</BText>
-      </BButton>
+  // If profile exists, user has completed onboarding -> go to dashboard
+  if (profile) {
+    return <Redirect href="/dashboard" />;
+  }
 
-      {/* Test Onboarding Flow */}
-      <BButton
-        variant="secondary"
-        onPress={() => router.push('/onboarding/welcome')}
-        style={{ marginTop: 16, marginHorizontal: 10 }}
-      >
-        <BText>🚀 Test Onboarding Flow</BText>
-      </BButton>
-
-      {/* <Pressable style={styles.resetButton} onPress={() => clearData.mutate('reset')}>
-        <Text>Reset Data</Text>
-      </Pressable>
-
-      <Pressable
-        style={styles.deleteButton}
-        onPress={() => {
-          Alert.alert('Delete Account', 'Are you sure? This will permanently delete all your data.', [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Delete', style: 'destructive', onPress: () => clearData.mutate('delete') },
-          ]);
-        }}
-      >
-        <Text style={{ color: '#fff' }}>Delete Account</Text>
-      </Pressable> */}
-    </SafeAreaView>
-  );
+  // No profile -> user needs to complete onboarding
+  return <Redirect href="/onboarding/welcome" />;
 }
 
 const styles = StyleSheet.create({
-  formContainer: {
-    justifyContent: 'center',
-  },
-  inputContainer: {
-    gap: Spacing.xs,
+  container: {
+    flex: 1,
+    backgroundColor: Colors.light.background,
   },
 });

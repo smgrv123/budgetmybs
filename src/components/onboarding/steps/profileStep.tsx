@@ -4,7 +4,7 @@ import { FlatList, StyleSheet } from 'react-native';
 import { OnboardingStrings } from '@/constants/onboarding.strings';
 import { common, PROFILE_FIELD_CONFIGS } from '@/constants/setup-form.config';
 import { BorderRadius, Colors, Spacing } from '@/constants/theme';
-import { BButton, BIcon, BInput, BText, BView } from '@/src/components';
+import { BButton, BIcon, BInput, BText, BView } from '@/src/components/ui';
 import { useOnboardingStore } from '@/src/store';
 import { getFieldError, profileSchema, validateForm } from '@/src/validation/onboarding';
 
@@ -153,6 +153,7 @@ const styles = StyleSheet.create({
   continueButton: {
     backgroundColor: Colors.light.primary,
     borderRadius: BorderRadius.lg,
+    paddingVertical: Spacing.sm,
   },
   buttonDisabled: {
     backgroundColor: Colors.light.muted,

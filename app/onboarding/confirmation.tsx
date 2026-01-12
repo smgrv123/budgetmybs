@@ -1,28 +1,107 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, ScrollView, StyleSheet } from 'react-native';
+import { Alert, FlatList, ScrollView, StyleSheet } from 'react-native';
 
-import {
-  DebtTypeOptions,
-  FixedExpenseTypeOptions,
-  SavingsTypeOptions,
-  getTotalSteps,
-} from '@/constants/onboarding.config';
 import { OnboardingStrings } from '@/constants/onboarding.strings';
-import { BorderRadius, Colors, FontSize, FontWeight, Spacing } from '@/constants/theme';
-import { BButton, BSafeAreaView, BStepIndicator, BText, BView } from '@/src/components';
+import {
+  BorderRadius,
+  ButtonVariant,
+  Colors,
+  ComponentSize,
+  FontSize,
+  FontWeight,
+  Spacing,
+  SpacingValue,
+  TextVariant,
+} from '@/constants/theme';
+import { BButton, BIcon, BSafeAreaView, BText, BView } from '@/src/components';
+import { useDebts, useFixedExpenses, useProfile, useSavingsGoals } from '@/src/hooks';
 import { calculateEMI, useOnboardingStore } from '@/src/store';
 
-import { createDebt } from '@/db/queries/debts';
-import { createFixedExpense } from '@/db/queries/fixed-expenses';
-import { upsertProfile } from '@/db/queries/profile';
-import { createSavingsGoal } from '@/db/queries/savings';
+const { common, plan } = OnboardingStrings;
 
-const { confirmation, common } = OnboardingStrings;
+// Types for budget breakdown items
+interface BudgetBreakdownItem {
+  id: string;
+  name: string;
+  amount: number;
+  percentage: number;
+}
+
+// Confirmation screen gradient colors
+const CONFIRMATION_GRADIENT: [string, string, string] = [
+  Colors.light.confirmationGradientStart,
+  Colors.light.confirmationGradientMiddle,
+  Colors.light.confirmationGradientEnd,
+];
 
 export default function ConfirmationScreen() {
   const [isSaving, setIsSaving] = useState(false);
   const { profile, fixedExpenses, debts, savingsGoals, reset } = useOnboardingStore();
+
+  // TanStack Query hooks for mutations
+  const { upsertProfileAsync } = useProfile();
+  const { createFixedExpenseAsync } = useFixedExpenses();
+  const { createDebtAsync } = useDebts();
+  const { createSavingsGoalAsync } = useSavingsGoals();
+
+  // Calculate totals
+  const totalFixedExpenses = fixedExpenses.reduce((sum, e) => sum + e.amount, 0);
+  const totalEMI = debts.reduce((sum, d) => sum + calculateEMI(d.principal, d.interestRate, d.tenureMonths), 0);
+  const totalCommitments = totalFixedExpenses + totalEMI + profile.monthlySavingsTarget;
+  const remainingBudget = profile.salary - totalCommitments;
+
+  // Calculate percentage of income
+  const getPercentage = (amount: number): number => {
+    if (profile.salary <= 0) return 0;
+    return Math.round((amount / profile.salary) * 100);
+  };
+
+  // Build budget breakdown items array
+  const buildBudgetBreakdownItems = (): BudgetBreakdownItem[] => {
+    const items: BudgetBreakdownItem[] = [];
+
+    if (totalFixedExpenses > 0) {
+      items.push({
+        id: 'fixed-expenses',
+        name: plan.categories.fixedExpenses,
+        amount: totalFixedExpenses,
+        percentage: getPercentage(totalFixedExpenses),
+      });
+    }
+
+    if (totalEMI > 0) {
+      items.push({
+        id: 'emi-payments',
+        name: plan.categories.emiPayments,
+        amount: totalEMI,
+        percentage: getPercentage(totalEMI),
+      });
+    }
+
+    if (profile.monthlySavingsTarget > 0) {
+      items.push({
+        id: 'savings-target',
+        name: plan.categories.savingsTarget,
+        amount: profile.monthlySavingsTarget,
+        percentage: getPercentage(profile.monthlySavingsTarget),
+      });
+    }
+
+    if (remainingBudget > 0) {
+      items.push({
+        id: 'groceries-essentials',
+        name: plan.categories.groceriesEssentials,
+        amount: remainingBudget,
+        percentage: getPercentage(remainingBudget),
+      });
+    }
+
+    return items;
+  };
+
+  const budgetBreakdownItems = buildBudgetBreakdownItems();
 
   const handleBack = () => {
     router.back();
@@ -33,7 +112,7 @@ export default function ConfirmationScreen() {
 
     try {
       // 1. Save Profile
-      await upsertProfile({
+      await upsertProfileAsync({
         name: profile.name,
         salary: profile.salary,
         frivolousBudget: profile.frivolousBudget,
@@ -42,7 +121,7 @@ export default function ConfirmationScreen() {
 
       // 2. Save Fixed Expenses
       for (const expense of fixedExpenses) {
-        await createFixedExpense({
+        await createFixedExpenseAsync({
           name: expense.name,
           type: expense.type,
           customType: expense.customType || null,
@@ -51,26 +130,26 @@ export default function ConfirmationScreen() {
         });
       }
 
-      // 3. Save Debts (with calculated EMI)
+      // 3. Save Debts with calculated EMI
       for (const debt of debts) {
         const emiAmount = calculateEMI(debt.principal, debt.interestRate, debt.tenureMonths);
-        await createDebt({
+        await createDebtAsync({
           name: debt.name,
           type: debt.type,
           customType: debt.customType || null,
           principal: debt.principal,
-          remaining: debt.principal, // Initial remaining = principal
+          remaining: debt.principal,
           interestRate: debt.interestRate,
           emiAmount,
           tenureMonths: debt.tenureMonths,
-          remainingMonths: debt.tenureMonths, // Initial remaining months = tenure
+          remainingMonths: debt.tenureMonths,
           startDate: null,
         });
       }
 
       // 4. Save Savings Goals
       for (const goal of savingsGoals) {
-        await createSavingsGoal({
+        await createSavingsGoalAsync({
           name: goal.name,
           type: goal.type,
           customType: goal.customType || null,
@@ -78,178 +157,99 @@ export default function ConfirmationScreen() {
         });
       }
 
-      // Reset the store
+      // Reset store and navigate to success screen
       reset();
-
-      // Navigate to main app\n      router.replace({ pathname: '/' } as any);
+      router.replace('/onboarding/success');
     } catch (error) {
       console.error('Failed to save onboarding data:', error);
-      Alert.alert('Error', 'Failed to save your data. Please try again.', [{ text: 'OK', style: 'default' }]);
-    } finally {
+      Alert.alert('Error', 'Failed to save your data. Please try again.');
       setIsSaving(false);
     }
   };
 
-  const getTypeLabel = (type: string, options: { value: string; label: string }[]) => {
-    const option = options.find((o) => o.value === type);
-    return option?.label || type;
-  };
+  // Render functions for FlatLists
+  const renderBudgetItem = ({ item }: { item: BudgetBreakdownItem }) => (
+    <BView row style={styles.breakdownCard}>
+      <BView>
+        <BText variant={TextVariant.LABEL} style={{ marginBottom: Spacing.xxs }}>
+          {item.name}
+        </BText>
+        <BText variant={TextVariant.CAPTION} muted>
+          {item.percentage}
+          {plan.ofIncome}
+        </BText>
+      </BView>
+      <BText variant={TextVariant.LABEL} style={{ fontWeight: FontWeight.semibold }}>
+        {common.currency}
+        {item.amount.toLocaleString('en-IN')}
+      </BText>
+    </BView>
+  );
 
-  // Calculate totals
-  const totalFixedExpenses = fixedExpenses.reduce((sum, e) => sum + e.amount, 0);
-  const totalEMI = debts.reduce((sum, d) => sum + calculateEMI(d.principal, d.interestRate, d.tenureMonths), 0);
-  const totalSavingsTarget = savingsGoals.reduce((sum, g) => sum + g.targetAmount, 0);
-  const monthlyCommitments = totalFixedExpenses + totalEMI + profile.monthlySavingsTarget;
-  const remainingAfterCommitments = profile.salary - monthlyCommitments;
+  const renderRecommendation = ({ item }: { item: string }) => (
+    <BText style={styles.recommendationItem}>• {item}</BText>
+  );
 
   return (
     <BSafeAreaView style={styles.container}>
-      {/* Step Indicator */}
-      <BView style={styles.stepIndicatorContainer}>
-        <BStepIndicator currentStep={getTotalSteps()} totalSteps={getTotalSteps()} />
-      </BView>
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Profile Summary */}
-        <BView style={styles.section}>
-          <BText style={styles.sectionTitle}>{confirmation.profileSection.title}</BText>
-          <BView style={styles.summaryCard}>
-            <BView style={styles.summaryRow}>
-              <BText style={styles.summaryLabel}>{confirmation.profileSection.name}</BText>
-              <BText style={styles.summaryValue}>{profile.name}</BText>
-            </BView>
-            <BView style={styles.summaryRow}>
-              <BText style={styles.summaryLabel}>{confirmation.profileSection.salary}</BText>
-              <BText style={styles.summaryValue}>
-                {common.currency} {profile.salary.toLocaleString('en-IN')}
-              </BText>
-            </BView>
-            <BView style={styles.summaryRow}>
-              <BText style={styles.summaryLabel}>{confirmation.profileSection.savingsTarget}</BText>
-              <BText style={styles.summaryValue}>
-                {common.currency} {profile.monthlySavingsTarget.toLocaleString('en-IN')}
-              </BText>
-            </BView>
-            <BView style={styles.summaryRow}>
-              <BText style={styles.summaryLabel}>{confirmation.profileSection.funBudget}</BText>
-              <BText style={styles.summaryValue}>
-                {common.currency} {profile.frivolousBudget.toLocaleString('en-IN')}
-              </BText>
-            </BView>
-          </BView>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        {/* Header */}
+        <BView row gap={SpacingValue.SM} marginY={SpacingValue.LG} style={{ alignItems: 'center' }}>
+          <BIcon name="sparkles" color={Colors.light.warning} size={ComponentSize.MD} />
+          <BText variant={TextVariant.SUBHEADING}>{plan.headerTitle}</BText>
         </BView>
 
-        {/* Fixed Expenses Summary */}
-        {fixedExpenses.length > 0 && (
-          <BView style={styles.section}>
-            <BView style={styles.sectionHeader}>
-              <BText style={styles.sectionTitle}>{confirmation.fixedExpensesSection.title}</BText>
-              <BText style={styles.sectionTotal}>
-                {common.currency} {totalFixedExpenses.toLocaleString('en-IN')}/mo
-              </BText>
-            </BView>
-            {fixedExpenses.map((expense) => (
-              <BView key={expense.tempId} style={styles.itemRow}>
-                <BView>
-                  <BText style={styles.itemName}>{expense.name}</BText>
-                  <BText style={styles.itemType}>{getTypeLabel(expense.type, FixedExpenseTypeOptions)}</BText>
-                </BView>
-                <BText style={styles.itemAmount}>
-                  {common.currency} {expense.amount.toLocaleString('en-IN')}
-                </BText>
-              </BView>
-            ))}
-          </BView>
-        )}
+        {/* Monthly Income Card */}
+        <LinearGradient
+          colors={CONFIRMATION_GRADIENT}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.incomeCard}
+        >
+          <BText style={styles.incomeLabel}>{plan.monthlyIncome}</BText>
+          <BText variant={TextVariant.HEADING} style={styles.incomeAmount}>
+            {common.currency}
+            {profile.salary.toLocaleString('en-IN')}
+          </BText>
+        </LinearGradient>
 
-        {/* Debts Summary */}
-        {debts.length > 0 && (
-          <BView style={styles.section}>
-            <BView style={styles.sectionHeader}>
-              <BText style={styles.sectionTitle}>{confirmation.debtsSection.title}</BText>
-              <BText style={styles.sectionTotal}>
-                {common.currency} {totalEMI.toLocaleString('en-IN')}/mo
-              </BText>
-            </BView>
-            {debts.map((debt) => {
-              const emi = calculateEMI(debt.principal, debt.interestRate, debt.tenureMonths);
-              return (
-                <BView key={debt.tempId} style={styles.itemRow}>
-                  <BView>
-                    <BText style={styles.itemName}>{debt.name}</BText>
-                    <BText style={styles.itemType}>
-                      {getTypeLabel(debt.type, DebtTypeOptions)} • EMI: {common.currency} {emi.toLocaleString('en-IN')}
-                    </BText>
-                  </BView>
-                  <BText style={styles.itemAmount}>
-                    {common.currency} {debt.principal.toLocaleString('en-IN')}
-                  </BText>
-                </BView>
-              );
-            })}
-          </BView>
-        )}
+        {/* Budget Breakdown */}
+        <BView marginY={SpacingValue.XL}>
+          <BText variant={TextVariant.SUBHEADING} style={{ marginBottom: Spacing.md }}>
+            {plan.budgetBreakdown}
+          </BText>
+          <FlatList
+            data={budgetBreakdownItems}
+            renderItem={renderBudgetItem}
+            keyExtractor={(item) => item.id}
+            scrollEnabled={false}
+            ItemSeparatorComponent={() => <BView style={{ height: Spacing.sm }} />}
+          />
+        </BView>
 
-        {/* Savings Goals Summary */}
-        {savingsGoals.length > 0 && (
-          <BView style={styles.section}>
-            <BView style={styles.sectionHeader}>
-              <BText style={styles.sectionTitle}>{confirmation.savingsSection.title}</BText>
-              <BText style={styles.sectionTotal}>
-                {common.currency} {totalSavingsTarget.toLocaleString('en-IN')} target
-              </BText>
-            </BView>
-            {savingsGoals.map((goal) => (
-              <BView key={goal.tempId} style={styles.itemRow}>
-                <BView>
-                  <BText style={styles.itemName}>{goal.name}</BText>
-                  <BText style={styles.itemType}>{getTypeLabel(goal.type, SavingsTypeOptions)}</BText>
-                </BView>
-                <BText style={styles.itemAmount}>
-                  {common.currency} {goal.targetAmount.toLocaleString('en-IN')}
-                </BText>
-              </BView>
-            ))}
+        {/* AI Recommendations */}
+        <BView padding={SpacingValue.BASE} style={styles.recommendationsCard}>
+          <BView row gap={SpacingValue.SM} marginY={SpacingValue.MD} style={{ alignItems: 'center' }}>
+            <BText style={{ fontSize: FontSize.lg }}>💡</BText>
+            <BText variant={TextVariant.LABEL}>{plan.aiRecommendations}</BText>
           </BView>
-        )}
-
-        {/* Monthly Overview */}
-        <BView style={styles.section}>
-          <BText style={styles.sectionTitle}>{confirmation.overviewSection.title}</BText>
-          <BView style={styles.overviewCard}>
-            <BView style={styles.overviewRow}>
-              <BText style={styles.overviewLabel}>{confirmation.overviewSection.monthlyIncome}</BText>
-              <BText style={styles.overviewIncome}>
-                {common.currency} {profile.salary.toLocaleString('en-IN')}
-              </BText>
-            </BView>
-            <BView style={styles.overviewRow}>
-              <BText style={styles.overviewLabel}>{confirmation.overviewSection.totalCommitments}</BText>
-              <BText style={styles.overviewExpense}>
-                - {common.currency} {monthlyCommitments.toLocaleString('en-IN')}
-              </BText>
-            </BView>
-            <BView style={[styles.overviewRow, styles.overviewTotal]}>
-              <BText style={styles.overviewTotalLabel}>{confirmation.overviewSection.remaining}</BText>
-              <BText style={[styles.overviewTotalValue, remainingAfterCommitments < 0 && styles.overviewNegative]}>
-                {common.currency} {remainingAfterCommitments.toLocaleString('en-IN')}
-              </BText>
-            </BView>
-          </BView>
+          <FlatList
+            data={plan.recommendations}
+            renderItem={renderRecommendation}
+            keyExtractor={(item, index) => `rec-${index}`}
+            scrollEnabled={false}
+            ItemSeparatorComponent={() => <BView style={{ height: Spacing.xs }} />}
+          />
         </BView>
       </ScrollView>
 
-      {/* Footer */}
-      <BView style={styles.footer}>
-        <BButton variant="secondary" onPress={handleBack} style={styles.backButton}>
-          <BText style={styles.backButtonText}>{confirmation.backButton}</BText>
+      {/* Footer - Button Group */}
+      <BView row gap={SpacingValue.MD} paddingX={SpacingValue['XL']} paddingY={SpacingValue.BASE} style={styles.footer}>
+        <BButton variant={ButtonVariant.SECONDARY} onPress={handleBack} disabled={isSaving} style={styles.backButton}>
+          <BText style={styles.backButtonText}>{plan.backButton}</BText>
         </BButton>
         <BButton onPress={handleConfirm} loading={isSaving} disabled={isSaving} style={styles.confirmButton}>
-          <BText style={styles.confirmButtonText}>{confirmation.confirmButton}</BText>
+          <BText style={styles.confirmButtonText}>{plan.confirmButton}</BText>
         </BButton>
       </BView>
     </BSafeAreaView>
@@ -261,145 +261,53 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.light.background,
   },
-  stepIndicatorContainer: {
-    paddingHorizontal: Spacing.base,
-    paddingVertical: Spacing.md,
-  },
-  scrollView: {
-    flex: 1,
-  },
   scrollContent: {
     padding: Spacing.xl,
     paddingBottom: Spacing['2xl'],
   },
-  section: {
+  incomeCard: {
+    borderRadius: BorderRadius.lg,
+    gap: 10,
+    padding: Spacing.xl,
     marginBottom: Spacing.xl,
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.md,
-  },
-  sectionTitle: {
-    fontSize: FontSize.lg,
-    fontWeight: FontWeight.semibold,
-    color: Colors.light.text,
-    marginBottom: Spacing.md,
-  },
-  sectionTotal: {
+  incomeLabel: {
     fontSize: FontSize.sm,
-    fontWeight: FontWeight.semibold,
-    color: Colors.light.primary,
+    color: Colors.light.white,
+    opacity: 0.8,
   },
-  summaryCard: {
-    backgroundColor: Colors.light.card,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.base,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
+  incomeAmount: {
+    fontSize: FontSize['3xl'],
+    color: Colors.light.white,
   },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.light.border,
-  },
-  summaryLabel: {
-    fontSize: FontSize.base,
-    color: Colors.light.textMuted,
-  },
-  summaryValue: {
-    fontSize: FontSize.base,
-    fontWeight: FontWeight.semibold,
-    color: Colors.light.text,
-  },
-  itemRow: {
-    flexDirection: 'row',
+  breakdownCard: {
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: Colors.light.card,
     borderRadius: BorderRadius.base,
     padding: Spacing.md,
-    marginBottom: Spacing.sm,
     borderWidth: 1,
     borderColor: Colors.light.border,
   },
-  itemName: {
-    fontSize: FontSize.base,
-    fontWeight: FontWeight.medium,
-    color: Colors.light.text,
-    marginBottom: Spacing.xs,
-  },
-  itemType: {
-    fontSize: FontSize.sm,
-    color: Colors.light.textMuted,
-  },
-  itemAmount: {
-    fontSize: FontSize.base,
-    fontWeight: FontWeight.semibold,
-    color: Colors.light.text,
-  },
-  overviewCard: {
-    backgroundColor: Colors.light.cardSecondary,
+  recommendationsCard: {
+    backgroundColor: Colors.light.recommendationBg,
     borderRadius: BorderRadius.lg,
-    padding: Spacing.base,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
+    borderLeftWidth: 4,
+    borderLeftColor: Colors.light.primary,
   },
-  overviewRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: Spacing.sm,
-  },
-  overviewLabel: {
-    fontSize: FontSize.base,
-    color: Colors.light.textMuted,
-  },
-  overviewIncome: {
-    fontSize: FontSize.base,
-    fontWeight: FontWeight.semibold,
-    color: Colors.light.success,
-  },
-  overviewExpense: {
-    fontSize: FontSize.base,
-    fontWeight: FontWeight.medium,
-    color: Colors.light.error,
-  },
-  overviewTotal: {
-    borderTopWidth: 1,
-    borderTopColor: Colors.light.border,
-    marginTop: Spacing.sm,
-    paddingTop: Spacing.md,
-  },
-  overviewTotalLabel: {
-    fontSize: FontSize.md,
-    fontWeight: FontWeight.semibold,
-    color: Colors.light.text,
-  },
-  overviewTotalValue: {
-    fontSize: FontSize.lg,
-    fontWeight: FontWeight.bold,
-    color: Colors.light.success,
-  },
-  overviewNegative: {
-    color: Colors.light.error,
+  recommendationItem: {
+    fontSize: FontSize.sm,
+    color: Colors.light.primary,
+    lineHeight: FontSize.sm * 1.6,
   },
   footer: {
-    flexDirection: 'row',
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.base,
-    gap: Spacing.md,
     borderTopWidth: 1,
     borderTopColor: Colors.light.border,
-    backgroundColor: Colors.light.background,
   },
   backButton: {
     flex: 1,
     backgroundColor: Colors.light.muted,
+    paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.lg,
   },
   backButtonText: {
@@ -413,7 +321,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
   },
   confirmButtonText: {
-    color: '#FFFFFF',
+    color: Colors.light.white,
     fontSize: FontSize.base,
     fontWeight: FontWeight.semibold,
   },

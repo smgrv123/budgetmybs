@@ -128,6 +128,19 @@ export const Colors = {
     // Muted
     muted: '#ECECF0',
     accent: '#E9EBEF',
+    // Common colors
+    white: '#FFFFFF',
+    // Confirmation screen gradient
+    confirmationGradientStart: '#6366F1',
+    confirmationGradientMiddle: '#A855F7',
+    confirmationGradientEnd: '#EC4899',
+    // AI Recommendations
+    recommendationBg: '#EEF2FF',
+    // Success screen
+    successGradientStart: '#D1FAE5',
+    successGradientEnd: '#FFFFFF',
+    successCheck: '#16A34A',
+    successCheckBg: '#DCFCE7',
   },
   dark: {
     text: '#ECEDEE',

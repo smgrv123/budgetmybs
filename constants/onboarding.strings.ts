@@ -191,6 +191,40 @@ export const OnboardingStrings = {
     editButton: 'Edit',
   },
 
+  plan: {
+    headerTitle: 'Your AI-Generated Plan',
+    monthlyIncome: 'Monthly Income',
+    budgetBreakdown: 'Budget Breakdown',
+    aiRecommendations: 'AI Recommendations',
+    ofIncome: '% of income',
+    backButton: 'Back',
+    confirmButton: 'Go to Dashboard',
+    categories: {
+      fixedExpenses: 'Fixed Expenses',
+      emiPayments: 'EMI Payments',
+      savingsTarget: 'Savings Target',
+      groceriesEssentials: 'Groceries & Essentials',
+    },
+    recommendations: [
+      'Your fixed expenses are well managed',
+      'Consider increasing emergency fund savings',
+      'Track daily expenses to optimize spending',
+      'Review subscriptions quarterly',
+    ],
+  },
+
+  success: {
+    title: "You're All Set!",
+    subtitle: 'Your financial journey starts now. Track expenses, monitor progress, and achieve your goals.',
+    redirectingText: 'Redirecting to dashboard...',
+    completionItems: [
+      { id: 'profile', label: 'Profile created', icon: 'checkmark-circle' },
+      { id: 'budget', label: 'Budget plan generated', icon: 'wallet' },
+      { id: 'goals', label: 'Goals configured', icon: 'flag' },
+      { id: 'ready', label: 'Ready to track expenses', icon: 'analytics' },
+    ],
+  },
+
   common: {
     currency: '₹',
     backButton: 'Back',
