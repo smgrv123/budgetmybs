@@ -1,14 +1,13 @@
 import { DebtTypeOptions, FixedExpenseTypeOptions, SavingsTypeOptions } from '@/constants/onboarding.config';
 import { OnboardingStrings } from '@/constants/onboarding.strings';
-import type { FormField } from '@/src/components/onboarding';
+import type { FormField } from '@/src/types';
 import { debtSchema, fixedExpenseSchema, profileSchema, savingsGoalSchema } from '@/src/validation/onboarding';
 import { ReactNode } from 'react';
-
-import type { ZodSchema } from 'zod';
+import type { ZodType } from 'zod';
 
 const { profile: profileStrings, fixedExpenses, debts, savings, common } = OnboardingStrings;
 
-export interface ProfileFieldConfig {
+export type ProfileFieldConfig = {
   key: string;
   label: string;
   placeholder: string;
@@ -17,9 +16,9 @@ export interface ProfileFieldConfig {
   helperText?: string;
   icon?: string;
   hasCurrencyIcon?: boolean;
-}
+};
 
-export interface StepConfig {
+export type StepConfig = {
   strings: {
     heading: string;
     subheading: string;
@@ -29,14 +28,14 @@ export interface StepConfig {
     form: { addButton: string; cancelButton: string };
   };
   initialFormData: Record<string, string>;
-  validationSchema: ZodSchema;
+  validationSchema: ZodType;
   customTypeModal?: {
     title: string;
     placeholder: string;
     addButton: string;
     cancelButton: string;
   };
-}
+};
 
 export const PROFILE_FIELD_CONFIGS: ProfileFieldConfig[] = [
   {

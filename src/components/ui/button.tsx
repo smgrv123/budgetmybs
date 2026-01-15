@@ -2,14 +2,23 @@ import type { FC } from 'react';
 import type { PressableProps, ViewStyle } from 'react-native';
 import { ActivityIndicator, Pressable, StyleSheet } from 'react-native';
 
-import type { ButtonVariantType, ComponentSizeType } from '@/constants/theme';
-import { BorderRadius, ButtonVariant, Colors, ComponentSize, Opacity } from '@/constants/theme';
+import type { BorderRadiusType, ButtonVariantType, ComponentSizeType, SpacingValueType } from '@/constants/theme';
+import { BorderRadius, ButtonVariant, Colors, ComponentSize, Opacity, Spacing } from '@/constants/theme';
 
 export interface BButtonProps extends PressableProps {
   variant?: ButtonVariantType;
   size?: ComponentSizeType;
   loading?: boolean;
   fullWidth?: boolean;
+  rounded?: BorderRadiusType;
+  fullRounded?: boolean;
+  padding?: SpacingValueType;
+  paddingX?: SpacingValueType;
+  paddingY?: SpacingValueType;
+  margin?: SpacingValueType;
+  marginX?: SpacingValueType;
+  marginY?: SpacingValueType;
+  gap?: SpacingValueType;
 }
 
 const getBackgroundColor = (variant: ButtonVariantType, pressed: boolean): string => {
@@ -45,6 +54,15 @@ const BButton: FC<BButtonProps> = ({
   loading = false,
   fullWidth = false,
   disabled = false,
+  rounded,
+  fullRounded,
+  padding,
+  paddingX,
+  paddingY,
+  margin,
+  marginX,
+  marginY,
+  gap,
   children,
   style,
   ...props
@@ -61,6 +79,14 @@ const BButton: FC<BButtonProps> = ({
           backgroundColor: getBackgroundColor(variant, pressed),
           borderColor: getBorderColor(variant),
           opacity: isDisabled ? Opacity.disabled : Opacity.full,
+          borderRadius: fullRounded ? BorderRadius.full : rounded ? BorderRadius[rounded] : BorderRadius.base,
+          ...(padding && { padding: Spacing[padding] }),
+          ...(paddingX && { paddingHorizontal: Spacing[paddingX] }),
+          ...(paddingY && { paddingVertical: Spacing[paddingY] }),
+          ...(margin && { margin: Spacing[margin] }),
+          ...(marginX && { marginHorizontal: Spacing[marginX] }),
+          ...(marginY && { marginVertical: Spacing[marginY] }),
+          ...(gap && { gap: Spacing[gap] }),
         },
         fullWidth && styles.fullWidth,
         variant === ButtonVariant.OUTLINE && styles.outline,

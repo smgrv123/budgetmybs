@@ -1,4 +1,4 @@
-import type { ComponentSizeType, InputVariantType, TextVariantType } from '@/constants/theme';
+import type { ComponentSizeType, InputVariantType, SpacingValueType, TextVariantType } from '@/constants/theme';
 import {
   BorderRadius,
   Colors,
@@ -36,6 +36,8 @@ export interface BInputProps extends TextInputProps {
   rightIcon?: ReactNode;
   /** Override container styles */
   containerStyle?: StyleProp<ViewStyle>;
+  /** Border radius */
+  rounded?: SpacingValueType;
 }
 
 const sizeStyles: Record<ComponentSizeType, { height: number; fontSize: number; paddingHorizontal: number }> = {
@@ -56,6 +58,7 @@ const BInput: FC<BInputProps> = ({
   editable = true,
   containerStyle,
   style,
+  rounded,
   onFocus,
   onBlur,
   ...props
@@ -104,6 +107,7 @@ const BInput: FC<BInputProps> = ({
             borderColor: getBorderColor(),
             paddingHorizontal: currentSize.paddingHorizontal,
             opacity: editable ? Opacity.full : Opacity.disabled,
+            borderRadius: rounded ? Spacing[rounded] : BorderRadius.base,
           },
         ]}
       >
@@ -137,7 +141,6 @@ const styles = StyleSheet.create({
   inputContainer: {
     alignItems: 'center',
     borderWidth: 1,
-    borderRadius: BorderRadius.base,
   },
   input: {
     flex: 1,

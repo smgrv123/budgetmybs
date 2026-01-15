@@ -1,55 +1,17 @@
 import { ReactNode, useState } from 'react';
 import { FlatList, StyleSheet } from 'react-native';
-import type { ZodSchema } from 'zod';
 
 import { isOtherType } from '@/constants/onboarding.config';
-import { BorderRadius, Colors, Spacing } from '@/constants/theme';
+import { Colors, Spacing } from '@/constants/theme';
+import type { CustomTypeModalConfig, FormField, ItemCardConfig, ListStepStrings } from '@/src/types';
 import { getFieldError, validateForm } from '@/src/validation/onboarding';
-import { BButton, BDropdown, BInput, BModal, BText, BView } from '../ui';
+import { BButton, BCard, BDropdown, BInput, BModal, BText, BView } from '../ui';
 import BAddItemButton from './addItemButton';
 import BItemCard from './itemCard';
 import BCustomTypeModal from './modals/customType';
 import BSkipStepButton from './skipStepButton';
 
-export interface FormField {
-  key: string;
-  type: 'input' | 'dropdown';
-  label?: string;
-  placeholder: string;
-  keyboardType?: 'default' | 'numeric';
-  options?: { value: string; label: string }[];
-  leftIcon?: ReactNode;
-  helperText?: string;
-}
-
-export interface ItemCardConfig<T> {
-  getTitle: (item: T) => string;
-  getSubtitle?: (item: T) => string;
-  getAmount: (item: T) => number;
-  getSecondaryAmount?: (item: T) => number;
-  secondaryLabel?: string;
-}
-
-export interface ListStepStrings {
-  heading: string;
-  subheading: string;
-  addButton: string;
-  continueButton: string;
-  skipButton: string;
-  form: {
-    addButton: string;
-    cancelButton: string;
-  };
-}
-
-export interface CustomTypeModalConfig {
-  title: string;
-  placeholder: string;
-  addButton: string;
-  cancelButton: string;
-}
-
-export interface ListStepProps<T extends { tempId: string }> {
+export type ListStepProps<T extends { tempId: string }> = {
   // Content
   strings: ListStepStrings;
 
@@ -61,7 +23,7 @@ export interface ListStepProps<T extends { tempId: string }> {
   // Form
   formFields: FormField[];
   initialFormData: Record<string, string>;
-  validationSchema: ZodSchema;
+  validationSchema: import('zod').ZodType;
   onAddItem: (data: any) => void;
   parseFormData: (formData: Record<string, string>) => any;
 
@@ -71,7 +33,7 @@ export interface ListStepProps<T extends { tempId: string }> {
   // Optional
   extraFormContent?: (formData: Record<string, string>) => ReactNode;
   customTypeModal?: CustomTypeModalConfig;
-}
+};
 
 function ListStep<T extends { tempId: string }>({
   strings,
@@ -165,15 +127,15 @@ function ListStep<T extends { tempId: string }>({
   };
 
   return (
-    <BView style={styles.stepContainer}>
-      <BView style={styles.stepHeader}>
+    <BView flex gap="xl" style={styles.stepContainer}>
+      <BView>
         <BText variant="heading">{strings.heading}</BText>
         <BText variant="body" muted>
           {strings.subheading}
         </BText>
       </BView>
 
-      <BView style={styles.listContainer}>
+      <BView flex>
         <FlatList
           data={items}
           keyExtractor={(item) => item.tempId}
@@ -190,19 +152,21 @@ function ListStep<T extends { tempId: string }>({
           scrollEnabled={false}
           ListFooterComponent={
             showForm ? (
-              <BView style={styles.formCard}>
+              <BCard variant="form">
                 <FlatList
                   data={formFields}
                   keyExtractor={(item) => item.key}
                   renderItem={renderFormField}
                   scrollEnabled={false}
-                  ItemSeparatorComponent={() => <BView style={styles.fieldSeparator} />}
+                  contentContainerStyle={{ gap: Spacing.md }}
                 />
                 {extraFormContent?.(formData)}
-                <BView row gap="md" style={styles.formButtons}>
+                <BView row gap="md">
                   <BButton
                     onPress={handleAddItem}
-                    style={[styles.customButton, { backgroundColor: Colors.light.primary }]}
+                    rounded="base"
+                    paddingY="sm"
+                    style={{ flex: 1, backgroundColor: Colors.light.primary }}
                   >
                     <BText color="#FFFFFF" variant="label">
                       {strings.form.addButton}
@@ -211,12 +175,14 @@ function ListStep<T extends { tempId: string }>({
                   <BButton
                     variant="ghost"
                     onPress={handleCancel}
-                    style={[styles.customButton, { backgroundColor: Colors.light.muted }]}
+                    rounded="base"
+                    paddingY="sm"
+                    style={{ flex: 1, backgroundColor: Colors.light.muted }}
                   >
                     <BText variant="label">{strings.form.cancelButton}</BText>
                   </BButton>
                 </BView>
-              </BView>
+              </BCard>
             ) : (
               <BAddItemButton label={strings.addButton} onPress={() => setShowForm(true)} />
             )
@@ -248,32 +214,7 @@ function ListStep<T extends { tempId: string }>({
 
 const styles = StyleSheet.create({
   stepContainer: {
-    flex: 1,
-  },
-  stepHeader: {
-    marginBottom: Spacing.xl,
-  },
-  listContainer: {
-    flex: 1,
-  },
-  formCard: {
-    backgroundColor: Colors.light.card,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.base,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-    gap: Spacing.md,
-  },
-  fieldSeparator: {
-    height: Spacing.md,
-  },
-  formButtons: {
-    marginTop: Spacing.sm,
-  },
-  customButton: {
-    flex: 1,
-    borderRadius: BorderRadius.base,
-    paddingVertical: Spacing.sm,
+    paddingBottom: Spacing.xl,
   },
 });
 

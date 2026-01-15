@@ -1,11 +1,11 @@
 import type { FC, ReactNode } from 'react';
-import { Alert, StyleSheet } from 'react-native';
+import { Alert } from 'react-native';
 
 import { OnboardingStrings } from '@/constants/onboarding.strings';
-import { BorderRadius, Colors, Spacing } from '@/constants/theme';
-import { BButton, BIcon, BText, BView } from '../ui';
+import { Colors, Spacing } from '@/constants/theme';
+import { BButton, BCard, BIcon, BText, BView } from '../ui';
 
-export interface ItemCardProps {
+export type ItemCardProps = {
   title: string;
   subtitle?: string;
   amount: number;
@@ -14,7 +14,7 @@ export interface ItemCardProps {
   onDelete?: () => void;
   extra?: ReactNode;
   confirmDelete?: boolean;
-}
+};
 
 const { common } = OnboardingStrings;
 
@@ -49,27 +49,27 @@ const BItemCard: FC<ItemCardProps> = ({
   };
 
   return (
-    <BView padding="base" style={styles.container} bg={Colors.light.card}>
-      <BView flex>
-        <BView row style={styles.header}>
+    <BCard style={{ marginBottom: Spacing.md }}>
+      <BView flex gap="sm">
+        <BView row justify="space-between" align="flex-start">
           <BView flex marginX="sm">
             <BText variant="label" numberOfLines={1}>
               {title}
             </BText>
             {subtitle && (
-              <BText variant="caption" muted style={styles.subtitleMargin}>
+              <BText variant="caption" muted style={{ marginTop: Spacing.xs }}>
                 {subtitle}
               </BText>
             )}
           </BView>
           {onDelete && (
-            <BButton variant="ghost" onPress={handleDelete} style={styles.deleteButton}>
+            <BButton variant="ghost" onPress={handleDelete} padding="xs" rounded="sm">
               <BIcon name="trash-outline" size="sm" color={Colors.light.error} />
             </BButton>
           )}
         </BView>
 
-        <BView row style={styles.amountRow}>
+        <BView row align="center" justify="space-between" style={{ flexWrap: 'wrap' }}>
           <BText variant="subheading">{formatCurrency(amount)}</BText>
           {secondaryAmount !== undefined && secondaryLabel && (
             <BView row center>
@@ -85,34 +85,8 @@ const BItemCard: FC<ItemCardProps> = ({
 
         {extra}
       </BView>
-    </BView>
+    </BCard>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    borderRadius: BorderRadius.lg,
-    marginBottom: Spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-  },
-  header: {
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: Spacing.sm,
-  },
-  subtitleMargin: {
-    marginTop: Spacing.xs,
-  },
-  deleteButton: {
-    padding: Spacing.xs,
-    borderRadius: BorderRadius.sm,
-  },
-  amountRow: {
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    flexWrap: 'wrap',
-  },
-});
 
 export default BItemCard;

@@ -1,5 +1,6 @@
+import type { DropdownOption } from '@/src/types';
 import type { FC, ReactNode } from 'react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 import { FlatList, Pressable, StyleSheet } from 'react-native';
 
@@ -7,16 +8,12 @@ import type { ComponentSizeType } from '@/constants/theme';
 import { BorderRadius, Colors, ComponentHeight, ComponentSize, FontSize, Opacity, Spacing } from '@/constants/theme';
 import BButton from './button';
 import BIcon from './icon';
+import BInput from './input';
 import BModal from './modal';
 import BText from './text';
 import BView from './view';
 
-export interface DropdownOption {
-  label: string;
-  value: string | number;
-}
-
-export interface BDropdownProps {
+export type BDropdownProps = {
   options: DropdownOption[];
   value?: string | number | null;
   onValueChange: (value: string | number) => void;
@@ -28,7 +25,9 @@ export interface BDropdownProps {
   modalTitle?: string;
   style?: StyleProp<ViewStyle>;
   containerStyle?: StyleProp<ViewStyle>;
-}
+  searchable?: boolean;
+  leftIcon?: string;
+};
 
 const sizeStyles: Record<ComponentSizeType, { height: number; fontSize: number; paddingHorizontal: number }> = {
   [ComponentSize.SM]: { height: ComponentHeight.sm, fontSize: FontSize.sm, paddingHorizontal: Spacing.sm },
@@ -48,14 +47,23 @@ const BDropdown: FC<BDropdownProps> = ({
   modalTitle = 'Select Option',
   style,
   containerStyle,
+  searchable = false,
+  leftIcon,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const selectedOption = options.find((opt) => opt.value === value);
+
+  const filteredOptions = useMemo(() => {
+    if (!searchable || !searchQuery) return options;
+    return options.filter((opt) => opt.label.toLowerCase().includes(searchQuery.toLowerCase()));
+  }, [options, searchable, searchQuery]);
 
   const handleSelect = (option: DropdownOption) => {
     onValueChange(option.value);
     setIsOpen(false);
+    setSearchQuery('');
   };
 
   const currentSize = sizeStyles[size];
@@ -78,17 +86,33 @@ const BDropdown: FC<BDropdownProps> = ({
   };
 
   const renderModalContent = (): ReactNode => (
-    <FlatList
-      data={options}
-      keyExtractor={(item) => String(item.value)}
-      renderItem={renderOption}
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={true}
-      nestedScrollEnabled={true}
-      bounces={true}
-      style={styles.optionsList}
-      contentContainerStyle={styles.optionsContent}
-    />
+    <BView style={styles.optionsList}>
+      {searchable && (
+        <BInput
+          placeholder="Search..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          containerStyle={styles.searchInput}
+          size={ComponentSize.SM}
+          leftIcon={<BIcon name="search" size="sm" color={Colors.light.textMuted} />}
+        />
+      )}
+      <FlatList
+        data={filteredOptions}
+        keyExtractor={(item) => String(item.value)}
+        renderItem={renderOption}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={true}
+        nestedScrollEnabled={true}
+        bounces={true}
+        contentContainerStyle={styles.optionsContent}
+        ListEmptyComponent={
+          <BText center muted style={{ padding: Spacing.md }}>
+            No options found
+          </BText>
+        }
+      />
+    </BView>
   );
 
   return (
@@ -112,12 +136,17 @@ const BDropdown: FC<BDropdownProps> = ({
           style,
         ]}
       >
-        <BText
-          style={{ fontSize: currentSize.fontSize }}
-          color={selectedOption ? Colors.light.text : Colors.light.textMuted}
-        >
-          {selectedOption?.label ?? placeholder}
-        </BText>
+        <BView row align="center" gap="sm" flex>
+          {leftIcon && <BIcon name={leftIcon as any} size="sm" color={Colors.light.textMuted} />}
+          <BText
+            style={{ fontSize: currentSize.fontSize }}
+            color={selectedOption ? Colors.light.text : Colors.light.textMuted}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {selectedOption?.label ?? placeholder}
+          </BText>
+        </BView>
         <BIcon name="chevron-down" size="sm" color={Colors.light.textSecondary} />
       </Pressable>
       {error && (
@@ -161,7 +190,10 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xs,
   },
   optionsList: {
-    maxHeight: 300,
+    maxHeight: 400,
+  },
+  searchInput: {
+    marginBottom: Spacing.sm,
   },
   optionsContent: {
     paddingBottom: Spacing.sm,

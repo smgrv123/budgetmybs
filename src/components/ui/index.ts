@@ -13,7 +13,7 @@ export { default as BView } from './view';
 // Re-export types
 export type { BButtonProps } from './button';
 export type { BCardProps, CardVariant } from './card';
-export type { BDropdownProps, DropdownOption } from './dropdown';
+export type { BDropdownProps } from './dropdown';
 export type { BIconProps } from './icon';
 export type { BInputProps } from './input';
 export type { BLinkProps } from './link';

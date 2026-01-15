@@ -1,7 +1,7 @@
-import type { SpacingValueType } from '@/constants/theme';
-import { Colors, Spacing } from '@/constants/theme';
+import type { BorderRadiusType, SpacingValueType } from '@/constants/theme';
+import { BorderRadius, Colors, Spacing } from '@/constants/theme';
 import type { FC } from 'react';
-import type { ViewProps as RNViewProps } from 'react-native';
+import type { FlexStyle, ViewProps as RNViewProps } from 'react-native';
 import { View as RNView, StyleSheet } from 'react-native';
 
 export interface BViewProps extends RNViewProps {
@@ -11,6 +11,10 @@ export interface BViewProps extends RNViewProps {
   row?: boolean;
   /** Apply flex: 1 */
   flex?: boolean;
+  /** Justify content */
+  justify?: FlexStyle['justifyContent'];
+  /** Align items */
+  align?: FlexStyle['alignItems'];
   /** Padding (all sides) */
   padding?: SpacingValueType;
   /** Padding horizontal */
@@ -27,6 +31,10 @@ export interface BViewProps extends RNViewProps {
   gap?: SpacingValueType;
   /** Background color */
   bg?: 'background' | 'backgroundSecondary' | 'transparent' | string;
+  /** Border (true for default, or color string) */
+  border?: boolean | string;
+  /** Border radius */
+  rounded?: BorderRadiusType;
 }
 
 const getSpacing = (value?: SpacingValueType): number | undefined => {
@@ -46,6 +54,8 @@ const BView: FC<BViewProps> = ({
   center = false,
   row = false,
   flex = false,
+  justify,
+  align,
   padding,
   paddingX,
   paddingY,
@@ -54,6 +64,8 @@ const BView: FC<BViewProps> = ({
   marginY,
   gap,
   bg,
+  border,
+  rounded,
   style,
   children,
   ...props
@@ -66,14 +78,19 @@ const BView: FC<BViewProps> = ({
         row && styles.row,
         flex && styles.flex,
         {
-          padding: getSpacing(padding),
-          paddingHorizontal: getSpacing(paddingX),
-          paddingVertical: getSpacing(paddingY),
-          margin: getSpacing(margin),
-          marginHorizontal: getSpacing(marginX),
-          marginVertical: getSpacing(marginY),
-          gap: getSpacing(gap),
-          backgroundColor: getBackgroundColor(bg),
+          ...(padding && { padding: getSpacing(padding) }),
+          ...(paddingX && { paddingHorizontal: getSpacing(paddingX) }),
+          ...(paddingY && { paddingVertical: getSpacing(paddingY) }),
+          ...(margin && { margin: getSpacing(margin) }),
+          ...(marginX && { marginHorizontal: getSpacing(marginX) }),
+          ...(marginY && { marginVertical: getSpacing(marginY) }),
+          ...(gap && { gap: getSpacing(gap) }),
+          ...(bg && { backgroundColor: getBackgroundColor(bg) }),
+          ...(justify && { justifyContent: justify }),
+          ...(align && { alignItems: align }),
+          ...(typeof border === 'string' && { borderColor: border, borderWidth: 1 }),
+          ...(border === true && { borderColor: Colors.light.border, borderWidth: 1 }),
+          ...(rounded && { borderRadius: BorderRadius[rounded] }),
         },
         style,
       ]}

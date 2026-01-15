@@ -1,17 +1,17 @@
 import { StyleSheet } from 'react-native';
 
 import { BorderRadius, Colors, Spacing } from '@/constants/theme';
+import { CustomTypeModalConfig } from '@/src/types';
 import { Dispatch, SetStateAction } from 'react';
 import { BButton, BInput, BText, BView } from '../../ui';
-import { CustomTypeModalConfig } from '../listStep';
 
-interface CustomTypeModalProps {
+type CustomTypeModalProps = {
   customTypeModal: CustomTypeModalConfig;
   customTypeName: string;
   setCustomTypeName: (name: string) => void;
   handleAddCustomType: () => void;
   setShowCustomTypeModal: Dispatch<SetStateAction<boolean>>;
-}
+};
 
 export default function BCustomTypeModal({
   customTypeModal,

@@ -260,6 +260,7 @@ export const BorderRadius = {
   '2xl': normalize(24),
   full: 9999,
 };
+export type BorderRadiusType = keyof typeof BorderRadius;
 
 // ============================================
 // ICON SIZES (Normalized)

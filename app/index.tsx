@@ -1,8 +1,9 @@
+import { Redirect } from 'expo-router';
+import { StyleSheet } from 'react-native';
+
 import { Colors, Spacing, TextVariant } from '@/constants/theme';
 import { BIcon, BSafeAreaView, BText, BView } from '@/src/components';
 import { useProfile } from '@/src/hooks';
-import { Redirect } from 'expo-router';
-import { StyleSheet } from 'react-native';
 
 /**
  * Root index screen - handles routing based on onboarding status

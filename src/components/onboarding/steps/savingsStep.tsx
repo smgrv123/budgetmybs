@@ -10,9 +10,9 @@ import BListStep from '@/src/components/onboarding/listStep';
 import { BText } from '@/src/components/ui';
 import { useOnboardingStore } from '@/src/store';
 
-export interface SavingsStepProps {
+export type SavingsStepProps = {
   onNext: () => void;
-}
+};
 
 function SavingsStep({ onNext }: SavingsStepProps) {
   const { savingsGoals, addSavingsGoal, removeSavingsGoal } = useOnboardingStore();

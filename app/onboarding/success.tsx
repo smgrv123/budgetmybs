@@ -1,11 +1,11 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useEffect } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { FlatList, StyleSheet } from 'react-native';
 
 import { OnboardingStrings } from '@/constants/onboarding.strings';
-import { BorderRadius, Colors, ComponentSize, Spacing, SpacingValue, TextVariant } from '@/constants/theme';
-import { BIcon, BSafeAreaView, BText, BView } from '@/src/components';
+import { Colors, ComponentSize, Spacing, SpacingValue, TextVariant } from '@/constants/theme';
+import { BCard, BIcon, BSafeAreaView, BText, BView } from '@/src/components';
 
 const { success } = OnboardingStrings;
 
@@ -15,11 +15,11 @@ const SUCCESS_GRADIENT: [string, string] = [Colors.light.successGradientStart, C
 // Auto-redirect delay in milliseconds
 const REDIRECT_DELAY_MS = 2000;
 
-interface CompletionItem {
+type CompletionItem = {
   id: string;
   label: string;
   icon: string;
-}
+};
 
 export default function SuccessScreen() {
   // Auto-redirect to dashboard after 2 seconds
@@ -32,47 +32,55 @@ export default function SuccessScreen() {
   }, []);
 
   const renderCompletionItem = ({ item }: { item: CompletionItem }) => (
-    <BView row gap={SpacingValue.MD} padding={SpacingValue.MD} style={styles.completionCard}>
-      <BView center style={styles.iconContainer}>
-        <BIcon name={item.icon as any} color={Colors.light.successCheck} size={ComponentSize.SM} />
+    <BCard variant="default" gap="md">
+      <BView row align="center" gap="md" padding="md">
+        <BView center rounded="full" bg={Colors.light.successCheckBg} style={{ width: Spacing.xl, height: Spacing.xl }}>
+          <BIcon name={item.icon as any} color={Colors.light.successCheck} size={ComponentSize.SM} />
+        </BView>
+        <BText variant={TextVariant.LABEL}>{item.label}</BText>
       </BView>
-      <BText variant={TextVariant.LABEL}>{item.label}</BText>
-    </BView>
+    </BCard>
   );
 
   return (
     <LinearGradient colors={SUCCESS_GRADIENT} style={styles.gradient}>
       <BSafeAreaView style={styles.safeArea}>
         {/* Main Content - Takes up remaining space and centers vertically */}
-        <View style={styles.mainContent}>
+        <BView flex center>
           {/* Checkmark Icon */}
-          <View style={styles.checkmarkWrapper}>
-            <View style={styles.checkmarkCircle}>
+          <BView center marginY="lg">
+            <BView
+              center
+              rounded="full"
+              bg={Colors.light.white}
+              border={Colors.light.successCheck}
+              style={{ width: Spacing['5xl'], height: Spacing['5xl'], borderWidth: 3 }}
+            >
               <BIcon name="checkmark" color={Colors.light.successCheck} size={ComponentSize.LG} />
-            </View>
-          </View>
+            </BView>
+          </BView>
 
           {/* Title & Subtitle */}
-          <View style={styles.textContainer}>
-            <BText variant={TextVariant.HEADING} center style={styles.title}>
+          <BView center gap="sm" paddingX="xl" marginY="xl">
+            <BText variant={TextVariant.HEADING} center>
               {success.title}
             </BText>
-            <BText variant={TextVariant.BODY} muted center style={styles.subtitle}>
+            <BText variant={TextVariant.BODY} muted center>
               {success.subtitle}
             </BText>
-          </View>
+          </BView>
 
           {/* Completion List */}
-          <BView paddingX={SpacingValue.XL} marginY={SpacingValue.LG}>
+          <BView paddingX={SpacingValue.XL}>
             <FlatList
               data={success.completionItems}
               renderItem={renderCompletionItem}
               keyExtractor={(item) => item.id}
               scrollEnabled={false}
-              ItemSeparatorComponent={() => <BView style={{ height: Spacing.sm }} />}
+              ItemSeparatorComponent={() => <BView gap="sm" />}
             />
           </BView>
-        </View>
+        </BView>
 
         {/* Footer - Redirecting text */}
         <BView center paddingY={SpacingValue.XL}>
@@ -91,49 +99,5 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
-  },
-  mainContent: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  checkmarkWrapper: {
-    alignItems: 'center',
-    marginBottom: Spacing.lg,
-  },
-  checkmarkCircle: {
-    width: Spacing['5xl'],
-    height: Spacing['5xl'],
-    borderRadius: Spacing['5xl'] / 2,
-    borderWidth: 3,
-    borderColor: Colors.light.successCheck,
-    backgroundColor: Colors.light.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  textContainer: {
-    paddingHorizontal: Spacing.xl,
-    marginBottom: Spacing.xl,
-  },
-  title: {
-    marginBottom: Spacing.sm,
-  },
-  subtitle: {
-    paddingHorizontal: Spacing.md,
-  },
-  completionCard: {
-    backgroundColor: Colors.light.white,
-    borderRadius: BorderRadius.lg,
-    alignItems: 'center',
-    shadowColor: Colors.light.text,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  iconContainer: {
-    width: Spacing.xl,
-    height: Spacing.xl,
-    borderRadius: BorderRadius.full,
-    backgroundColor: Colors.light.successCheckBg,
   },
 });

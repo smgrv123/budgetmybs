@@ -1,40 +1,10 @@
 import { create } from 'zustand';
 
-export interface ProfileData {
-  name: string;
-  salary: number;
-  monthlySavingsTarget: number;
-  frivolousBudget: number;
-}
+import type { DebtData, FixedExpenseData, ProfileData, SavingsGoalData } from '@/src/types';
+import { calculateEMI } from '@/src/utils/budget';
+import { generateUUID } from '@/src/utils/id';
 
-export interface FixedExpenseData {
-  tempId: string;
-  name: string;
-  type: string;
-  customType?: string;
-  amount: number;
-  dayOfMonth?: number | null;
-}
-
-export interface DebtData {
-  tempId: string;
-  name: string;
-  type: string;
-  customType?: string;
-  principal: number;
-  interestRate: number;
-  tenureMonths: number;
-}
-
-export interface SavingsGoalData {
-  tempId: string;
-  name: string;
-  type: string;
-  customType?: string;
-  targetAmount: number;
-}
-
-export interface OnboardingState {
+export type OnboardingState = {
   // Data
   profile: ProfileData;
   fixedExpenses: FixedExpenseData[];
@@ -62,7 +32,7 @@ export interface OnboardingState {
 
   // Actions - General
   reset: () => void;
-}
+};
 
 // ============================================
 // INITIAL STATE
@@ -86,7 +56,7 @@ const initialState = {
 // HELPER: Generate temp ID
 // ============================================
 
-const generateTempId = () => `temp_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+// using generateUUID from utils
 
 // ============================================
 // STORE
@@ -109,7 +79,7 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
   // Fixed Expense Actions
   addFixedExpense: (expense) =>
     set((state) => ({
-      fixedExpenses: [...state.fixedExpenses, { ...expense, tempId: generateTempId() }],
+      fixedExpenses: [...state.fixedExpenses, { ...expense, tempId: generateUUID() }],
     })),
 
   updateFixedExpense: (tempId, data) =>
@@ -125,7 +95,7 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
   // Debt Actions
   addDebt: (debt) =>
     set((state) => ({
-      debts: [...state.debts, { ...debt, tempId: generateTempId() }],
+      debts: [...state.debts, { ...debt, tempId: generateUUID() }],
     })),
 
   updateDebt: (tempId, data) =>
@@ -141,7 +111,7 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
   // Savings Goal Actions
   addSavingsGoal: (goal) =>
     set((state) => ({
-      savingsGoals: [...state.savingsGoals, { ...goal, tempId: generateTempId() }],
+      savingsGoals: [...state.savingsGoals, { ...goal, tempId: generateUUID() }],
     })),
 
   updateSavingsGoal: (tempId, data) =>
@@ -176,32 +146,3 @@ export const selectTotalDebtEMI = (state: OnboardingState) =>
 
 export const selectTotalSavingsTarget = (state: OnboardingState) =>
   state.savingsGoals.reduce((sum, g) => sum + g.targetAmount, 0);
-
-// ============================================
-// EMI CALCULATOR
-// ============================================
-
-/**
- * Calculate EMI using the formula:
- * EMI = P × r × (1+r)^n / ((1+r)^n - 1)
- *
- * @param principal - Loan principal amount
- * @param annualRate - Annual interest rate (percentage, e.g., 10 for 10%)
- * @param tenureMonths - Loan tenure in months
- * @returns Monthly EMI amount (rounded to nearest rupee)
- */
-export function calculateEMI(principal: number, annualRate: number, tenureMonths: number): number {
-  if (principal <= 0 || tenureMonths <= 0) return 0;
-
-  // If no interest, simple division
-  if (annualRate === 0) {
-    return Math.round(principal / tenureMonths);
-  }
-
-  const r = annualRate / 12 / 100; // Monthly interest rate
-  const n = tenureMonths;
-
-  const emi = (principal * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
-
-  return Math.round(emi);
-}

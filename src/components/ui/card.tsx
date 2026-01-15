@@ -1,16 +1,18 @@
 import type { FC, ReactNode } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 
+import type { SpacingValueType } from '@/constants/theme';
 import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
 import BView from './view';
 
 export type CardVariant = 'default' | 'form' | 'summary' | 'elevated';
 
-export interface BCardProps {
+export type BCardProps = {
   variant?: CardVariant;
   children: ReactNode;
   style?: StyleProp<ViewStyle>;
-}
+  gap?: SpacingValueType;
+};
 
 const variantStyles: Record<CardVariant, ViewStyle> = {
   default: {
@@ -41,8 +43,8 @@ const variantStyles: Record<CardVariant, ViewStyle> = {
   },
 };
 
-const BCard: FC<BCardProps> = ({ variant = 'default', children, style }) => {
-  return <BView style={[variantStyles[variant], style]}>{children}</BView>;
+const BCard: FC<BCardProps> = ({ variant = 'default', gap, children, style }) => {
+  return <BView style={[variantStyles[variant], gap && { gap: Spacing[gap] }, style]}>{children}</BView>;
 };
 
 export default BCard;

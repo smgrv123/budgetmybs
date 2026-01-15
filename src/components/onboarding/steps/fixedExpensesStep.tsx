@@ -10,9 +10,9 @@ import BListStep from '@/src/components/onboarding/listStep';
 import { BText } from '@/src/components/ui';
 import { useOnboardingStore } from '@/src/store';
 
-export interface FixedExpensesStepProps {
+export type FixedExpensesStepProps = {
   onNext: () => void;
-}
+};
 
 function FixedExpensesStep({ onNext }: FixedExpensesStepProps) {
   const { fixedExpenses: expenses, addFixedExpense, removeFixedExpense } = useOnboardingStore();

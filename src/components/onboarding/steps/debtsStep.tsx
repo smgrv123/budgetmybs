@@ -9,11 +9,12 @@ import {
 import { Colors, Spacing } from '@/constants/theme';
 import BListStep from '@/src/components/onboarding/listStep';
 import { BText, BView } from '@/src/components/ui';
-import { calculateEMI, useOnboardingStore } from '@/src/store';
+import { useOnboardingStore } from '@/src/store';
+import { calculateEMI } from '@/src/utils/budget';
 
-export interface DebtsStepProps {
+export type DebtsStepProps = {
   onNext: () => void;
-}
+};
 
 function DebtsStep({ onNext }: DebtsStepProps) {
   const { debts: debtsList, addDebt, removeDebt } = useOnboardingStore();

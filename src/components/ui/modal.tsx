@@ -31,6 +31,8 @@ export interface BModalProps extends Partial<RNModalProps> {
   containerStyle?: StyleProp<ViewStyle>;
   /** Override content styles */
   contentStyle?: StyleProp<ViewStyle>;
+  /** Override header styles */
+  headerStyle?: StyleProp<ViewStyle>;
 }
 
 const BModal: FC<BModalProps> = ({
@@ -43,6 +45,7 @@ const BModal: FC<BModalProps> = ({
   position = ModalPosition.CENTER,
   containerStyle,
   contentStyle,
+  headerStyle,
   style,
   ...props
 }) => {
@@ -67,7 +70,7 @@ const BModal: FC<BModalProps> = ({
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.keyboardView}>
         <BView style={[styles.container, isBottom && styles.containerBottom, containerStyle]}>
           {(title || showCloseButton) && (
-            <BView row style={styles.header}>
+            <BView row style={[styles.header, headerStyle]}>
               {title ? (
                 <BText variant="subheading" style={styles.title}>
                   {title}

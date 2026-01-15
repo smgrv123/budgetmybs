@@ -1,12 +1,12 @@
-import dayjs from 'dayjs';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FlatList, ScrollView, StyleSheet, View } from 'react-native';
 
 import { createQuickStats, createStatCards, RECENT_TRANSACTIONS, type Transaction } from '@/constants/dashboard.config';
-import { BorderRadius, Colors, FontSize, FontWeight, Spacing, SpacingValue, TextVariant } from '@/constants/theme';
-import { BButton, BIcon, BSafeAreaView, BText, BView } from '@/src/components';
+import { BorderRadius, Colors, Spacing, SpacingValue, TextVariant } from '@/constants/theme';
+import { BButton, BCard, BIcon, BSafeAreaView, BText, BView } from '@/src/components';
 import { useDebts, useFixedExpenses, useProfile, useSavingsGoals } from '@/src/hooks';
-import { calculateEMI } from '@/src/store';
+import { calculateEMI } from '@/src/utils/budget';
+import { formatDate } from '@/src/utils/date';
 
 // Dashboard gradient colors
 const HEADER_GRADIENT: [string, string, string] = [
@@ -14,9 +14,6 @@ const HEADER_GRADIENT: [string, string, string] = [
   Colors.light.confirmationGradientMiddle,
   Colors.light.confirmationGradientEnd,
 ];
-
-// Format date for header using dayjs
-const formatDate = (): string => dayjs().format('dddd, D MMMM');
 
 export default function DashboardScreen() {
   const { profile, isProfileLoading, isProfileError, refetchProfile } = useProfile();
@@ -47,7 +44,7 @@ export default function DashboardScreen() {
 
   if (isLoading) {
     return (
-      <BSafeAreaView style={styles.container}>
+      <BSafeAreaView>
         <BView flex center>
           <BIcon name="sync" color={Colors.light.primary} size="lg" />
           <BText variant={TextVariant.BODY} muted style={{ marginTop: Spacing.md }}>
@@ -60,7 +57,7 @@ export default function DashboardScreen() {
 
   if (isProfileError) {
     return (
-      <BSafeAreaView style={styles.container}>
+      <BSafeAreaView>
         <BView flex center padding={SpacingValue.XL}>
           <BIcon name="alert-circle-outline" color={Colors.light.error} size="lg" />
           <BText variant={TextVariant.SUBHEADING} center style={{ marginTop: Spacing.md }}>
@@ -69,9 +66,11 @@ export default function DashboardScreen() {
           <BText variant={TextVariant.CAPTION} muted center style={{ marginTop: Spacing.xs }}>
             We couldn&apos;t load your data. Please try again.
           </BText>
-          <BView style={{ marginTop: Spacing.xl }}>
-            <BButton onPress={() => refetchProfile()} style={styles.retryButton}>
-              <BText style={styles.retryButtonText}>Retry</BText>
+          <BView marginY="xl">
+            <BButton onPress={() => refetchProfile()} paddingX="xl" paddingY="md" rounded="lg">
+              <BText variant={TextVariant.LABEL} color={Colors.light.white}>
+                Retry
+              </BText>
             </BButton>
           </BView>
         </BView>
@@ -80,38 +79,46 @@ export default function DashboardScreen() {
   }
 
   const renderTransaction = ({ item }: { item: Transaction }) => (
-    <BView row padding={SpacingValue.MD} style={styles.transactionCard}>
-      <BView flex>
-        <BView row style={{ alignItems: 'center', gap: Spacing.xs }}>
-          <BText variant={TextVariant.LABEL}>{item.name}</BText>
-          {item.isImpulse && (
-            <BView style={styles.impulseTag}>
-              <BText style={styles.impulseText}>Impulse</BText>
-            </BView>
-          )}
+    <BCard variant="default" style={{ padding: Spacing.md }}>
+      <BView row justify="space-between" align="center">
+        <BView flex>
+          <BView row style={{ alignItems: 'center', gap: Spacing.xs }}>
+            <BText variant={TextVariant.LABEL}>{item.name}</BText>
+            {item.isImpulse && (
+              <BView rounded="sm" paddingX="xs" paddingY="xxs" bg={Colors.light.warningBackground}>
+                <BText variant={TextVariant.CAPTION} color={Colors.light.warning}>
+                  Impulse
+                </BText>
+              </BView>
+            )}
+          </BView>
+          <BText variant={TextVariant.CAPTION} muted>
+            {item.category} • {item.date}
+          </BText>
         </BView>
-        <BText variant={TextVariant.CAPTION} muted>
-          {item.category} • {item.date}
+        <BText variant={TextVariant.LABEL} style={{ color: Colors.light.error }}>
+          -₹{item.amount.toLocaleString('en-IN')}
         </BText>
       </BView>
-      <BText variant={TextVariant.LABEL} style={{ color: Colors.light.error }}>
-        -₹{item.amount.toLocaleString('en-IN')}
-      </BText>
-    </BView>
+    </BCard>
   );
 
   return (
-    <BSafeAreaView style={styles.container} edges={['bottom']}>
+    <BSafeAreaView edges={['bottom']}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Gradient Header */}
         <LinearGradient colors={HEADER_GRADIENT} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.header}>
-          <View style={styles.headerContent}>
-            <BText style={styles.dateText}>{formatDate()}</BText>
-            <BView row style={styles.headerRow}>
-              <BText style={styles.greeting}>Hey, {profile?.name || 'there'}!</BText>
+          <BView>
+            <BText variant={TextVariant.CAPTION} color={Colors.light.white} muted style={{ marginBottom: Spacing.xs }}>
+              {formatDate()}
+            </BText>
+            <BView row justify="space-between" align="center">
+              <BText variant={TextVariant.HEADING} color={Colors.light.white}>
+                Hey, {profile?.name || 'there'}!
+              </BText>
               <BIcon name="settings-outline" color={Colors.light.white} size="md" />
             </BView>
-          </View>
+          </BView>
         </LinearGradient>
 
         {/* Budget Card - Overlaps Header */}
@@ -136,14 +143,16 @@ export default function DashboardScreen() {
         {/* Spent/Saved Cards */}
         <BView row gap={SpacingValue.MD} paddingX={SpacingValue.LG} marginY={SpacingValue.MD}>
           {statCards.map((item) => (
-            <BView key={item.id} flex padding={SpacingValue.MD} style={styles.statCard}>
-              <BText variant={TextVariant.CAPTION} muted>
-                {item.label}
-              </BText>
-              <BText variant={TextVariant.SUBHEADING} style={{ color: item.color }}>
-                {item.value}
-              </BText>
-            </BView>
+            <BCard key={item.id} variant="default" style={{ flex: 1, padding: Spacing.md }}>
+              <BView flex>
+                <BText variant={TextVariant.CAPTION} muted>
+                  {item.label}
+                </BText>
+                <BText variant={TextVariant.SUBHEADING} style={{ color: item.color }}>
+                  {item.value}
+                </BText>
+              </BView>
+            </BCard>
           ))}
         </BView>
 
@@ -154,15 +163,17 @@ export default function DashboardScreen() {
           </BText>
           <BView row gap={SpacingValue.SM}>
             {quickStats.map((item) => (
-              <BView key={item.id} flex center padding={SpacingValue.MD} style={styles.quickStatCard}>
-                <BIcon name={item.icon as any} color={item.color} size="md" />
-                <BText variant={TextVariant.LABEL} style={{ marginTop: Spacing.xs }}>
-                  {item.value}
-                </BText>
-                <BText variant={TextVariant.CAPTION} muted>
-                  {item.label}
-                </BText>
-              </BView>
+              <BCard key={item.id} variant="default" style={{ flex: 1, padding: Spacing.md }}>
+                <BView center flex>
+                  <BIcon name={item.icon as any} color={item.color} size="md" />
+                  <BText variant={TextVariant.LABEL} style={{ marginTop: Spacing.xs }}>
+                    {item.value}
+                  </BText>
+                  <BText variant={TextVariant.CAPTION} muted>
+                    {item.label}
+                  </BText>
+                </BView>
+              </BCard>
             ))}
           </BView>
         </BView>
@@ -189,30 +200,10 @@ export default function DashboardScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.light.background,
-  },
   header: {
     paddingTop: Spacing['3xl'],
     paddingBottom: Spacing['4xl'],
     paddingHorizontal: Spacing.lg,
-  },
-  headerContent: {},
-  dateText: {
-    fontSize: FontSize.sm,
-    color: Colors.light.white,
-    opacity: 0.8,
-    marginBottom: Spacing.xs,
-  },
-  headerRow: {
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  greeting: {
-    fontSize: FontSize['2xl'],
-    fontWeight: FontWeight.bold,
-    color: Colors.light.white,
   },
   budgetCardWrapper: {
     marginTop: -Spacing['2xl'],
@@ -227,54 +218,14 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
   progressBarBg: {
-    height: 8,
+    height: Spacing.xs,
     backgroundColor: Colors.light.muted,
-    borderRadius: 4,
+    borderRadius: BorderRadius.xs,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
     backgroundColor: Colors.light.primary,
-    borderRadius: 4,
-  },
-  statCard: {
-    backgroundColor: Colors.light.white,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-  },
-  quickStatCard: {
-    backgroundColor: Colors.light.white,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-  },
-  transactionCard: {
-    backgroundColor: Colors.light.white,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-  },
-  impulseTag: {
-    backgroundColor: Colors.light.warningBackground,
-    paddingHorizontal: Spacing.xs,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.sm,
-  },
-  impulseText: {
-    fontSize: FontSize.xs,
-    color: Colors.light.warning,
-    fontWeight: FontWeight.medium,
-  },
-  retryButton: {
-    backgroundColor: Colors.light.primary,
-    borderRadius: BorderRadius.lg,
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.md,
-  },
-  retryButtonText: {
-    color: Colors.light.white,
-    fontSize: FontSize.base,
-    fontWeight: FontWeight.semibold,
+    borderRadius: BorderRadius.xs,
   },
 });

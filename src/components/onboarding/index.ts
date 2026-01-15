@@ -13,7 +13,10 @@ export { BDebtsStep, BFixedExpensesStep, BProfileStep, BSavingsStep } from './st
 export type { AddItemButtonProps } from './addItemButton';
 export type { FeatureCardProps } from './featureCard';
 export type { ItemCardProps } from './itemCard';
-export type { CustomTypeModalConfig, FormField, ItemCardConfig, ListStepProps, ListStepStrings } from './listStep';
+export type { ListStepProps } from './listStep';
 export type { OnboardingLayoutProps } from './onboardingLayout';
 export type { StepIndicatorProps } from './stepIndicator';
 export type { DebtsStepProps, FixedExpensesStepProps, ProfileStepProps, SavingsStepProps } from './steps';
+
+// Re-export shared types from src/types
+export type { CustomTypeModalConfig, FormField, ItemCardConfig, ListStepStrings } from '@/src/types';

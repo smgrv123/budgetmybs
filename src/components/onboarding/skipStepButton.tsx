@@ -1,14 +1,14 @@
 import { StyleSheet } from 'react-native';
 
 import { BorderRadius, Colors, Spacing } from '@/constants/theme';
+import { ListStepStrings } from '@/src/types';
 import { BButton, BText } from '../ui';
-import { ListStepStrings } from './listStep';
 
-interface SkipStepButtonProps {
+type SkipStepButtonProps = {
   onNext: () => void;
   strings: ListStepStrings;
   showSkip: boolean;
-}
+};
 
 export default function BSkipStepButton({ onNext, strings, showSkip }: SkipStepButtonProps) {
   return (
