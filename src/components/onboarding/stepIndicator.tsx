@@ -89,6 +89,7 @@ const styles = StyleSheet.create({
   },
   line: {
     height: Spacing.xxs,
+    marginTop: Spacing.md,
   },
 });
 

@@ -20,9 +20,9 @@ const variantStyles: Record<
   { fontSize: number; fontWeight: TextStyle['fontWeight']; lineHeight: number }
 > = {
   [TextVariant.HEADING]: {
-    fontSize: FontSize['2xl'],
+    fontSize: FontSize['3xl'],
     fontWeight: FontWeight.bold,
-    lineHeight: FontSize['2xl'] * LineHeight.tight,
+    lineHeight: FontSize['3xl'] * LineHeight.tight,
   },
   [TextVariant.SUBHEADING]: {
     fontSize: FontSize.lg,

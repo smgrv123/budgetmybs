@@ -8,13 +8,16 @@ type SkipStepButtonProps = {
   onNext: () => void;
   strings: ListStepStrings;
   showSkip: boolean;
+  nextButtonLabel?: string; // Optional custom label for settings reuse
 };
 
-export default function BSkipStepButton({ onNext, strings, showSkip }: SkipStepButtonProps) {
+export default function BSkipStepButton({ onNext, strings, showSkip, nextButtonLabel }: SkipStepButtonProps) {
+  const buttonLabel = nextButtonLabel ?? (showSkip ? strings.continueButton : strings.skipButton);
+
   return (
     <BButton fullWidth onPress={onNext} style={styles.continueButton}>
       <BText color="#FFFFFF" variant="label">
-        {showSkip ? strings.continueButton : strings.skipButton}
+        {buttonLabel}
       </BText>
     </BButton>
   );

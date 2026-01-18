@@ -3,7 +3,7 @@ import { FlatList, ScrollView, StyleSheet, View } from 'react-native';
 
 import { createQuickStats, createStatCards, RECENT_TRANSACTIONS, type Transaction } from '@/constants/dashboard.config';
 import { BorderRadius, Colors, Spacing, SpacingValue, TextVariant } from '@/constants/theme';
-import { BButton, BCard, BIcon, BSafeAreaView, BText, BView } from '@/src/components';
+import { BButton, BCard, BIcon, BLink, BSafeAreaView, BText, BView } from '@/src/components';
 import { useDebts, useFixedExpenses, useProfile, useSavingsGoals } from '@/src/hooks';
 import { calculateEMI } from '@/src/utils/budget';
 import { formatDate } from '@/src/utils/date';
@@ -108,15 +108,17 @@ export default function DashboardScreen() {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Gradient Header */}
         <LinearGradient colors={HEADER_GRADIENT} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.header}>
-          <BView>
-            <BText variant={TextVariant.CAPTION} color={Colors.light.white} muted style={{ marginBottom: Spacing.xs }}>
+          <BView paddingY={SpacingValue.MD}>
+            <BText variant={TextVariant.BODY} color={Colors.light.white} muted style={{ marginBottom: Spacing.xs }}>
               {formatDate()}
             </BText>
             <BView row justify="space-between" align="center">
               <BText variant={TextVariant.HEADING} color={Colors.light.white}>
-                Hey, {profile?.name || 'there'}!
+                Hey, {profile?.name}!
               </BText>
-              <BIcon name="settings-outline" color={Colors.light.white} size="md" />
+              <BLink href="/dashboard/settings">
+                <BIcon name="settings-outline" color={Colors.light.white} size="md" />
+              </BLink>
             </BView>
           </BView>
         </LinearGradient>

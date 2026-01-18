@@ -33,6 +33,7 @@ export type ListStepProps<T extends { tempId: string }> = {
   // Optional
   extraFormContent?: (formData: Record<string, string>) => ReactNode;
   customTypeModal?: CustomTypeModalConfig;
+  nextButtonLabel?: string; // Custom label for settings reuse
 };
 
 function ListStep<T extends { tempId: string }>({
@@ -48,6 +49,7 @@ function ListStep<T extends { tempId: string }>({
   onNext,
   extraFormContent,
   customTypeModal,
+  nextButtonLabel,
 }: ListStepProps<T>): React.JSX.Element {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState(initialFormData);
@@ -190,7 +192,12 @@ function ListStep<T extends { tempId: string }>({
         />
       </BView>
 
-      <BSkipStepButton showSkip={items.length > 0} strings={strings} onNext={onNext} />
+      <BSkipStepButton
+        showSkip={items.length > 0}
+        strings={strings}
+        onNext={onNext}
+        nextButtonLabel={nextButtonLabel}
+      />
 
       {/* Custom Type Modal */}
       {customTypeModal && (

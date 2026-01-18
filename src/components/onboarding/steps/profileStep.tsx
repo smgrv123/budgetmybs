@@ -13,9 +13,20 @@ export type ProfileStepProps = {
   onNext: () => void;
   errors: Record<string, string>;
   setErrors: (errors: Record<string, string>) => void;
+  // Optional customization for settings reuse
+  submitLabel?: string;
+  heading?: string;
+  subheading?: string;
 };
 
-function ProfileStep({ onNext, errors, setErrors }: ProfileStepProps) {
+function ProfileStep({
+  onNext,
+  errors,
+  setErrors,
+  submitLabel = profileStrings.continueButton,
+  heading = profileStrings.heading,
+  subheading = profileStrings.subheading,
+}: ProfileStepProps) {
   const { profile, updateProfileField } = useOnboardingStore();
 
   const handleContinue = () => {
@@ -53,9 +64,9 @@ function ProfileStep({ onNext, errors, setErrors }: ProfileStepProps) {
   return (
     <BView flex gap="xl" style={styles.stepContainer}>
       <BView>
-        <BText variant="heading">{profileStrings.heading}</BText>
+        <BText variant="heading">{heading}</BText>
         <BText variant="body" muted>
-          {profileStrings.subheading}
+          {subheading}
         </BText>
       </BView>
 
@@ -97,7 +108,7 @@ function ProfileStep({ onNext, errors, setErrors }: ProfileStepProps) {
           style={isButtonDisabled ? { backgroundColor: Colors.light.muted } : undefined}
         >
           <BText color="#FFFFFF" variant="label">
-            {profileStrings.continueButton}
+            {submitLabel}
           </BText>
         </BButton>
       </BView>

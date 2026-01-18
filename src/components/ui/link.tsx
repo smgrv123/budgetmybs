@@ -21,11 +21,11 @@ export interface BLinkProps {
 
 const BLink: FC<BLinkProps> = ({ href, children, style, onPress, disabled = false }) => {
   return (
-    <ExpoLink href={href} asChild>
+    <ExpoLink href={href} asChild style={styles.container}>
       <BButton
         onPress={onPress}
         disabled={disabled}
-        style={[styles.container, { opacity: disabled ? Opacity.disabled : Opacity.full }, style]}
+        style={[{ opacity: disabled ? Opacity.disabled : Opacity.full }, style]}
       >
         {children}
       </BButton>
@@ -34,7 +34,9 @@ const BLink: FC<BLinkProps> = ({ href, children, style, onPress, disabled = fals
 };
 
 const styles = StyleSheet.create({
-  container: {},
+  container: {
+    backgroundColor: 'transparent',
+  },
 });
 
 export default BLink;
