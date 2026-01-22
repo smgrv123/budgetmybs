@@ -2,11 +2,13 @@
 
 import journal from './meta/_journal.json';
 import m0000 from './0000_small_puff_adder.sql';
+import m0001 from './0001_talented_agent_brand.sql';
 
   export default {
     journal,
     migrations: {
-      m0000
+      m0000,
+m0001
     }
   }
   

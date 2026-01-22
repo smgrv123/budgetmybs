@@ -1,4 +1,4 @@
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { db } from '../client';
 import { savingsGoalsTable } from '../schema';
 import type { CreateSavingsGoalInput, UpdateSavingsGoalInput } from '../schema-types';
@@ -79,4 +79,45 @@ export const updateSavingsGoal = async (id: string, updateData: UpdateSavingsGoa
 
 export const deleteSavingsGoal = async (id: string) => {
   await db.delete(savingsGoalsTable).where(eq(savingsGoalsTable.id, id));
+};
+
+// ============================================
+// GET COMPLETED SAVINGS GOALS
+// ============================================
+
+export const getCompletedSavingsGoals = async () => {
+  return db
+    .select()
+    .from(savingsGoalsTable)
+    .where(and(eq(savingsGoalsTable.isCompleted, 1), eq(savingsGoalsTable.isActive, 1)))
+    .orderBy(savingsGoalsTable.updatedAt);
+};
+
+// ============================================
+// GET INCOMPLETE SAVINGS GOALS
+// ============================================
+
+export const getIncompleteSavingsGoals = async () => {
+  return db
+    .select()
+    .from(savingsGoalsTable)
+    .where(and(eq(savingsGoalsTable.isCompleted, 0), eq(savingsGoalsTable.isActive, 1)))
+    .orderBy(savingsGoalsTable.createdAt);
+};
+
+// ============================================
+// MARK SAVINGS GOAL AS COMPLETED
+// ============================================
+
+export const markGoalAsCompleted = async (id: string) => {
+  const result = await db
+    .update(savingsGoalsTable)
+    .set({
+      isCompleted: 1,
+      updatedAt: sql`CURRENT_TIMESTAMP`,
+    })
+    .where(eq(savingsGoalsTable.id, id))
+    .returning();
+
+  return result[0];
 };

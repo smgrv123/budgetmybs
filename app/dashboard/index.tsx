@@ -1,11 +1,25 @@
 import { LinearGradient } from 'expo-linear-gradient';
+import { useState } from 'react';
 import { FlatList, ScrollView, StyleSheet, View } from 'react-native';
 
-import { createQuickStats, createStatCards, RECENT_TRANSACTIONS, type Transaction } from '@/constants/dashboard.config';
-import { BorderRadius, Colors, Spacing, SpacingValue, TextVariant } from '@/constants/theme';
-import { BButton, BCard, BIcon, BLink, BSafeAreaView, BText, BView } from '@/src/components';
-import { useDebts, useFixedExpenses, useProfile, useSavingsGoals } from '@/src/hooks';
+import { createQuickStats, createStatCards, QuickStatType } from '@/constants/dashboardData';
+import { BorderRadius, ButtonVariant, Colors, Spacing, SpacingValue, TextVariant } from '@/constants/theme';
+import {
+  AddTransactionModal,
+  BButton,
+  BCard,
+  BFAB,
+  BIcon,
+  BLink,
+  BSafeAreaView,
+  BText,
+  BView,
+  QuickStatSheet,
+} from '@/src/components';
+import { useDebts, useExpenses, useFixedExpenses, useProfile, useSavingsGoals } from '@/src/hooks';
+import type { QuickStatTypeValue } from '@/src/types/dashboard';
 import { calculateEMI } from '@/src/utils/budget';
+import { mapDebtToSheet, mapFixedExpenseToSheet, mapSavingsGoalToSheet } from '@/src/utils/dashboard';
 import { formatDate } from '@/src/utils/date';
 
 // Dashboard gradient colors
@@ -19,28 +33,65 @@ export default function DashboardScreen() {
   const { profile, isProfileLoading, isProfileError, refetchProfile } = useProfile();
   const { fixedExpenses, isFixedExpensesLoading } = useFixedExpenses();
   const { debts, isDebtsLoading } = useDebts();
-  const { savingsGoals, isSavingsGoalsLoading } = useSavingsGoals();
+  const { savingsGoals, completedGoals, incompleteGoals, isSavingsGoalsLoading, markGoalAsCompleted } =
+    useSavingsGoals();
+  const { expenses, totalSpent, totalSaved: totalOneOffSavings, oneOffSavings } = useExpenses();
+
+  // Modal states
+  const [isAddTransactionModalVisible, setIsAddTransactionModalVisible] = useState(false);
+  const [quickStatSheetVisible, setQuickStatSheetVisible] = useState(false);
+  const [selectedQuickStat, setSelectedQuickStat] = useState<QuickStatTypeValue | null>(null);
 
   const isLoading = isProfileLoading || isFixedExpensesLoading || isDebtsLoading || isSavingsGoalsLoading;
 
   // Calculate totals
   const totalFixedExpenses = fixedExpenses?.reduce((sum, e) => sum + e.amount, 0) ?? 0;
   const totalEMI = debts?.reduce((sum, d) => sum + calculateEMI(d.principal, d.interestRate, d.tenureMonths), 0) ?? 0;
-  const savingsTarget = profile?.monthlySavingsTarget ?? 0;
+  // const savingsTarget = profile?.monthlySavingsTarget ?? 0;
   const monthlyIncome = profile?.salary ?? 0;
+  const totalMonthlySavings = completedGoals.reduce((sum, s) => sum + s.targetAmount, 0);
 
-  // Calculate budget remaining (placeholder - would need actual spending tracking)
-  const totalCommitments = totalFixedExpenses + totalEMI + savingsTarget;
+  // Real spending data from DB
+  const spentThisMonth = totalSpent + totalFixedExpenses + totalEMI;
+  const savedThisMonth = totalOneOffSavings + totalMonthlySavings;
+
+  // Calculate budget remaining
+  const totalCommitments = savedThisMonth + spentThisMonth;
   const budgetRemaining = monthlyIncome - totalCommitments;
   const budgetUsedPercent = monthlyIncome > 0 ? Math.round((totalCommitments / monthlyIncome) * 100) : 0;
 
-  // Placeholder spending data
-  const spentThisMonth = Math.round(totalCommitments * 0.6);
-  const savedThisMonth = Math.round(savingsTarget * 0.5);
-
-  // Data-driven cards from constants
+  // Create stat cards and quick stats using helper functions
   const statCards = createStatCards(spentThisMonth, savedThisMonth);
-  const quickStats = createQuickStats(totalFixedExpenses, totalEMI, savingsGoals?.length ?? 0);
+  const quickStats = createQuickStats(
+    totalFixedExpenses,
+    fixedExpenses?.length ?? 0,
+    totalEMI,
+    debts?.length ?? 0,
+    completedGoals?.length ?? 0,
+    incompleteGoals?.length ?? 0
+  );
+
+  // Helper function to get sheet title based on quick stat type
+  const getSheetTitle = (statType: QuickStatTypeValue | null): string => {
+    switch (statType) {
+      case QuickStatType.FIXED:
+        return 'Fixed Expenses';
+      case QuickStatType.EMIS:
+        return 'EMI Payments';
+      case QuickStatType.COMPLETED:
+        return 'Completed Goals';
+      case QuickStatType.INCOMPLETE:
+        return 'Savings Goals';
+      default:
+        return 'Goals';
+    }
+  };
+
+  // Handle quick stat press - now supporting separate completed/incomplete sheets
+  const handleQuickStatPress = (statId: QuickStatTypeValue) => {
+    setSelectedQuickStat(statId);
+    setQuickStatSheetVisible(true);
+  };
 
   if (isLoading) {
     return (
@@ -77,31 +128,6 @@ export default function DashboardScreen() {
       </BSafeAreaView>
     );
   }
-
-  const renderTransaction = ({ item }: { item: Transaction }) => (
-    <BCard variant="default" style={{ padding: Spacing.md }}>
-      <BView row justify="space-between" align="center">
-        <BView flex>
-          <BView row style={{ alignItems: 'center', gap: Spacing.xs }}>
-            <BText variant={TextVariant.LABEL}>{item.name}</BText>
-            {item.isImpulse && (
-              <BView rounded="sm" paddingX="xs" paddingY="xxs" bg={Colors.light.warningBackground}>
-                <BText variant={TextVariant.CAPTION} color={Colors.light.warning}>
-                  Impulse
-                </BText>
-              </BView>
-            )}
-          </BView>
-          <BText variant={TextVariant.CAPTION} muted>
-            {item.category} • {item.date}
-          </BText>
-        </BView>
-        <BText variant={TextVariant.LABEL} style={{ color: Colors.light.error }}>
-          -₹{item.amount.toLocaleString('en-IN')}
-        </BText>
-      </BView>
-    </BCard>
-  );
 
   return (
     <BSafeAreaView edges={['bottom']}>
@@ -163,19 +189,27 @@ export default function DashboardScreen() {
           <BText variant={TextVariant.SUBHEADING} style={{ marginBottom: Spacing.md }}>
             Quick Stats
           </BText>
-          <BView row gap={SpacingValue.SM}>
+          <BView row justify="space-between" style={{ flexWrap: 'wrap' }}>
             {quickStats.map((item) => (
-              <BCard key={item.id} variant="default" style={{ flex: 1, padding: Spacing.md }}>
-                <BView center flex>
-                  <BIcon name={item.icon as any} color={item.color} size="md" />
-                  <BText variant={TextVariant.LABEL} style={{ marginTop: Spacing.xs }}>
-                    {item.value}
-                  </BText>
-                  <BText variant={TextVariant.CAPTION} muted>
-                    {item.label}
-                  </BText>
-                </BView>
-              </BCard>
+              <BButton
+                key={item.id}
+                variant={ButtonVariant.GHOST}
+                onPress={() => handleQuickStatPress(item.id)}
+                disabled={item.count === 0}
+                style={[item.count === 0 && styles.quickStatCardDisabled, styles.statsCards]}
+              >
+                <BCard variant="default" style={{ padding: Spacing.md, width: '100%' }}>
+                  <BView center flex>
+                    <BIcon name={item.icon as any} color={item.color} size="md" />
+                    <BText variant={TextVariant.LABEL} style={{ marginTop: Spacing.xs }}>
+                      {item.value}
+                    </BText>
+                    <BText variant={TextVariant.CAPTION} muted>
+                      {item.label}
+                    </BText>
+                  </BView>
+                </BCard>
+              </BButton>
             ))}
           </BView>
         </BView>
@@ -189,14 +223,63 @@ export default function DashboardScreen() {
             </BText>
           </BView>
           <FlatList
-            data={RECENT_TRANSACTIONS}
-            renderItem={renderTransaction}
+            data={[...expenses, ...oneOffSavings]}
+            renderItem={({ item }) => (
+              <BCard variant="default" style={{ padding: Spacing.md }}>
+                <BView row justify="space-between" align="center">
+                  <BView flex>
+                    <BText variant={TextVariant.LABEL}>{item.description || 'Expense'}</BText>
+                    <BText variant={TextVariant.CAPTION} muted>
+                      {formatDate(item.date)} | {item?.category?.name ?? item.savingsType}
+                    </BText>
+                  </BView>
+                  <BText variant={TextVariant.LABEL} style={{ color: Colors.light.error }}>
+                    -₹{item.amount.toLocaleString('en-IN')}
+                  </BText>
+                </BView>
+              </BCard>
+            )}
             keyExtractor={(item) => item.id}
             scrollEnabled={false}
             ItemSeparatorComponent={() => <BView style={{ height: Spacing.sm }} />}
+            ListEmptyComponent={
+              <BView center paddingY={SpacingValue.XL}>
+                <BIcon name="receipt-outline" size="lg" color={Colors.light.textMuted} />
+                <BText variant={TextVariant.BODY} muted style={{ marginTop: Spacing.md }}>
+                  No transactions yet
+                </BText>
+                <BText variant={TextVariant.CAPTION} muted>
+                  Tap the + button to add your first expense
+                </BText>
+              </BView>
+            }
           />
         </BView>
       </ScrollView>
+
+      {/* FAB */}
+      <BFAB onPress={() => setIsAddTransactionModalVisible(true)} />
+
+      {/* Add Transaction Modal */}
+      <AddTransactionModal
+        visible={isAddTransactionModalVisible}
+        onClose={() => setIsAddTransactionModalVisible(false)}
+      />
+
+      {/* Quick Stat Sheet */}
+      <QuickStatSheet
+        isVisible={quickStatSheetVisible}
+        onClose={() => setQuickStatSheetVisible(false)}
+        type={selectedQuickStat ?? QuickStatType.FIXED}
+        title={getSheetTitle(selectedQuickStat)}
+        fixedExpenses={fixedExpenses?.map(mapFixedExpenseToSheet)}
+        debts={debts?.map(mapDebtToSheet)}
+        savingsGoals={savingsGoals?.map(mapSavingsGoalToSheet)}
+        onMarkGoalComplete={(goalId) => {
+          markGoalAsCompleted(goalId);
+          setQuickStatSheetVisible(false);
+        }}
+      />
     </BSafeAreaView>
   );
 }
@@ -229,5 +312,16 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: Colors.light.primary,
     borderRadius: BorderRadius.xs,
+  },
+  statsCards: {
+    width: '48%',
+    shadowColor: Colors.light.text,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  quickStatCardDisabled: {
+    opacity: 0.5,
   },
 });

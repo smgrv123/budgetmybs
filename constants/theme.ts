@@ -111,7 +111,7 @@ export const Colors = {
     // Button variants
     primary: '#4F6BED',
     primaryPressed: '#3D56D4',
-    secondary: '#6B7280',
+    secondary: '#bfc2c7ff',
     secondaryPressed: '#4B5563',
     danger: '#D4183D',
     dangerPressed: '#B91C1C',

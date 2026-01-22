@@ -4,20 +4,26 @@ import ProfileStep from '@/src/components/onboarding/steps/profileStep';
 import { SettingsHeader } from '@/src/components/settings';
 import { BButton, BSafeAreaView, BText, BView } from '@/src/components/ui';
 import { useProfile } from '@/src/hooks';
-import { useOnboardingStore } from '@/src/store';
+import type { ProfileData } from '@/src/types';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 
 export default function EditProfileScreen() {
   const router = useRouter();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { profile: dbProfile, upsertProfileAsync } = useProfile();
-  const { profile: storeProfile, setProfile } = useOnboardingStore();
+
+  const [profile, setProfile] = useState<ProfileData>({
+    name: '',
+    salary: 0,
+    monthlySavingsTarget: 0,
+    frivolousBudget: 0,
+  });
 
   // Pre-populate store from DB on mount
-  useState(() => {
-    if (dbProfile && !storeProfile.name) {
+  useEffect(() => {
+    if (dbProfile) {
       setProfile({
         name: dbProfile.name,
         salary: dbProfile.salary,
@@ -25,15 +31,19 @@ export default function EditProfileScreen() {
         monthlySavingsTarget: dbProfile.monthlySavingsTarget,
       });
     }
-  });
+  }, [dbProfile]);
+
+  const updateProfileField = <K extends keyof ProfileData>(field: K, value: ProfileData[K]) => {
+    setProfile((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleSaveProfile = async () => {
     try {
       await upsertProfileAsync({
-        name: storeProfile.name,
-        salary: storeProfile.salary,
-        frivolousBudget: storeProfile.frivolousBudget,
-        monthlySavingsTarget: storeProfile.monthlySavingsTarget,
+        name: profile.name,
+        salary: profile.salary,
+        frivolousBudget: profile.frivolousBudget,
+        monthlySavingsTarget: profile.monthlySavingsTarget,
       });
       router.back();
     } catch (error) {
@@ -70,6 +80,8 @@ export default function EditProfileScreen() {
           onNext={handleSaveProfile}
           errors={errors}
           setErrors={setErrors}
+          profile={profile}
+          onProfileChange={updateProfileField}
           submitLabel="Save Changes"
           heading="Update Your Profile"
           subheading="Make changes to your profile information"

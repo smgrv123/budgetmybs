@@ -1,5 +1,6 @@
-import { sql } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import type { CategoryType, DebtType, FixedExpenseType, SavingsType } from './types';
 import { generateUUID } from './utils';
 
 // ============================================
@@ -31,7 +32,7 @@ export const fixedExpensesTable = sqliteTable('fixed_expenses', {
     .primaryKey()
     .$default(() => generateUUID()),
   name: text('name').notNull(),
-  type: text('type').notNull(), // FixedExpenseType enum
+  type: text('type').$type<FixedExpenseType>().notNull(),
   customType: text('custom_type'), // Only if type = "other"
   amount: real('amount').notNull(),
   dayOfMonth: integer('day_of_month'), // 1-31, null = anytime
@@ -53,7 +54,7 @@ export const debtsTable = sqliteTable('debts', {
     .primaryKey()
     .$default(() => generateUUID()),
   name: text('name').notNull(),
-  type: text('type').notNull(), // DebtType enum
+  type: text('type').$type<DebtType>().notNull(),
   customType: text('custom_type'), // Only if type = "other"
   principal: real('principal').notNull(),
   remaining: real('remaining').notNull(),
@@ -80,7 +81,7 @@ export const categoriesTable = sqliteTable('categories', {
     .primaryKey()
     .$default(() => generateUUID()),
   name: text('name').notNull(),
-  type: text('type').notNull(), // CategoryType enum
+  type: text('type').$type<CategoryType>().notNull(),
   customType: text('custom_type'), // Only if type = "other"
   icon: text('icon'),
   color: text('color'),
@@ -100,12 +101,15 @@ export const expensesTable = sqliteTable('expenses', {
     .primaryKey()
     .$default(() => generateUUID()),
   amount: real('amount').notNull(),
-  categoryId: text('category_id').notNull(), // FK to categories
+  categoryId: text('category_id'), // FK to categories, null for savings
   description: text('description'),
   date: text('date')
     .notNull()
     .default(sql`(date('now'))`), // YYYY-MM-DD
   wasImpulse: integer('was_impulse').notNull().default(0),
+  isSaving: integer('is_saving').notNull().default(0), // 1 = one-off saving, 0 = expense
+  savingsType: text('savings_type').$type<SavingsType>(), // Only if isSaving = 1
+  customSavingsType: text('custom_savings_type'), // Only if savingsType = "other"
   createdAt: text('created_at')
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
@@ -120,11 +124,12 @@ export const savingsGoalsTable = sqliteTable('savings_goals', {
     .primaryKey()
     .$default(() => generateUUID()),
   name: text('name').notNull(),
-  type: text('type').notNull(), // SavingsType enum
+  type: text('type').$type<SavingsType>().notNull(),
   customType: text('custom_type'), // Only if type = "other"
   targetAmount: real('target_amount').notNull(),
   icon: text('icon'),
   isActive: integer('is_active').notNull().default(1),
+  isCompleted: integer('is_completed').notNull().default(0), // 1 = goal completed
   createdAt: text('created_at')
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
@@ -152,3 +157,18 @@ export const monthlySnapshotsTable = sqliteTable('monthly_snapshots', {
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
 });
+
+// ============================================
+// RELATIONS
+// ============================================
+
+export const expensesRelations = relations(expensesTable, ({ one }) => ({
+  category: one(categoriesTable, {
+    fields: [expensesTable.categoryId],
+    references: [categoriesTable.id],
+  }),
+}));
+
+export const categoriesRelations = relations(categoriesTable, ({ many }) => ({
+  expenses: many(expensesTable),
+}));

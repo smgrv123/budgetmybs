@@ -106,6 +106,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.base,
     borderWidth: 1,
     borderColor: 'transparent',
+    paddingVertical: Spacing.sm,
   },
   fullWidth: {
     width: '100%',

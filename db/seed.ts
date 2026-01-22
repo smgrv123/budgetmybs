@@ -9,7 +9,7 @@ const PREDEFINED_CATEGORIES = [
   {
     name: 'Food & Dining',
     type: CategoryTypeEnum.FOOD,
-    icon: '🍔',
+    icon: 'restaurant-outline', // Ionicons
     color: '#FF6B6B',
     isPredefined: 1,
     isActive: 1,
@@ -17,7 +17,7 @@ const PREDEFINED_CATEGORIES = [
   {
     name: 'Shopping',
     type: CategoryTypeEnum.SHOPPING,
-    icon: '🛍️',
+    icon: 'cart-outline', // Ionicons
     color: '#4ECDC4',
     isPredefined: 1,
     isActive: 1,
@@ -25,7 +25,7 @@ const PREDEFINED_CATEGORIES = [
   {
     name: 'Entertainment',
     type: CategoryTypeEnum.ENTERTAINMENT,
-    icon: '🎬',
+    icon: 'film-outline', // Ionicons
     color: '#45B7D1',
     isPredefined: 1,
     isActive: 1,
@@ -33,7 +33,7 @@ const PREDEFINED_CATEGORIES = [
   {
     name: 'Healthcare',
     type: CategoryTypeEnum.HEALTHCARE,
-    icon: '💊',
+    icon: 'medical-outline', // Ionicons
     color: '#96CEB4',
     isPredefined: 1,
     isActive: 1,
@@ -41,7 +41,7 @@ const PREDEFINED_CATEGORIES = [
   {
     name: 'Education',
     type: CategoryTypeEnum.EDUCATION,
-    icon: '📚',
+    icon: 'school-outline', // Ionicons
     color: '#FFEAA7',
     isPredefined: 1,
     isActive: 1,
@@ -49,7 +49,7 @@ const PREDEFINED_CATEGORIES = [
   {
     name: 'Personal Care',
     type: CategoryTypeEnum.PERSONAL_CARE,
-    icon: '💅',
+    icon: 'cut-outline', // Ionicons
     color: '#DDA0DD',
     isPredefined: 1,
     isActive: 1,
@@ -57,7 +57,7 @@ const PREDEFINED_CATEGORIES = [
   {
     name: 'Gifts',
     type: CategoryTypeEnum.GIFTS,
-    icon: '🎁',
+    icon: 'gift-outline', // Ionicons
     color: '#FFB6C1',
     isPredefined: 1,
     isActive: 1,
@@ -65,7 +65,7 @@ const PREDEFINED_CATEGORIES = [
   {
     name: 'Travel',
     type: CategoryTypeEnum.TRAVEL,
-    icon: '✈️',
+    icon: 'airplane-outline', // Ionicons
     color: '#87CEEB',
     isPredefined: 1,
     isActive: 1,
@@ -73,7 +73,7 @@ const PREDEFINED_CATEGORIES = [
   {
     name: 'Fitness',
     type: CategoryTypeEnum.FITNESS,
-    icon: '💪',
+    icon: 'fitness-outline', // Ionicons
     color: '#98D8C8',
     isPredefined: 1,
     isActive: 1,
@@ -81,7 +81,7 @@ const PREDEFINED_CATEGORIES = [
   {
     name: 'Other',
     type: CategoryTypeEnum.OTHER,
-    icon: '📦',
+    icon: 'ellipsis-horizontal-outline', // Ionicons
     color: '#B0B0B0',
     isPredefined: 1,
     isActive: 1,

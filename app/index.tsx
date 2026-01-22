@@ -1,9 +1,10 @@
 import { Redirect } from 'expo-router';
+import { useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 
 import { Colors, Spacing, TextVariant } from '@/constants/theme';
 import { BIcon, BSafeAreaView, BText, BView } from '@/src/components';
-import { useProfile } from '@/src/hooks';
+import { useCategories, useProfile } from '@/src/hooks';
 
 /**
  * Root index screen - handles routing based on onboarding status
@@ -12,6 +13,12 @@ import { useProfile } from '@/src/hooks';
  */
 export default function RootScreen() {
   const { profile, isProfileLoading } = useProfile();
+  const { seedCategoryAsync } = useCategories();
+
+  useEffect(() => {
+    seedCategoryAsync();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Show loading state while checking profile
   if (isProfileLoading) {

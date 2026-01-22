@@ -58,11 +58,7 @@ export default function SettingsScreen() {
               </BView>
             </BView>
 
-            <BButton
-              variant="outline"
-              onPress={() => router.push('/dashboard/settings/edit-profile' as any)}
-              paddingY="sm"
-            >
+            <BButton variant="outline" onPress={() => router.push('/dashboard/settings/edit-profile')} paddingY="sm">
               <BView row align="center" justify="center" gap="xs">
                 <BIcon name="create-outline" size="sm" color={Colors.light.primary} />
                 <BText variant="label" color={Colors.light.primary}>

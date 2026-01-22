@@ -11,35 +11,43 @@ import BListStep from '@/src/components/onboarding/listStep';
 import { SettingsHeader } from '@/src/components/settings';
 import { BSafeAreaView, BText, BView } from '@/src/components/ui';
 import { useDebts } from '@/src/hooks';
-import { useOnboardingStore } from '@/src/store';
+import type { DebtData } from '@/src/types';
 import { calculateEMI } from '@/src/utils/budget';
+import { generateUUID } from '@/src/utils/id';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 
 export default function DebtsScreen() {
   const router = useRouter();
   const { debts: dbDebts, isDebtsLoading, createDebtAsync, removeDebtAsync } = useDebts();
-  const { debts: storeDebts, addDebt, removeDebt } = useOnboardingStore();
 
+  const [debts, setDebts] = useState<DebtData[]>([]);
   const [removedItemIds, setRemovedItemIds] = useState<string[]>([]);
 
-  // Pre-populate store from DB once data is loaded
-
+  // Initialize local state from DB
   useEffect(() => {
-    if (!isDebtsLoading && dbDebts && dbDebts.length > 0 && storeDebts.length === 0) {
-      dbDebts.forEach((debt) => {
-        addDebt({
+    if (!isDebtsLoading && dbDebts) {
+      setDebts(
+        dbDebts.map((debt) => ({
+          tempId: debt.id,
           name: debt.name,
           type: debt.type,
           customType: debt.customType ?? undefined,
           principal: debt.principal,
           interestRate: debt.interestRate,
           tenureMonths: debt.tenureMonths,
-        });
-      });
+        }))
+      );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDebtsLoading, dbDebts, storeDebts.length]);
+  }, [isDebtsLoading, dbDebts]);
+
+  const addDebt = (debt: Omit<DebtData, 'tempId'>) => {
+    setDebts((prev) => [...prev, { ...debt, tempId: generateUUID() }]);
+  };
+
+  const removeDebt = (tempId: string) => {
+    setDebts((prev) => prev.filter((d) => d.tempId !== tempId));
+  };
 
   const handleRemoveItem = (tempId: string) => {
     const dbItem = dbDebts?.find((debt) => debt.id === tempId);
@@ -52,7 +60,7 @@ export default function DebtsScreen() {
   const handleSaveChanges = async () => {
     try {
       const dbIds = new Set((dbDebts || []).map((debt) => debt.id));
-      const addedItems = storeDebts.filter((item) => !dbIds.has(item.tempId));
+      const addedItems = debts.filter((item) => !dbIds.has(item.tempId));
 
       await Promise.all(
         addedItems.map((item) => {
@@ -95,7 +103,7 @@ export default function DebtsScreen() {
       <BView flex padding="base">
         <BListStep
           strings={DEBT_STEP_CONFIG.strings}
-          items={storeDebts}
+          items={debts}
           itemCardConfig={{
             getTitle: (item) => item.name,
             getSubtitle: (item) => getTypeLabel(item.type),

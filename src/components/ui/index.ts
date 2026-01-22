@@ -2,6 +2,7 @@
 export { default as BButton } from './button';
 export { default as BCard } from './card';
 export { default as BDropdown } from './dropdown';
+export { default as BFAB } from './fab';
 export { default as BIcon } from './icon';
 export { default as BInput } from './input';
 export { default as BLink } from './link';

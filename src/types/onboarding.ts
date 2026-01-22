@@ -1,3 +1,4 @@
+import type { DebtType, FixedExpenseType, SavingsType } from '@/db/types';
 import type { ReactNode } from 'react';
 
 // From store/onboardingStore.ts
@@ -11,7 +12,7 @@ export type ProfileData = {
 export type FixedExpenseData = {
   tempId: string;
   name: string;
-  type: string;
+  type: FixedExpenseType;
   customType?: string;
   amount: number;
   dayOfMonth?: number | null;
@@ -20,7 +21,7 @@ export type FixedExpenseData = {
 export type DebtData = {
   tempId: string;
   name: string;
-  type: string;
+  type: DebtType;
   customType?: string;
   principal: number;
   interestRate: number;
@@ -30,7 +31,7 @@ export type DebtData = {
 export type SavingsGoalData = {
   tempId: string;
   name: string;
-  type: string;
+  type: SavingsType;
   customType?: string;
   targetAmount: number;
 };

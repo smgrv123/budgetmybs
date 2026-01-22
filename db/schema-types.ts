@@ -62,9 +62,12 @@ export type CreateCategoryInput = Pick<Category, 'name' | 'type'> &
 export type UpdateCategoryInput = Partial<Omit<Category, 'id' | 'createdAt'>>;
 
 // Expenses
-export type CreateExpenseInput = Pick<Expense, 'amount' | 'categoryId'> &
-  Partial<Pick<Expense, 'description' | 'date' | 'wasImpulse'>>;
+export type CreateExpenseInput = Pick<Expense, 'amount'> & Partial<Omit<Expense, 'id' | 'amount' | 'createdAt'>>;
 export type UpdateExpenseInput = Partial<Omit<Expense, 'id' | 'createdAt'>>;
+
+// One-off Savings (convenience type for type safety)
+export type CreateOneOffSavingInput = Pick<Expense, 'amount' | 'savingsType'> &
+  Partial<Pick<Expense, 'description' | 'date' | 'customSavingsType'>>;
 
 // Savings Goals
 export type CreateSavingsGoalInput = Pick<SavingsGoal, 'name' | 'type' | 'targetAmount'> &

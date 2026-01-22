@@ -7,6 +7,7 @@ import {
   BProfileStep,
   BSavingsStep,
 } from '@/src/components/onboarding';
+import { useOnboardingStore } from '@/src/store';
 import { router } from 'expo-router';
 import { useCallback, useState } from 'react';
 
@@ -22,8 +23,9 @@ const { profile: profileStrings, fixedExpenses, debts, savings } = OnboardingStr
 export default function SetupScreen() {
   const [currentStep, setCurrentStep] = useState<OnboardingStepId>(OnboardingStepId.PROFILE);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const { profile, updateProfileField } = useOnboardingStore();
 
-  // Get current step index (1-indexed for display)
+  // Get currentStep index (1-indexed for display)
   const stepIndex = STEPS.indexOf(currentStep) + 1;
 
   const handleBack = useCallback(() => {
@@ -63,7 +65,15 @@ export default function SetupScreen() {
   const renderStep = () => {
     switch (currentStep) {
       case OnboardingStepId.PROFILE:
-        return <BProfileStep onNext={handleNext} errors={errors} setErrors={setErrors} />;
+        return (
+          <BProfileStep
+            onNext={handleNext}
+            errors={errors}
+            setErrors={setErrors}
+            profile={profile}
+            onProfileChange={updateProfileField}
+          />
+        );
       case OnboardingStepId.FIXED_EXPENSES:
         return <BFixedExpensesStep onNext={handleNext} />;
       case OnboardingStepId.DEBTS:

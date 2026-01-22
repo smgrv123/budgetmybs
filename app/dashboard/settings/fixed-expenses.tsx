@@ -10,7 +10,8 @@ import BListStep from '@/src/components/onboarding/listStep';
 import { SettingsHeader } from '@/src/components/settings';
 import { BSafeAreaView, BText, BView } from '@/src/components/ui';
 import { useFixedExpenses } from '@/src/hooks';
-import { useOnboardingStore } from '@/src/store';
+import type { FixedExpenseData } from '@/src/types';
+import { generateUUID } from '@/src/utils/id';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 
@@ -22,39 +23,46 @@ export default function FixedExpensesScreen() {
     createFixedExpenseAsync,
     removeFixedExpenseAsync,
   } = useFixedExpenses();
-  const { fixedExpenses: storeExpenses, addFixedExpense, removeFixedExpense } = useOnboardingStore();
 
+  const [expenses, setExpenses] = useState<FixedExpenseData[]>([]);
   const [removedItemIds, setRemovedItemIds] = useState<string[]>([]);
 
-  // Pre-populate store from DB once data is loaded
-
+  // Initialize local state from DB
   useEffect(() => {
-    if (!isFixedExpensesLoading && dbExpenses && dbExpenses.length > 0 && storeExpenses.length === 0) {
-      dbExpenses.forEach((exp) => {
-        addFixedExpense({
+    if (!isFixedExpensesLoading && dbExpenses) {
+      setExpenses(
+        dbExpenses.map((exp) => ({
+          tempId: exp.id,
           name: exp.name,
           type: exp.type,
           customType: exp.customType ?? undefined,
           amount: exp.amount,
           dayOfMonth: exp.dayOfMonth,
-        });
-      });
+        }))
+      );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isFixedExpensesLoading, dbExpenses, storeExpenses.length]);
+  }, [isFixedExpensesLoading, dbExpenses]);
 
-  const handleRemoveItem = (tempId: string) => {
-    const dbItem = dbExpenses?.find((exp) => exp.id === tempId);
+  const addExpense = (expense: Omit<FixedExpenseData, 'tempId'>) => {
+    setExpenses((prev) => [...prev, { ...expense, tempId: generateUUID() }]);
+  };
+
+  const removeExpense = (tempId: string) => {
+    setExpenses((prev) => prev.filter((e) => e.tempId !== tempId));
+  };
+
+  const handleRemoveItem = (id: string) => {
+    const dbItem = dbExpenses?.find((exp) => exp.id === id);
     if (dbItem) {
       setRemovedItemIds([...removedItemIds, dbItem.id]);
     }
-    removeFixedExpense(tempId);
+    removeExpense(id);
   };
 
   const handleSaveChanges = async () => {
     try {
       const dbIds = new Set((dbExpenses || []).map((exp) => exp.id));
-      const addedItems = storeExpenses.filter((item) => !dbIds.has(item.tempId));
+      const addedItems = expenses.filter((item) => !dbIds.has(item.tempId));
 
       await Promise.all(
         addedItems.map((item) =>
@@ -91,7 +99,7 @@ export default function FixedExpensesScreen() {
       <BView flex padding="base">
         <BListStep
           strings={FIXED_EXPENSE_STEP_CONFIG.strings}
-          items={storeExpenses}
+          items={expenses}
           itemCardConfig={{
             getTitle: (item) => item.name,
             getSubtitle: (item) => getTypeLabel(item.type),
@@ -101,7 +109,7 @@ export default function FixedExpensesScreen() {
           formFields={formFields}
           initialFormData={FIXED_EXPENSE_STEP_CONFIG.initialFormData}
           validationSchema={FIXED_EXPENSE_STEP_CONFIG.validationSchema}
-          onAddItem={addFixedExpense}
+          onAddItem={addExpense}
           parseFormData={parseFixedExpenseFormData}
           onNext={handleSaveChanges}
           nextButtonLabel="Save Changes"

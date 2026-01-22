@@ -1,7 +1,7 @@
 import { and, between, desc, eq, like, sql } from 'drizzle-orm';
 import { db } from '../client';
 import { categoriesTable, expensesTable } from '../schema';
-import type { CreateExpenseInput, UpdateExpenseInput } from '../schema-types';
+import type { CreateExpenseInput, CreateOneOffSavingInput, UpdateExpenseInput } from '../schema-types';
 import { getCurrentMonth } from '../utils';
 
 // ============================================
@@ -53,11 +53,13 @@ export const getExpenses = async (options?: {
 // GET EXPENSES BY MONTH
 // ============================================
 
-export const getExpensesByMonth = async (month: string) => {
+export const getExpensesByMonth = async (month?: string) => {
+  const targetMonth = month ?? getCurrentMonth();
+
   return db
     .select()
     .from(expensesTable)
-    .where(like(expensesTable.date, `${month}%`))
+    .where(and(like(expensesTable.date, `${targetMonth}%`), eq(expensesTable.isSaving, 0)))
     .orderBy(desc(expensesTable.date));
 };
 
@@ -86,7 +88,7 @@ export const getExpensesWithCategory = async (month?: string) => {
     })
     .from(expensesTable)
     .leftJoin(categoriesTable, eq(expensesTable.categoryId, categoriesTable.id))
-    .where(like(expensesTable.date, `${targetMonth}%`))
+    .where(and(like(expensesTable.date, `${targetMonth}%`), eq(expensesTable.isSaving, 0)))
     .orderBy(desc(expensesTable.date));
 };
 
@@ -102,7 +104,7 @@ export const getTotalSpentByMonth = async (month?: string) => {
       total: sql<number>`SUM(${expensesTable.amount})`,
     })
     .from(expensesTable)
-    .where(like(expensesTable.date, `${targetMonth}%`));
+    .where(and(like(expensesTable.date, `${targetMonth}%`), eq(expensesTable.isSaving, 0)));
 
   return result[0]?.total ?? 0;
 };
@@ -125,7 +127,7 @@ export const getSpendingByCategory = async (month?: string) => {
     })
     .from(expensesTable)
     .leftJoin(categoriesTable, eq(expensesTable.categoryId, categoriesTable.id))
-    .where(like(expensesTable.date, `${targetMonth}%`))
+    .where(and(like(expensesTable.date, `${targetMonth}%`), eq(expensesTable.isSaving, 0)))
     .groupBy(expensesTable.categoryId);
 };
 
@@ -142,7 +144,9 @@ export const getImpulsePurchaseStats = async (month?: string) => {
       count: sql<number>`COUNT(${expensesTable.id})`,
     })
     .from(expensesTable)
-    .where(and(like(expensesTable.date, `${targetMonth}%`), eq(expensesTable.wasImpulse, 1)));
+    .where(
+      and(like(expensesTable.date, `${targetMonth}%`), eq(expensesTable.wasImpulse, 1), eq(expensesTable.isSaving, 0))
+    );
 
   return {
     total: result[0]?.total ?? 0,
@@ -159,8 +163,12 @@ export const createExpense = async (data: CreateExpenseInput) => {
     .insert(expensesTable)
     .values({
       ...data,
+      categoryId: data.categoryId ?? null,
       description: data.description ?? null,
       wasImpulse: data.wasImpulse ?? 0,
+      isSaving: data.isSaving ?? 0,
+      savingsType: data.savingsType ?? null,
+      customSavingsType: data.customSavingsType ?? null,
     })
     .returning();
 
@@ -183,4 +191,58 @@ export const updateExpense = async (id: string, updateData: UpdateExpenseInput) 
 
 export const deleteExpense = async (id: string) => {
   await db.delete(expensesTable).where(eq(expensesTable.id, id));
+};
+
+// ============================================
+// ONE-OFF SAVINGS QUERIES
+// ============================================
+
+/**
+ * Get one-off savings (where isSaving = 1)
+ */
+export const getOneOffSavings = async (month?: string) => {
+  const targetMonth = month ?? getCurrentMonth();
+
+  return db
+    .select()
+    .from(expensesTable)
+    .where(and(like(expensesTable.date, `${targetMonth}%`), eq(expensesTable.isSaving, 1)))
+    .orderBy(desc(expensesTable.date));
+};
+
+/**
+ * Get total saved by month (one-off savings only)
+ */
+export const getTotalSavedByMonth = async (month?: string) => {
+  const targetMonth = month ?? getCurrentMonth();
+
+  const result = await db
+    .select({
+      total: sql<number>`SUM(${expensesTable.amount})`,
+    })
+    .from(expensesTable)
+    .where(and(like(expensesTable.date, `${targetMonth}%`), eq(expensesTable.isSaving, 1)));
+
+  return result[0]?.total ?? 0;
+};
+
+/**
+ * Create a one-off saving entry
+ */
+export const createOneOffSaving = async (data: CreateOneOffSavingInput) => {
+  const result = await db
+    .insert(expensesTable)
+    .values({
+      amount: data.amount,
+      categoryId: null,
+      description: data.description ?? null,
+      date: data.date,
+      wasImpulse: 0,
+      isSaving: 1,
+      savingsType: data.savingsType,
+      customSavingsType: data.customSavingsType ?? null,
+    })
+    .returning();
+
+  return result[0];
 };

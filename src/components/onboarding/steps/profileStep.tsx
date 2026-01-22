@@ -3,7 +3,7 @@ import { FlatList, StyleSheet } from 'react-native';
 import { OnboardingStrings } from '@/constants/onboarding.strings';
 import { Colors, Spacing } from '@/constants/theme';
 import { BButton, BIcon, BInput, BText, BView } from '@/src/components/ui';
-import { useOnboardingStore } from '@/src/store';
+import type { ProfileData } from '@/src/types';
 import { profileSchema, validateForm } from '@/src/validation/onboarding';
 import { createProfileFields } from './profile';
 
@@ -13,6 +13,9 @@ export type ProfileStepProps = {
   onNext: () => void;
   errors: Record<string, string>;
   setErrors: (errors: Record<string, string>) => void;
+  // Make props required for controlled component usage
+  profile: ProfileData;
+  onProfileChange: <K extends keyof ProfileData>(field: K, value: ProfileData[K]) => void;
   // Optional customization for settings reuse
   submitLabel?: string;
   heading?: string;
@@ -23,12 +26,12 @@ function ProfileStep({
   onNext,
   errors,
   setErrors,
+  profile,
+  onProfileChange,
   submitLabel = profileStrings.continueButton,
   heading = profileStrings.heading,
   subheading = profileStrings.subheading,
 }: ProfileStepProps) {
-  const { profile, updateProfileField } = useOnboardingStore();
-
   const handleContinue = () => {
     const result = validateForm(profileSchema, profile);
     if (!result.success) {
@@ -41,10 +44,10 @@ function ProfileStep({
 
   const handleChange = (field: keyof typeof profile, text: string) => {
     if (field === 'name') {
-      updateProfileField(field, text);
+      onProfileChange(field, text);
     } else {
       const num = parseFloat(text) || 0;
-      updateProfileField(field, num);
+      onProfileChange(field, num);
     }
     if (errors[field]) {
       setErrors({ ...errors, [field]: '' });

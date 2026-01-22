@@ -10,7 +10,8 @@ import BListStep from '@/src/components/onboarding/listStep';
 import { SettingsHeader } from '@/src/components/settings';
 import { BSafeAreaView, BText, BView } from '@/src/components/ui';
 import { useSavingsGoals } from '@/src/hooks';
-import { useOnboardingStore } from '@/src/store';
+import type { SavingsGoalData } from '@/src/types';
+import { generateUUID } from '@/src/utils/id';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 
@@ -22,38 +23,45 @@ export default function SavingsScreen() {
     createSavingsGoalAsync,
     removeSavingsGoalAsync,
   } = useSavingsGoals();
-  const { savingsGoals: storeGoals, addSavingsGoal, removeSavingsGoal } = useOnboardingStore();
 
+  const [goals, setGoals] = useState<SavingsGoalData[]>([]);
   const [removedItemIds, setRemovedItemIds] = useState<string[]>([]);
 
-  // Pre-populate store from DB once data is loaded
-
+  // Initialize local state from DB
   useEffect(() => {
-    if (!isSavingsGoalsLoading && dbGoals && dbGoals.length > 0 && storeGoals.length === 0) {
-      dbGoals.forEach((goal) => {
-        addSavingsGoal({
+    if (!isSavingsGoalsLoading && dbGoals) {
+      setGoals(
+        dbGoals.map((goal) => ({
+          tempId: goal.id,
           name: goal.name,
           type: goal.type,
           customType: goal.customType ?? undefined,
           targetAmount: goal.targetAmount,
-        });
-      });
+        }))
+      );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSavingsGoalsLoading, dbGoals, storeGoals.length]);
+  }, [isSavingsGoalsLoading, dbGoals]);
+
+  const addGoal = (goal: Omit<SavingsGoalData, 'tempId'>) => {
+    setGoals((prev) => [...prev, { ...goal, tempId: generateUUID() }]);
+  };
+
+  const removeGoal = (tempId: string) => {
+    setGoals((prev) => prev.filter((g) => g.tempId !== tempId));
+  };
 
   const handleRemoveItem = (tempId: string) => {
     const dbItem = dbGoals?.find((goal) => goal.id === tempId);
     if (dbItem) {
       setRemovedItemIds([...removedItemIds, dbItem.id]);
     }
-    removeSavingsGoal(tempId);
+    removeGoal(tempId);
   };
 
   const handleSaveChanges = async () => {
     try {
       const dbIds = new Set((dbGoals || []).map((goal) => goal.id));
-      const addedItems = storeGoals.filter((item) => !dbIds.has(item.tempId));
+      const addedItems = goals.filter((item) => !dbIds.has(item.tempId));
 
       await Promise.all(
         addedItems.map((item) =>
@@ -89,7 +97,7 @@ export default function SavingsScreen() {
       <BView flex padding="base">
         <BListStep
           strings={SAVINGS_STEP_CONFIG.strings}
-          items={storeGoals}
+          items={goals}
           itemCardConfig={{
             getTitle: (item) => item.name,
             getSubtitle: (item) => getTypeLabel(item.type),
@@ -99,7 +107,7 @@ export default function SavingsScreen() {
           formFields={formFields}
           initialFormData={SAVINGS_STEP_CONFIG.initialFormData}
           validationSchema={SAVINGS_STEP_CONFIG.validationSchema}
-          onAddItem={addSavingsGoal}
+          onAddItem={addGoal}
           parseFormData={parseSavingsFormData}
           onNext={handleSaveChanges}
           nextButtonLabel="Save Changes"

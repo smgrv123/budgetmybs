@@ -42,12 +42,15 @@ export {
 // Expenses queries
 export {
   createExpense,
+  createOneOffSaving,
   deleteExpense,
   getExpenses,
   getExpensesByMonth,
   getExpensesWithCategory,
   getImpulsePurchaseStats,
+  getOneOffSavings,
   getSpendingByCategory,
+  getTotalSavedByMonth,
   getTotalSpentByMonth,
   updateExpense,
 } from './expenses';
@@ -56,9 +59,12 @@ export {
 export {
   createSavingsGoal,
   deleteSavingsGoal,
+  getCompletedSavingsGoals,
+  getIncompleteSavingsGoals,
   getSavingsGoalById,
   getSavingsGoals,
   getTotalMonthlySavingsTarget,
+  markGoalAsCompleted,
   updateSavingsGoal,
 } from './savings';
 

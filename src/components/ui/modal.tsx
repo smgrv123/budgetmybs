@@ -1,5 +1,5 @@
 import type { ModalPositionType } from '@/constants/theme';
-import { BorderRadius, Colors, ModalPosition, Opacity, Shadows, Spacing } from '@/constants/theme';
+import { BorderRadius, Colors, ModalPosition, Opacity, Shadows, Spacing, TextVariant } from '@/constants/theme';
 import type { FC } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 import { Dimensions, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
@@ -72,7 +72,7 @@ const BModal: FC<BModalProps> = ({
           {(title || showCloseButton) && (
             <BView row style={[styles.header, headerStyle]}>
               {title ? (
-                <BText variant="subheading" style={styles.title}>
+                <BText variant={TextVariant.SUBHEADING} style={styles.title}>
                   {title}
                 </BText>
               ) : (
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: Spacing.base,
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.xs,
     borderBottomWidth: 1,
     borderBottomColor: Colors.light.border,
   },
