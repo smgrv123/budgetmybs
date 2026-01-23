@@ -3,6 +3,7 @@ import { Alert } from 'react-native';
 
 import { OnboardingStrings } from '@/constants/onboarding.strings';
 import { Colors, Spacing } from '@/constants/theme';
+import { formatCurrency } from '@/src/utils/format';
 import { BButton, BCard, BIcon, BText, BView } from '../ui';
 
 export type ItemCardProps = {
@@ -17,10 +18,6 @@ export type ItemCardProps = {
 };
 
 const { common } = OnboardingStrings;
-
-const formatCurrency = (amount: number): string => {
-  return `${common.currency} ${amount.toLocaleString('en-IN')}`;
-};
 
 const BItemCard: FC<ItemCardProps> = ({
   title,

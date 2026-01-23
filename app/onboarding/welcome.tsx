@@ -1,5 +1,5 @@
 import { OnboardingStrings } from '@/constants/onboarding.strings';
-import { BorderRadius, Colors, Spacing } from '@/constants/theme';
+import { BorderRadius, ButtonVariant, Colors, Spacing } from '@/constants/theme';
 import { BFeatureCard } from '@/src/components/onboarding';
 import { BLink, BSafeAreaView, BText, BView } from '@/src/components/ui';
 import { FlatList, StyleSheet } from 'react-native';
@@ -32,8 +32,8 @@ export default function WelcomeScreen() {
 
       {/* Footer Section */}
       <BView paddingX="xl" paddingY="xl" style={styles.footer}>
-        <BLink href="/onboarding/setup" style={styles.getStartedButton}>
-          <BText color="#FFFFFF" variant="label">
+        <BLink variant={ButtonVariant.PRIMARY} href="/onboarding/setup" style={styles.getStartedButton}>
+          <BText color={Colors.light.white} variant="label">
             {welcome.getStartedButton}
           </BText>
         </BLink>

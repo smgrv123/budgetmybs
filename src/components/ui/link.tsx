@@ -1,4 +1,4 @@
-import { Opacity } from '@/constants/theme';
+import { ButtonVariant, Opacity } from '@/constants/theme';
 import type { Href } from 'expo-router';
 import { Link as ExpoLink } from 'expo-router';
 import type { FC, ReactNode } from 'react';
@@ -17,15 +17,19 @@ export interface BLinkProps {
   onPress?: () => void;
   /** Disabled state */
   disabled?: boolean;
+  // variant for button
+  variant?: (typeof ButtonVariant)[keyof typeof ButtonVariant];
 }
 
-const BLink: FC<BLinkProps> = ({ href, children, style, onPress, disabled = false }) => {
+const BLink: FC<BLinkProps> = ({ href, children, style, onPress, disabled = false, variant = ButtonVariant.GHOST }) => {
+  console.log('fooo', variant);
   return (
     <ExpoLink href={href} asChild style={styles.container}>
       <BButton
         onPress={onPress}
         disabled={disabled}
         style={[{ opacity: disabled ? Opacity.disabled : Opacity.full }, style]}
+        variant={variant}
       >
         {children}
       </BButton>
@@ -35,7 +39,7 @@ const BLink: FC<BLinkProps> = ({ href, children, style, onPress, disabled = fals
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'transparent',
+    backgroundColor: 'inherit',
   },
 });
 

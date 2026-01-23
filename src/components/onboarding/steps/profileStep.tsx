@@ -4,6 +4,7 @@ import { OnboardingStrings } from '@/constants/onboarding.strings';
 import { Colors, Spacing } from '@/constants/theme';
 import { BButton, BIcon, BInput, BText, BView } from '@/src/components/ui';
 import type { ProfileData } from '@/src/types';
+import { parseFormattedNumber } from '@/src/utils/format';
 import { profileSchema, validateForm } from '@/src/validation/onboarding';
 import { createProfileFields } from './profile';
 
@@ -46,7 +47,8 @@ function ProfileStep({
     if (field === 'name') {
       onProfileChange(field, text);
     } else {
-      const num = parseFloat(text) || 0;
+      // Parse formatted number (removes commas) and convert to number
+      const num = parseFormattedNumber(text);
       onProfileChange(field, num);
     }
     if (errors[field]) {

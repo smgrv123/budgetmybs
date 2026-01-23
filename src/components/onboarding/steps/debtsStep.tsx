@@ -11,6 +11,7 @@ import BListStep from '@/src/components/onboarding/listStep';
 import { BText, BView } from '@/src/components/ui';
 import { useOnboardingStore } from '@/src/store';
 import { calculateEMI } from '@/src/utils/budget';
+import { formatCurrency } from '@/src/utils/format';
 
 export type DebtsStepProps = {
   onNext: () => void;
@@ -60,7 +61,7 @@ function DebtsStep({ onNext }: DebtsStepProps) {
               EMI:
             </BText>
             <BText variant="subheading" color={Colors.light.primary}>
-              {common.currency} {emi.toLocaleString('en-IN')}
+              {formatCurrency(emi)}
             </BText>
           </BView>
         ) : null;
