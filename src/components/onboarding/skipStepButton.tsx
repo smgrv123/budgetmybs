@@ -2,7 +2,7 @@ import { StyleSheet } from 'react-native';
 
 import { BorderRadius, Colors, Spacing } from '@/constants/theme';
 import { ListStepStrings } from '@/src/types';
-import { BButton, BText } from '../ui';
+import { BButton, BText, BView } from '../ui';
 
 type SkipStepButtonProps = {
   onNext: () => void;
@@ -15,11 +15,13 @@ export default function BSkipStepButton({ onNext, strings, showSkip, nextButtonL
   const buttonLabel = nextButtonLabel ?? (showSkip ? strings.continueButton : strings.skipButton);
 
   return (
-    <BButton fullWidth onPress={onNext} style={styles.continueButton}>
-      <BText color="#FFFFFF" variant="label">
-        {buttonLabel}
-      </BText>
-    </BButton>
+    <BView paddingY="sm">
+      <BButton fullWidth onPress={onNext} style={styles.continueButton}>
+        <BText color="#FFFFFF" variant="label">
+          {buttonLabel}
+        </BText>
+      </BButton>
+    </BView>
   );
 }
 

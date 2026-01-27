@@ -1,9 +1,11 @@
+import { ReactNode } from 'react';
+import type { ZodType } from 'zod';
+
 import { DebtTypeOptions, FixedExpenseTypeOptions, SavingsTypeOptions } from '@/constants/onboarding.config';
 import { OnboardingStrings } from '@/constants/onboarding.strings';
 import type { FormField } from '@/src/types';
+import { parseFormattedNumber } from '@/src/utils/format';
 import { debtSchema, fixedExpenseSchema, profileSchema, savingsGoalSchema } from '@/src/validation/onboarding';
-import { ReactNode } from 'react';
-import type { ZodType } from 'zod';
 
 const { profile: profileStrings, fixedExpenses, debts, savings, common } = OnboardingStrings;
 
@@ -193,14 +195,14 @@ export const SAVINGS_STEP_CONFIG: StepConfig = {
 export const parseFixedExpenseFormData = (data: Record<string, string>) => ({
   name: data.name,
   type: data.type,
-  amount: parseFloat(data.amount) || 0,
+  amount: parseFormattedNumber(data.amount),
   dayOfMonth: data.dayOfMonth ? parseInt(data.dayOfMonth, 10) : null,
 });
 
 export const parseDebtFormData = (data: Record<string, string>) => ({
   name: data.name,
   type: data.type,
-  principal: parseFloat(data.principal) || 0,
+  principal: parseFormattedNumber(data.principal),
   interestRate: parseFloat(data.interestRate) || 0,
   tenureMonths: parseInt(data.tenureMonths, 10) || 0,
 });
@@ -208,7 +210,7 @@ export const parseDebtFormData = (data: Record<string, string>) => ({
 export const parseSavingsFormData = (data: Record<string, string>) => ({
   name: data.name,
   type: data.type,
-  targetAmount: parseFloat(data.targetAmount) || 0,
+  targetAmount: parseFormattedNumber(data.targetAmount),
 });
 
 /**

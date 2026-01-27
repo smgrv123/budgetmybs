@@ -1,9 +1,10 @@
-import { ReactNode, useState } from 'react';
-import { FlatList, StyleSheet } from 'react-native';
+import { Fragment, ReactNode, useEffect, useRef, useState } from 'react';
+import { ScrollView } from 'react-native';
 
 import { isOtherType } from '@/constants/onboarding.config';
-import { Colors, Spacing } from '@/constants/theme';
+import { ButtonVariant, Colors } from '@/constants/theme';
 import type { CustomTypeModalConfig, FormField, ItemCardConfig, ListStepStrings } from '@/src/types';
+import { formatIndianNumber, parseFormattedNumber } from '@/src/utils/format';
 import { getFieldError, validateForm } from '@/src/validation/onboarding';
 import { BButton, BCard, BDropdown, BInput, BModal, BText, BView } from '../ui';
 import BAddItemButton from './addItemButton';
@@ -51,11 +52,22 @@ function ListStep<T extends { tempId: string }>({
   customTypeModal,
   nextButtonLabel,
 }: ListStepProps<T>): React.JSX.Element {
+  const scrollViewRef = useRef<ScrollView>(null);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState(initialFormData);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [showCustomTypeModal, setShowCustomTypeModal] = useState(false);
   const [customTypeName, setCustomTypeName] = useState('');
+
+  // Auto-scroll to form when it opens
+  useEffect(() => {
+    if (showForm) {
+      // Small delay to ensure form is rendered before scrolling
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  }, [showForm]);
 
   const handleAddItem = () => {
     const parsedData = parseFormData(formData);
@@ -78,8 +90,18 @@ function ListStep<T extends { tempId: string }>({
     setFormErrors({});
   };
 
+  const CURRENCY_FIELDS = ['amount', 'principal', 'targetAmount'];
+
   const handleFieldChange = (key: string, value: string) => {
-    setFormData({ ...formData, [key]: value });
+    let formattedValue = value;
+
+    // Format currency fields with Indian number formatting
+    if (CURRENCY_FIELDS.includes(key)) {
+      // Parse first to strip existing commas, then reformat
+      formattedValue = formatIndianNumber(parseFormattedNumber(value));
+    }
+
+    setFormData({ ...formData, [key]: formattedValue });
     if (formErrors[key]) {
       setFormErrors({ ...formErrors, [key]: '' });
     }
@@ -114,6 +136,7 @@ function ListStep<T extends { tempId: string }>({
         />
       );
     }
+
     return (
       <BInput
         label={item.label}
@@ -129,7 +152,7 @@ function ListStep<T extends { tempId: string }>({
   };
 
   return (
-    <BView flex gap="xl" style={styles.stepContainer}>
+    <BView flex gap="xl">
       <BView>
         <BText variant="heading">{strings.heading}</BText>
         <BText variant="body" muted>
@@ -137,60 +160,54 @@ function ListStep<T extends { tempId: string }>({
         </BText>
       </BView>
 
-      <BView flex>
-        <FlatList
-          data={items}
-          keyExtractor={(item) => item.tempId}
-          renderItem={({ item }) => (
-            <BItemCard
-              title={itemCardConfig.getTitle(item)}
-              subtitle={itemCardConfig.getSubtitle?.(item)}
-              amount={itemCardConfig.getAmount(item)}
-              secondaryAmount={itemCardConfig.getSecondaryAmount?.(item)}
-              secondaryLabel={itemCardConfig.secondaryLabel}
-              onDelete={() => onRemoveItem(item.tempId)}
-            />
-          )}
-          scrollEnabled={false}
-          ListFooterComponent={
-            showForm ? (
-              <BCard variant="form">
-                <FlatList
-                  data={formFields}
-                  keyExtractor={(item) => item.key}
-                  renderItem={renderFormField}
-                  scrollEnabled={false}
-                  contentContainerStyle={{ gap: Spacing.md }}
-                />
-                {extraFormContent?.(formData)}
-                <BView row gap="md">
-                  <BButton
-                    onPress={handleAddItem}
-                    rounded="base"
-                    paddingY="sm"
-                    style={{ flex: 1, backgroundColor: Colors.light.primary }}
-                  >
-                    <BText color="#FFFFFF" variant="label">
-                      {strings.form.addButton}
-                    </BText>
-                  </BButton>
-                  <BButton
-                    variant="ghost"
-                    onPress={handleCancel}
-                    rounded="base"
-                    paddingY="sm"
-                    style={{ flex: 1, backgroundColor: Colors.light.muted }}
-                  >
-                    <BText variant="label">{strings.form.cancelButton}</BText>
-                  </BButton>
-                </BView>
-              </BCard>
-            ) : (
-              <BAddItemButton label={strings.addButton} onPress={() => setShowForm(true)} />
-            )
-          }
-        />
-      </BView>
+      <ScrollView ref={scrollViewRef} style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+        {items.map((item) => (
+          <BItemCard
+            key={item.tempId}
+            title={itemCardConfig.getTitle(item)}
+            subtitle={itemCardConfig.getSubtitle?.(item)}
+            amount={itemCardConfig.getAmount(item)}
+            secondaryAmount={itemCardConfig.getSecondaryAmount?.(item)}
+            secondaryLabel={itemCardConfig.secondaryLabel}
+            onDelete={() => onRemoveItem(item.tempId)}
+          />
+        ))}
+
+        {showForm ? (
+          <BCard variant="form">
+            <BView gap="md">
+              {formFields.map((field) => (
+                <Fragment key={field.key}>{renderFormField({ item: field })}</Fragment>
+              ))}
+            </BView>
+            {extraFormContent?.(formData)}
+            <BView row gap="md">
+              <BButton
+                onPress={handleAddItem}
+                rounded="base"
+                paddingY="sm"
+                variant={ButtonVariant.PRIMARY}
+                style={{ flex: 1, backgroundColor: Colors.light.primary }}
+              >
+                <BText color="#FFFFFF" variant="label">
+                  {strings.form.addButton}
+                </BText>
+              </BButton>
+              <BButton
+                variant={ButtonVariant.OUTLINE}
+                onPress={handleCancel}
+                rounded="base"
+                paddingY="sm"
+                style={{ flex: 1 }}
+              >
+                <BText variant="label">{strings.form.cancelButton}</BText>
+              </BButton>
+            </BView>
+          </BCard>
+        ) : (
+          <BAddItemButton label={strings.addButton} onPress={() => setShowForm(true)} />
+        )}
+      </ScrollView>
 
       <BSkipStepButton
         showSkip={items.length > 0}
@@ -218,11 +235,5 @@ function ListStep<T extends { tempId: string }>({
     </BView>
   );
 }
-
-const styles = StyleSheet.create({
-  stepContainer: {
-    paddingBottom: Spacing.xl,
-  },
-});
 
 export default ListStep;

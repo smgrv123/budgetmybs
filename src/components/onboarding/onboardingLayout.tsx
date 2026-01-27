@@ -1,5 +1,5 @@
 import type { FC, ReactNode } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
+import { KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 
 import { getTotalSteps } from '@/constants/onboarding.config';
 import { Colors, Spacing } from '@/constants/theme';
@@ -55,14 +55,9 @@ const BOnboardingLayout: FC<OnboardingLayoutProps> = ({
         )}
 
         {/* Main Content */}
-        <ScrollView
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
+        <BView flex paddingX="base">
           {children}
-        </ScrollView>
+        </BView>
 
         {/* Footer */}
         {footer && (
