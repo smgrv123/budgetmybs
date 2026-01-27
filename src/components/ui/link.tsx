@@ -22,7 +22,6 @@ export interface BLinkProps {
 }
 
 const BLink: FC<BLinkProps> = ({ href, children, style, onPress, disabled = false, variant = ButtonVariant.GHOST }) => {
-  console.log('fooo', variant);
   return (
     <ExpoLink href={href} asChild style={styles.container}>
       <BButton

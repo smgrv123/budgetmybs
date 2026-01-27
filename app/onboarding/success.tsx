@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useEffect } from 'react';
-import { FlatList, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 import { OnboardingStrings } from '@/constants/onboarding.strings';
 import { Colors, ComponentSize, Spacing, SpacingValue, TextVariant } from '@/constants/theme';
@@ -31,7 +31,7 @@ export default function SuccessScreen() {
     return () => clearTimeout(timer);
   }, []);
 
-  const renderCompletionItem = ({ item }: { item: CompletionItem }) => (
+  const RenderCompletionItem = ({ item }: { item: CompletionItem }) => (
     <BCard variant="default" gap="md">
       <BView row align="center" gap="md" padding="md">
         <BView center rounded="full" bg={Colors.light.successCheckBg} style={{ width: Spacing.xl, height: Spacing.xl }}>
@@ -66,19 +66,15 @@ export default function SuccessScreen() {
               {success.title}
             </BText>
             <BText variant={TextVariant.BODY} muted center>
-              {success.subtitle}
+              ‸{success.subtitle}
             </BText>
           </BView>
 
           {/* Completion List */}
-          <BView paddingX={SpacingValue.XL}>
-            <FlatList
-              data={success.completionItems}
-              renderItem={renderCompletionItem}
-              keyExtractor={(item) => item.id}
-              scrollEnabled={false}
-              ItemSeparatorComponent={() => <BView gap="sm" />}
-            />
+          <BView paddingX={SpacingValue.XL} gap={SpacingValue.MD}>
+            {success.completionItems.map((item) => (
+              <RenderCompletionItem key={item.id} item={item} />
+            ))}
           </BView>
         </BView>
 
