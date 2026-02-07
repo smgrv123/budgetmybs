@@ -3,10 +3,15 @@
  * Includes inferred types and input types for CRUD operations
  */
 
+// Import types first to avoid circular dependencies
+import type { FinancialPlan } from '@/src/types/financialPlan';
+import type { DebtData, FixedExpenseData, ProfileData, SavingsGoalData } from '@/src/types/onboarding';
+
 import type {
   categoriesTable,
   debtsTable,
   expensesTable,
+  financialPlansTable,
   fixedExpensesTable,
   monthlySnapshotsTable,
   profileTable,
@@ -37,6 +42,9 @@ export type NewSavingsGoal = typeof savingsGoalsTable.$inferInsert;
 
 export type MonthlySnapshot = typeof monthlySnapshotsTable.$inferSelect;
 export type NewMonthlySnapshot = typeof monthlySnapshotsTable.$inferInsert;
+
+export type FinancialPlanRecord = typeof financialPlansTable.$inferSelect;
+export type NewFinancialPlanRecord = typeof financialPlansTable.$inferInsert;
 
 // ============================================
 // INPUT TYPES FOR CRUD OPERATIONS
@@ -73,6 +81,15 @@ export type CreateOneOffSavingInput = Pick<Expense, 'amount' | 'savingsType'> &
 export type CreateSavingsGoalInput = Pick<SavingsGoal, 'name' | 'type' | 'targetAmount'> &
   Partial<Pick<SavingsGoal, 'customType' | 'icon'>>;
 export type UpdateSavingsGoalInput = Partial<Omit<SavingsGoal, 'id' | 'createdAt' | 'updatedAt'>>;
+
+// Financial Plans - Input Types
+export type CreateFinancialPlanInput = {
+  profileSnapshot: ProfileData;
+  fixedExpensesSnapshot: FixedExpenseData[];
+  debtsSnapshot: DebtData[];
+  savingsGoalsSnapshot: SavingsGoalData[];
+  plan: FinancialPlan;
+};
 
 // Monthly Snapshots
 export type CreateMonthlySnapshotInput = Pick<MonthlySnapshot, 'month' | 'frivolousBudget'> &

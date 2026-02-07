@@ -1,0 +1,123 @@
+import { router, useLocalSearchParams } from 'expo-router';
+
+import { ButtonVariant, Colors, ComponentSize, Spacing, SpacingValue, TextVariant } from '@/constants/theme';
+import { BButton, BIcon, BSafeAreaView, BText, BView } from '@/src/components';
+
+type ErrorState = 'network' | 'api_failure' | 'timeout';
+
+type ErrorConfig = {
+  title: string;
+  description: string;
+  suggestions: string[];
+  icon: string;
+  iconColor: string;
+  retryText: string;
+  skipText?: string;
+};
+
+const ERROR_CONFIGS: Record<ErrorState, ErrorConfig> = {
+  network: {
+    title: 'No Internet Connection',
+    description: "We couldn't connect to the internet. AI analysis requires an active connection.",
+    suggestions: [
+      'Check your WiFi or mobile data',
+      'Try moving to an area with better signal',
+      'Restart your router if using WiFi',
+    ],
+    icon: 'cloud-offline-outline',
+    iconColor: Colors.light.error,
+    retryText: 'Try Again',
+    skipText: 'Proceed Without AI',
+  },
+  api_failure: {
+    title: 'AI Analysis Failed',
+    description: 'We encountered an error while generating your financial plan.',
+    suggestions: ['The AI service may be temporarily unavailable', 'Your data is safe and saved locally'],
+    icon: 'alert-circle',
+    iconColor: Colors.light.warning,
+    retryText: 'Try Again',
+    skipText: 'Proceed Without AI',
+  },
+  timeout: {
+    title: 'Request Timed Out',
+    description: 'The AI analysis is taking longer than expected.',
+    suggestions: ['This may be due to slow internet', 'Try again with a better connection'],
+    icon: 'time',
+    iconColor: Colors.light.warning,
+    retryText: 'Try Again',
+    skipText: 'Proceed Without AI',
+  },
+};
+
+/**
+ * Dynamic error screen for onboarding flow
+ * Uses errorState param to determine which error to show
+ * Valid errorState values: 'network' | 'api_failure' | 'timeout'
+ */
+export default function OnboardingError() {
+  const { errorState } = useLocalSearchParams<{ errorState: ErrorState }>();
+  const config = ERROR_CONFIGS[errorState || 'api_failure'];
+
+  const handleRetry = () => {
+    router.back();
+  };
+
+  return (
+    <BSafeAreaView style={{ flex: 1 }}>
+      <BView flex justify="center" align="center" paddingX="xl" gap={SpacingValue.LG}>
+        {/* Error Icon */}
+        <BView
+          align="center"
+          justify="center"
+          style={{
+            width: Spacing['4xl'],
+            height: Spacing['4xl'],
+            borderRadius: Spacing['2xl'],
+            backgroundColor: `${config.iconColor}20`,
+          }}
+        >
+          <BIcon name={config.icon as any} size={ComponentSize.LG} color={config.iconColor} />
+        </BView>
+
+        {/* Title */}
+        <BText variant={TextVariant.HEADING} style={{ textAlign: 'center' }}>
+          {config.title}
+        </BText>
+
+        {/* Description */}
+        <BText variant={TextVariant.BODY} muted style={{ textAlign: 'center', maxWidth: 360 }}>
+          {config.description}
+        </BText>
+
+        {/* Suggestions */}
+        {config.suggestions && config.suggestions.length > 0 && (
+          <BView gap={SpacingValue.SM} style={{ width: '100%', maxWidth: 360 }}>
+            <BText variant={TextVariant.LABEL}>What you can do:</BText>
+            {config.suggestions.map((suggestion, index) => (
+              <BText key={index} variant={TextVariant.CAPTION} muted style={{ paddingLeft: Spacing.sm }}>
+                • {suggestion}
+              </BText>
+            ))}
+          </BView>
+        )}
+
+        {/* Action Buttons */}
+        <BView gap={SpacingValue.MD} style={{ width: '100%', maxWidth: 360 }}>
+          <BButton variant={ButtonVariant.PRIMARY} onPress={handleRetry} rounded="lg">
+            <BText variant={TextVariant.LABEL} color={Colors.light.white}>
+              {config.retryText}
+            </BText>
+          </BButton>
+
+          {config.skipText && (
+            <BButton variant={ButtonVariant.SECONDARY} onPress={handleRetry} rounded="lg">
+              <BText variant={TextVariant.LABEL} color={Colors.light.text}>
+                {config.skipText}
+              </BText>
+            </BButton>
+          )}
+        </BView>
+      </BView>
+    </BSafeAreaView>
+  );
+}

@@ -35,6 +35,7 @@ export interface BViewProps extends RNViewProps {
   border?: boolean | string;
   /** Border radius */
   rounded?: BorderRadiusType;
+  fullWidth?: boolean;
 }
 
 const getSpacing = (value?: SpacingValueType): number | undefined => {
@@ -68,6 +69,7 @@ const BView: FC<BViewProps> = ({
   rounded,
   style,
   children,
+  fullWidth = false,
   ...props
 }) => {
   return (
@@ -91,6 +93,7 @@ const BView: FC<BViewProps> = ({
           ...(typeof border === 'string' && { borderColor: border, borderWidth: 1 }),
           ...(border === true && { borderColor: Colors.light.border, borderWidth: 1 }),
           ...(rounded && { borderRadius: BorderRadius[rounded] }),
+          ...(fullWidth && { width: '100%' }),
         },
         style,
       ]}

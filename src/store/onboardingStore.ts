@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 
+import { DebtPayoffPreferenceEnum } from '@/db/types';
 import type { DebtData, FixedExpenseData, ProfileData, SavingsGoalData } from '@/src/types';
 import { calculateEMI } from '@/src/utils/budget';
 import { generateUUID } from '@/src/utils/id';
@@ -43,6 +44,7 @@ const initialProfile: ProfileData = {
   salary: 0,
   monthlySavingsTarget: 0,
   frivolousBudget: 0,
+  debtPayoffPreference: DebtPayoffPreferenceEnum.AVALANCHE,
 };
 
 const initialState = {

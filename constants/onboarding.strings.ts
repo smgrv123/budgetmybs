@@ -233,6 +233,24 @@ export const OnboardingStrings = {
     perMonth: '/month',
   },
 
+  aiPlan: {
+    headerTitle: 'Your AI Financial Plan',
+    healthScore: 'Financial Health Score',
+    current: 'Current',
+    optimized: 'Optimized',
+    pointImprovement: 'point improvement',
+    budgetAllocation: 'Budget Allocation',
+    totalMonthlyIncome: 'Total Monthly Income',
+    suggestedChanges: 'Suggested Changes',
+    suggested: 'Suggested',
+    keyInsights: 'Key Insights',
+    recommendations: 'Recommendations',
+    summary: 'Summary',
+    acceptPlan: 'Accept AI Changes',
+    keepOriginal: 'Keep Original',
+    ofIncome: '% of income',
+  },
+
   validation: {
     required: 'This field is required',
     invalidNumber: 'Please enter a valid number',

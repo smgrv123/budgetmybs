@@ -67,6 +67,14 @@ export const ComponentSize = {
 } as const;
 export type ComponentSizeType = (typeof ComponentSize)[keyof typeof ComponentSize];
 
+export const CardVariant = {
+  DEFAULT: 'default',
+  FORM: 'form',
+  SUMMARY: 'summary',
+  ELEVATED: 'elevated',
+} as const;
+export type CardVariantType = (typeof CardVariant)[keyof typeof CardVariant];
+
 export const IconFamily = {
   IONICONS: 'ionicons',
   MATERIAL: 'material',
@@ -110,6 +118,7 @@ export const Colors = {
     overlay: 'rgba(0, 0, 0, 0.5)',
     // Button variants
     primary: '#4F6BED',
+    primaryFaded: 'rgba(79, 107, 237, 0.1)', // 10% opacity primary for backgrounds
     primaryPressed: '#3D56D4',
     secondary: '#bfc2c7ff',
     secondaryPressed: '#4B5563',
@@ -141,6 +150,23 @@ export const Colors = {
     successGradientEnd: '#FFFFFF',
     successCheck: '#16A34A',
     successCheckBg: '#DCFCE7',
+    // AI Plan - Priority badges
+    priorityHigh: '#DC2626',
+    priorityHighBg: '#FEE2E2',
+    priorityMedium: '#D97706', // same as warning
+    priorityMediumBg: '#FEF3C7', // same as warningBackground
+    priorityLow: '#2563EB',
+    priorityLowBg: '#DBEAFE',
+    // AI Plan - Health score
+    healthScoreGreen: '#16A34A', // same as success
+    // AI Plan - Progress bar gradient
+    progressGradientStart: '#6366F1',
+    progressGradientEnd: '#4F6BED', // same as primary
+    // AI Plan - Cards
+    impactBg: '#DCFCE7', // same as successBackground
+    summaryBg: '#F5F3FF',
+    insightBg: '#F0F9FF',
+    insightCheck: '#3B82F6',
   },
   dark: {
     text: '#ECEDEE',
@@ -249,15 +275,15 @@ export const Spacing: Record<SpacingValueType, number> = {
 // BORDER RADIUS (Normalized)
 // ============================================
 
-export const BorderRadius = {
-  none: 0,
-  xs: normalize(2),
-  sm: normalize(4),
-  md: normalize(6),
-  base: normalize(8),
-  lg: normalize(12),
-  xl: normalize(16),
-  '2xl': normalize(24),
+export const BorderRadius: Partial<Record<SpacingValueType, number>> & { full: number } = {
+  [SpacingValue.NONE]: 0,
+  [SpacingValue.XS]: normalize(2),
+  [SpacingValue.SM]: normalize(4),
+  [SpacingValue.MD]: normalize(6),
+  [SpacingValue.BASE]: normalize(8),
+  [SpacingValue.LG]: normalize(12),
+  [SpacingValue.XL]: normalize(16),
+  [SpacingValue['2XL']]: normalize(24),
   full: 9999,
 };
 export type BorderRadiusType = keyof typeof BorderRadius;

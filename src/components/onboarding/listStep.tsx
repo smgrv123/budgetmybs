@@ -35,6 +35,7 @@ export type ListStepProps<T extends { tempId: string }> = {
   extraFormContent?: (formData: Record<string, string>) => ReactNode;
   customTypeModal?: CustomTypeModalConfig;
   nextButtonLabel?: string; // Custom label for settings reuse
+  footerContent?: ReactNode; // Additional content above skip/continue button
 };
 
 function ListStep<T extends { tempId: string }>({
@@ -51,6 +52,7 @@ function ListStep<T extends { tempId: string }>({
   extraFormContent,
   customTypeModal,
   nextButtonLabel,
+  footerContent,
 }: ListStepProps<T>): React.JSX.Element {
   const scrollViewRef = useRef<ScrollView>(null);
   const [showForm, setShowForm] = useState(false);
@@ -208,6 +210,8 @@ function ListStep<T extends { tempId: string }>({
           <BAddItemButton label={strings.addButton} onPress={() => setShowForm(true)} />
         )}
       </ScrollView>
+
+      {footerContent}
 
       <BSkipStepButton
         showSkip={items.length > 0}

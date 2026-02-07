@@ -1,5 +1,3 @@
-import type { DebtData, FixedExpenseData } from '@/src/types';
-
 /**
  * Calculate EMI using the formula:
  * EMI = P × r × (1+r)^n / ((1+r)^n - 1)
@@ -25,11 +23,23 @@ export function calculateEMI(principal: number, annualRate: number, tenureMonths
   return Math.round(emi);
 }
 
-export const calculateTotalFixedExpenses = (fixedExpenses: FixedExpenseData[]): number => {
+/**
+ * Calculate total of all fixed expenses
+ * Generic function that accepts both database types (FixedExpense with id, createdAt, etc.)
+ * and onboarding types (FixedExpenseData with tempId) - only requires `amount` property
+ */
+export const calculateTotalFixedExpenses = <T extends { amount: number }>(fixedExpenses: T[]): number => {
   return fixedExpenses.reduce((sum, e) => sum + e.amount, 0);
 };
 
-export const calculateTotalEMI = (debts: DebtData[]): number => {
+/**
+ * Calculate total EMI across all debts
+ * Generic function that accepts both database types (Debt) and onboarding types (DebtData)
+ * Only requires the three properties needed for EMI calculation
+ */
+export const calculateTotalEMI = <T extends { principal: number; interestRate: number; tenureMonths: number }>(
+  debts: T[]
+): number => {
   return debts.reduce((sum, d) => sum + calculateEMI(d.principal, d.interestRate, d.tenureMonths), 0);
 };
 
@@ -38,66 +48,37 @@ export const getPercentage = (amount: number, totalIncome: number): number => {
   return Math.round((amount / totalIncome) * 100);
 };
 
-// Budget Breakdown Items Logic
+// Budget breakdown types
 export type BudgetBreakdownItem = {
   id: string;
-  name: string;
+  category: string;
   amount: number;
   percentage: number;
+  color: string;
+  icon: string;
 };
 
+/**
+ * Build budget breakdown items for visualization
+ */
 export const buildBudgetBreakdownItems = (
   totalFixedExpenses: number,
   totalEMI: number,
-  savingsTarget: number,
+  monthlySavingsTarget: number,
   remainingBudget: number,
-  categories: {
-    fixedExpenses: string;
-    emiPayments: string;
-    savingsTarget: string;
-    groceriesEssentials: string;
-  },
-  salary: number
+  categories: { label: string; color: string; icon: string }[],
+  totalIncome: number
 ): BudgetBreakdownItem[] => {
-  const items: BudgetBreakdownItem[] = [];
+  const amounts = [totalFixedExpenses, totalEMI, monthlySavingsTarget, remainingBudget];
 
-  const getPercent = (amount: number) => getPercentage(amount, salary);
-
-  if (totalFixedExpenses > 0) {
-    items.push({
-      id: 'fixed-expenses',
-      name: categories.fixedExpenses,
-      amount: totalFixedExpenses,
-      percentage: getPercent(totalFixedExpenses),
-    });
-  }
-
-  if (totalEMI > 0) {
-    items.push({
-      id: 'emi-payments',
-      name: categories.emiPayments,
-      amount: totalEMI,
-      percentage: getPercent(totalEMI),
-    });
-  }
-
-  if (savingsTarget > 0) {
-    items.push({
-      id: 'savings-target',
-      name: categories.savingsTarget,
-      amount: savingsTarget,
-      percentage: getPercent(savingsTarget),
-    });
-  }
-
-  if (remainingBudget > 0) {
-    items.push({
-      id: 'groceries-essentials',
-      name: categories.groceriesEssentials,
-      amount: remainingBudget,
-      percentage: getPercent(remainingBudget),
-    });
-  }
-
-  return items;
+  return amounts
+    .map((amount, index) => ({
+      id: `budget-${index}`,
+      category: categories[index].label,
+      amount,
+      percentage: getPercentage(amount, totalIncome),
+      color: categories[index].color,
+      icon: categories[index].icon,
+    }))
+    .filter((item) => item.amount > 0); // Only show non-zero items
 };

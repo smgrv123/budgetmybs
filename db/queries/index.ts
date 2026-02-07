@@ -80,5 +80,13 @@ export {
   updateMonthlySnapshotBudget,
 } from './monthly';
 
+// Financial plan queries
+export {
+  createFinancialPlan,
+  deleteFinancialPlan,
+  getActiveFinancialPlan,
+  getAllFinancialPlans,
+} from './financialPlan';
+
 // Account queries (delete/reset)
 export { clearUserData } from './account';

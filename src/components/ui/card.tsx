@@ -1,49 +1,50 @@
 import type { FC, ReactNode } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 
-import type { SpacingValueType } from '@/constants/theme';
-import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
+import type { CardVariantType, SpacingValueType } from '@/constants/theme';
+import { BorderRadius, CardVariant, Colors, Shadows, Spacing, SpacingValue } from '@/constants/theme';
 import BView from './view';
 
-export type CardVariant = 'default' | 'form' | 'summary' | 'elevated';
+// Re-export for convenience
+export type { CardVariantType as CardVariant } from '@/constants/theme';
 
 export type BCardProps = {
-  variant?: CardVariant;
+  variant?: CardVariantType;
   children: ReactNode;
   style?: StyleProp<ViewStyle>;
   gap?: SpacingValueType;
 };
 
-const variantStyles: Record<CardVariant, ViewStyle> = {
-  default: {
+const variantStyles: Record<CardVariantType, ViewStyle> = {
+  [CardVariant.DEFAULT]: {
     backgroundColor: Colors.light.card,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.base,
+    borderRadius: BorderRadius[SpacingValue.LG],
+    padding: Spacing[SpacingValue.BASE],
     borderWidth: 1,
     borderColor: Colors.light.border,
   },
-  form: {
+  [CardVariant.FORM]: {
     backgroundColor: Colors.light.card,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.base,
+    borderRadius: BorderRadius[SpacingValue.LG],
+    padding: Spacing[SpacingValue.BASE],
     borderWidth: 1,
     borderColor: Colors.light.border,
-    gap: Spacing.md,
+    gap: Spacing[SpacingValue.MD],
   },
-  summary: {
+  [CardVariant.SUMMARY]: {
     backgroundColor: Colors.light.backgroundSecondary,
-    borderRadius: BorderRadius.base,
-    padding: Spacing.md,
+    borderRadius: BorderRadius[SpacingValue.BASE],
+    padding: Spacing[SpacingValue.MD],
   },
-  elevated: {
+  [CardVariant.ELEVATED]: {
     backgroundColor: Colors.light.card,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.base,
+    borderRadius: BorderRadius[SpacingValue.LG],
+    padding: Spacing[SpacingValue.BASE],
     ...Shadows.md,
   },
 };
 
-const BCard: FC<BCardProps> = ({ variant = 'default', gap, children, style }) => {
+const BCard: FC<BCardProps> = ({ variant = CardVariant.DEFAULT, gap, children, style }) => {
   return <BView style={[variantStyles[variant], gap && { gap: Spacing[gap] }, style]}>{children}</BView>;
 };
 

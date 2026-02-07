@@ -1,4 +1,4 @@
-import type { DebtType, FixedExpenseType, SavingsType } from '@/db/types';
+import type { DebtPayoffPreference, DebtType, FixedExpenseType, SavingsType } from '@/db/types';
 import type { ReactNode } from 'react';
 
 // From store/onboardingStore.ts
@@ -7,6 +7,7 @@ export type ProfileData = {
   salary: number;
   monthlySavingsTarget: number;
   frivolousBudget: number;
+  debtPayoffPreference: DebtPayoffPreference;
 };
 
 export type FixedExpenseData = {

@@ -46,6 +46,18 @@ export type DebtType = (typeof DebtTypeEnum)[keyof typeof DebtTypeEnum];
 export const DEBT_TYPES = Object.values(DebtTypeEnum);
 
 /**
+ * Debt payoff preference strategies
+ */
+export const DebtPayoffPreferenceEnum = {
+  AVALANCHE: 'avalanche', // Highest interest rate first - saves most money
+  SNOWBALL: 'snowball', // Smallest balance first - psychological wins
+} as const;
+
+export type DebtPayoffPreference = (typeof DebtPayoffPreferenceEnum)[keyof typeof DebtPayoffPreferenceEnum];
+
+export const DEBT_PAYOFF_PREFERENCES = Object.values(DebtPayoffPreferenceEnum);
+
+/**
  * Category types for variable expenses
  */
 export const CategoryTypeEnum = {

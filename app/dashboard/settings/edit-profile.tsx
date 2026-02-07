@@ -1,5 +1,6 @@
 import { Colors } from '@/constants/theme';
 import { clearUserData } from '@/db';
+import { DebtPayoffPreferenceEnum } from '@/db/types';
 import ProfileStep from '@/src/components/onboarding/steps/profileStep';
 import { SettingsHeader } from '@/src/components/settings';
 import { BButton, BSafeAreaView, BText, BView } from '@/src/components/ui';
@@ -19,6 +20,7 @@ export default function EditProfileScreen() {
     salary: 0,
     monthlySavingsTarget: 0,
     frivolousBudget: 0,
+    debtPayoffPreference: DebtPayoffPreferenceEnum.AVALANCHE,
   });
 
   // Pre-populate store from DB on mount
@@ -29,6 +31,7 @@ export default function EditProfileScreen() {
         salary: dbProfile.salary,
         frivolousBudget: dbProfile.frivolousBudget,
         monthlySavingsTarget: dbProfile.monthlySavingsTarget,
+        debtPayoffPreference: dbProfile.debtPayoffPreference ?? DebtPayoffPreferenceEnum.AVALANCHE,
       });
     }
   }, [dbProfile]);
@@ -44,6 +47,7 @@ export default function EditProfileScreen() {
         salary: profile.salary,
         frivolousBudget: profile.frivolousBudget,
         monthlySavingsTarget: profile.monthlySavingsTarget,
+        debtPayoffPreference: profile.debtPayoffPreference,
       });
       router.back();
     } catch (error) {
@@ -62,7 +66,7 @@ export default function EditProfileScreen() {
           const result = await clearUserData('delete');
           if (result.success) {
             // Navigate to onboarding or login
-            router.replace('/');
+            router.replace('/onboarding/welcome');
           } else {
             Alert.alert('Error', result.message);
           }

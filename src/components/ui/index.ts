@@ -1,4 +1,5 @@
 // Atomic/Base UI Components
+export { default as BAccordion } from './accordion';
 export { default as BButton } from './button';
 export { default as BCard } from './card';
 export { default as BDropdown } from './dropdown';
@@ -12,6 +13,7 @@ export { default as BText } from './text';
 export { default as BView } from './view';
 
 // Re-export types
+export type { BAccordionProps } from './accordion';
 export type { BButtonProps } from './button';
 export type { BCardProps, CardVariant } from './card';
 export type { BDropdownProps } from './dropdown';

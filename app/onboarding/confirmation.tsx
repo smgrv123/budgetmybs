@@ -1,120 +1,141 @@
-import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
-import { useState } from 'react';
-import { Alert, FlatList, ScrollView, StyleSheet } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 
+import { AsyncStorageKeys } from '@/constants/asyncStorageKeys';
 import { OnboardingStrings } from '@/constants/onboarding.strings';
+import { ButtonVariant, Colors, ComponentSize, Spacing, SpacingValue, TextVariant } from '@/constants/theme';
 import {
-  BorderRadius,
-  ButtonVariant,
-  Colors,
-  ComponentSize,
-  FontSize,
-  FontWeight,
-  Spacing,
-  SpacingValue,
-  TextVariant,
-} from '@/constants/theme';
-import { BButton, BCard, BIcon, BSafeAreaView, BText, BView } from '@/src/components';
-import { useDebts, useFixedExpenses, useProfile, useSavingsGoals } from '@/src/hooks';
+  BAccordion,
+  BButton,
+  BIcon,
+  BPlanLoadingView,
+  BSafeAreaView,
+  BText,
+  BudgetAllocationCard,
+  BView,
+  HealthScoreCard,
+  InsightCard,
+  RecommendationCard,
+  SuggestedChangeCard,
+  SummaryCard,
+} from '@/src/components';
+import { generateFinancialPlan } from '@/src/services/financialPlanService';
 import { useOnboardingStore } from '@/src/store';
-import {
-  type BudgetBreakdownItem,
-  buildBudgetBreakdownItems,
-  calculateEMI,
-  calculateTotalEMI,
-  calculateTotalFixedExpenses,
-} from '@/src/utils/budget';
+import type { FinancialPlan } from '@/src/types/financialPlan';
+import { applyAISuggestions } from '@/src/utils/applyAISuggestions';
+import { formatIndianNumber } from '@/src/utils/format';
+import { ensureNetworkAvailable, NetworkError, pollNetworkConnection } from '@/src/utils/network';
+import { useSaveOnboardingData } from '@/src/utils/saveOnboardingData';
 
-const { common, plan } = OnboardingStrings;
-
-// Confirmation screen gradient colors
-const CONFIRMATION_GRADIENT: [string, string, string] = [
-  Colors.light.confirmationGradientStart,
-  Colors.light.confirmationGradientMiddle,
-  Colors.light.confirmationGradientEnd,
-];
+const { plan } = OnboardingStrings;
 
 export default function ConfirmationScreen() {
+  const [isLoadingAI, setIsLoadingAI] = useState(true);
+  const [aiPlan, setAIPlan] = useState<FinancialPlan | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+
   const { profile, fixedExpenses, debts, savingsGoals, reset } = useOnboardingStore();
 
-  // TanStack Query hooks for mutations
-  const { upsertProfileAsync } = useProfile();
-  const { createFixedExpenseAsync } = useFixedExpenses();
-  const { createDebtAsync } = useDebts();
-  const { createSavingsGoalAsync } = useSavingsGoals();
+  const { saveOnboardingData } = useSaveOnboardingData();
 
-  // Calculate totals
-  const totalFixedExpenses = calculateTotalFixedExpenses(fixedExpenses);
-  const totalEMI = calculateTotalEMI(debts);
-  const totalCommitments = totalFixedExpenses + totalEMI + profile.monthlySavingsTarget;
-  const remainingBudget = profile.salary - totalCommitments;
+  // Generate AI plan on mount with network monitoring
+  useEffect(() => {
+    let networkPollCleanup: (() => void) | null = null;
 
-  const budgetBreakdownItems = buildBudgetBreakdownItems(
-    totalFixedExpenses,
-    totalEMI,
-    profile.monthlySavingsTarget,
-    remainingBudget,
-    plan.categories,
-    profile.salary
-  );
+    const loadAIPlan = async () => {
+      try {
+        // Check network first
+        await ensureNetworkAvailable();
+
+        // Start network polling every 3 seconds
+        networkPollCleanup = pollNetworkConnection(() => {
+          router.replace('/onboarding/network');
+        });
+
+        // Generate plan
+        const generatedPlan = await generateFinancialPlan({
+          profile,
+          fixedExpenses,
+          debts,
+          savingsGoals,
+        });
+        setAIPlan(generatedPlan);
+
+        // Store health score weights in AsyncStorage
+        await AsyncStorage.setItem(
+          AsyncStorageKeys.HEALTH_SCORE_WEIGHTS,
+          JSON.stringify({
+            original: generatedPlan.originalHealthScoreWeights,
+            suggested: generatedPlan.suggestedHealthScoreWeights,
+            generatedAt: new Date().toISOString(),
+          })
+        );
+      } catch (error) {
+        console.error('Failed to generate AI plan:', error);
+        const errorPath = error instanceof NetworkError ? '/onboarding/network' : '/onboarding/api_failure';
+        router.replace(errorPath);
+      } finally {
+        setIsLoadingAI(false);
+        // Stop network polling
+        if (networkPollCleanup) {
+          networkPollCleanup();
+        }
+      }
+    };
+
+    loadAIPlan();
+
+    return () => {
+      if (networkPollCleanup) {
+        networkPollCleanup();
+      }
+    };
+  }, [profile, fixedExpenses, debts, savingsGoals]);
 
   const handleBack = () => {
     router.back();
   };
 
-  const handleConfirm = async () => {
+  const handleConfirm = async (acceptAI: boolean) => {
     setIsSaving(true);
 
     try {
-      // 1. Save Profile
-      await upsertProfileAsync({
-        name: profile.name,
-        salary: profile.salary,
-        frivolousBudget: profile.frivolousBudget,
-        monthlySavingsTarget: profile.monthlySavingsTarget,
+      // Step 1: Apply AI suggestions to store if user accepts
+      if (acceptAI && aiPlan) {
+        applyAISuggestions(aiPlan, useOnboardingStore.getState());
+      }
+
+      // Step 2: Get current data from store using destructuring
+      const {
+        profile: currentProfile,
+        fixedExpenses: currentFixedExpenses,
+        debts: currentDebts,
+        savingsGoals: currentSavingsGoals,
+      } = useOnboardingStore.getState();
+
+      // Step 3: Save all data using utility function
+      await saveOnboardingData({
+        profile: currentProfile,
+        fixedExpenses: currentFixedExpenses,
+        debts: currentDebts,
+        savingsGoals: currentSavingsGoals,
       });
 
-      // 2. Save Fixed Expenses
-      for (const expense of fixedExpenses) {
-        await createFixedExpenseAsync({
-          name: expense.name,
-          type: expense.type,
-          customType: expense.customType || null,
-          amount: expense.amount,
-          dayOfMonth: expense.dayOfMonth,
-        });
+      // Step 4: Update health score weights with user choice
+      if (aiPlan) {
+        await AsyncStorage.setItem(
+          AsyncStorageKeys.HEALTH_SCORE_WEIGHTS,
+          JSON.stringify({
+            original: aiPlan.originalHealthScoreWeights,
+            suggested: aiPlan.suggestedHealthScoreWeights,
+            usedSuggested: acceptAI,
+            generatedAt: new Date().toISOString(),
+          })
+        );
       }
 
-      // 3. Save Debts with calculated EMI
-      for (const debt of debts) {
-        const emiAmount = calculateEMI(debt.principal, debt.interestRate, debt.tenureMonths);
-        await createDebtAsync({
-          name: debt.name,
-          type: debt.type,
-          customType: debt.customType || null,
-          principal: debt.principal,
-          remaining: debt.principal,
-          interestRate: debt.interestRate,
-          emiAmount,
-          tenureMonths: debt.tenureMonths,
-          remainingMonths: debt.tenureMonths,
-          startDate: null,
-        });
-      }
-
-      // 4. Save Savings Goals
-      for (const goal of savingsGoals) {
-        await createSavingsGoalAsync({
-          name: goal.name,
-          type: goal.type,
-          customType: goal.customType || null,
-          targetAmount: goal.targetAmount,
-        });
-      }
-
-      // Reset store and navigate to success screen
       reset();
       router.replace('/onboarding/success');
     } catch (error) {
@@ -124,105 +145,122 @@ export default function ConfirmationScreen() {
     }
   };
 
-  // Render functions for FlatLists
-  const renderBudgetItem = ({ item }: { item: BudgetBreakdownItem }) => (
-    <BCard variant="default" style={{ padding: Spacing.md, borderRadius: BorderRadius.base }}>
-      <BView row justify="space-between" align="center">
-        <BView>
-          <BText variant={TextVariant.LABEL} style={{ marginBottom: Spacing.xxs }}>
-            {item.name}
-          </BText>
-          <BText variant={TextVariant.CAPTION} muted>
-            {item.percentage}
-            {plan.ofIncome}
-          </BText>
-        </BView>
-        <BText variant={TextVariant.LABEL} style={{ fontWeight: FontWeight.semibold }}>
-          {common.currency}
-          {item.amount.toLocaleString('en-IN')}
-        </BText>
-      </BView>
-    </BCard>
-  );
+  // Show loading state
+  if (isLoadingAI) {
+    return <BPlanLoadingView />;
+  }
 
-  const renderRecommendation = ({ item }: { item: string }) => (
-    <BText variant={TextVariant.CAPTION} color={Colors.light.primary}>
-      • {item}
-    </BText>
-  );
+  // Safety check - shouldn't happen but just in case
+  if (!aiPlan) {
+    return null;
+  }
 
   return (
     <BSafeAreaView>
+      {/* Top Back Button */}
+      <BView row gap={SpacingValue.MD} paddingX={SpacingValue.LG} paddingY={SpacingValue.SM}>
+        <TouchableOpacity onPress={handleBack}>
+          <BIcon name="arrow-back" size={ComponentSize.MD} color={Colors.light.text} />
+        </TouchableOpacity>
+        <BIcon name="sparkles" color={Colors.light.warning} size={ComponentSize.MD} />
+        <BText variant={TextVariant.SUBHEADING}>{plan.headerTitle}</BText>
+      </BView>
+
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {/* Header */}
-        <BView row gap={SpacingValue.SM} marginY={SpacingValue.LG} style={{ alignItems: 'center' }}>
-          <BIcon name="sparkles" color={Colors.light.warning} size={ComponentSize.MD} />
-          <BText variant={TextVariant.SUBHEADING}>{plan.headerTitle}</BText>
+        {/* Health Score Card */}
+        <HealthScoreCard originalScore={aiPlan.originalHealthScore} suggestedScore={aiPlan.suggestedHealthScore} />
+
+        {/* Budget Allocation Accordion */}
+        <BView marginY={SpacingValue.SM}>
+          <BAccordion icon="wallet-outline" title={OnboardingStrings.aiPlan.budgetAllocation}>
+            <BView gap={SpacingValue.MD}>
+              {aiPlan.budgetAllocation.map((item, index) => (
+                <BudgetAllocationCard key={index} {...item} />
+              ))}
+              {/* Total Income Row */}
+              <BView
+                row
+                justify="space-between"
+                paddingY={SpacingValue.SM}
+                style={{
+                  borderTopWidth: 1,
+                  borderTopColor: Colors.light.border,
+                }}
+              >
+                <BText variant={TextVariant.LABEL}>{OnboardingStrings.aiPlan.totalMonthlyIncome}</BText>
+                <BText variant={TextVariant.LABEL}>{formatIndianNumber(profile.salary, true)}</BText>
+              </BView>
+            </BView>
+          </BAccordion>
         </BView>
 
-        {/* Monthly Income Card */}
-        <LinearGradient
-          colors={CONFIRMATION_GRADIENT}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.incomeCard}
-        >
-          <BText variant={TextVariant.CAPTION} color={Colors.light.white} muted>
-            {plan.monthlyIncome}
-          </BText>
-          <BText variant={TextVariant.HEADING} color={Colors.light.white}>
-            {common.currency}
-            {profile.salary.toLocaleString('en-IN')}
-          </BText>
-        </LinearGradient>
-
-        {/* Budget Breakdown */}
-        <BView marginY={SpacingValue.XL}>
-          <BText variant={TextVariant.SUBHEADING} style={{ marginBottom: Spacing.md }}>
-            {plan.budgetBreakdown}
-          </BText>
-          <FlatList
-            data={budgetBreakdownItems}
-            renderItem={renderBudgetItem}
-            keyExtractor={(item) => item.id}
-            scrollEnabled={false}
-            ItemSeparatorComponent={() => <BView style={{ height: Spacing.sm }} />}
-          />
-        </BView>
-
-        {/* AI Recommendations */}
-        <BView padding={SpacingValue.BASE} style={styles.recommendationsCard}>
-          <BView row gap={SpacingValue.SM} marginY={SpacingValue.MD} style={{ alignItems: 'center' }}>
-            <BText style={{ fontSize: FontSize.lg }}>💡</BText>
-            <BText variant={TextVariant.LABEL}>{plan.aiRecommendations}</BText>
+        {/* Suggested Changes Accordion */}
+        {aiPlan.suggestedChanges.length > 0 && (
+          <BView marginY={SpacingValue.SM}>
+            <BAccordion icon="swap-horizontal" title={OnboardingStrings.aiPlan.suggestedChanges}>
+              <BView gap={SpacingValue.MD}>
+                {aiPlan.suggestedChanges.map((change, index) => (
+                  <SuggestedChangeCard key={index} {...change} />
+                ))}
+              </BView>
+            </BAccordion>
           </BView>
-          <FlatList
-            data={plan.recommendations}
-            renderItem={renderRecommendation}
-            keyExtractor={(item, index) => `rec-${index}`}
-            scrollEnabled={false}
-            ItemSeparatorComponent={() => <BView style={{ height: Spacing.xs }} />}
-          />
+        )}
+
+        {/* Key Insights Accordion */}
+        {aiPlan.keyInsights.length > 0 && (
+          <BView marginY={SpacingValue.SM}>
+            <BAccordion icon="bulb" title={OnboardingStrings.aiPlan.keyInsights}>
+              <BView gap={SpacingValue.SM}>
+                {aiPlan.keyInsights.map((insight, index) => (
+                  <InsightCard key={index} insight={insight} />
+                ))}
+              </BView>
+            </BAccordion>
+          </BView>
+        )}
+
+        {/* Recommendations Accordion */}
+        {aiPlan.recommendations.length > 0 && (
+          <BView marginY={SpacingValue.SM}>
+            <BAccordion icon="checkmark-circle" title={OnboardingStrings.aiPlan.recommendations}>
+              <BView gap={SpacingValue.MD}>
+                {aiPlan.recommendations.map((rec, index) => (
+                  <RecommendationCard key={index} {...rec} />
+                ))}
+              </BView>
+            </BAccordion>
+          </BView>
+        )}
+
+        {/* AI Summary */}
+        <BView marginY={SpacingValue.BASE}>
+          <SummaryCard summary={aiPlan.summary} />
         </BView>
       </ScrollView>
 
-      {/* Footer - Button Group */}
-      <BView row gap={SpacingValue.MD} paddingX={SpacingValue['XL']} paddingY={SpacingValue.BASE} style={styles.footer}>
+      {/* Footer - Two Action Buttons */}
+      <BView row gap={SpacingValue.MD} paddingX={SpacingValue.XL} paddingY={SpacingValue.BASE} style={styles.footer}>
         <BButton
           variant={ButtonVariant.SECONDARY}
-          onPress={handleBack}
+          onPress={() => handleConfirm(false)}
           disabled={isSaving}
-          rounded="lg"
-          paddingY="sm"
+          rounded={SpacingValue.LG}
           style={{ flex: 1 }}
         >
           <BText variant={TextVariant.LABEL} color={Colors.light.text}>
-            {plan.backButton}
+            {OnboardingStrings.aiPlan.keepOriginal}
           </BText>
         </BButton>
-        <BButton onPress={handleConfirm} loading={isSaving} disabled={isSaving} rounded="lg" style={{ flex: 2 }}>
+        <BButton
+          onPress={() => handleConfirm(true)}
+          loading={isSaving}
+          disabled={isSaving}
+          rounded={SpacingValue.LG}
+          style={{ flex: 1 }}
+        >
           <BText variant={TextVariant.LABEL} color={Colors.light.white}>
-            {plan.confirmButton}
+            {OnboardingStrings.aiPlan.acceptPlan}
           </BText>
         </BButton>
       </BView>
@@ -234,18 +272,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: Spacing.xl,
     paddingBottom: Spacing['2xl'],
-  },
-  incomeCard: {
-    borderRadius: BorderRadius.lg,
-    gap: Spacing.xs,
-    padding: Spacing.xl,
-    marginBottom: Spacing.xl,
-  },
-  recommendationsCard: {
-    backgroundColor: Colors.light.recommendationBg,
-    borderRadius: BorderRadius.lg,
-    borderLeftWidth: 4,
-    borderLeftColor: Colors.light.primary,
   },
   footer: {
     borderTopWidth: 1,

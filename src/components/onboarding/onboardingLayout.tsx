@@ -91,14 +91,6 @@ const styles = StyleSheet.create({
   stepIndicatorPadding: {
     paddingBottom: Spacing.base,
   },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: Spacing.base,
-    paddingBottom: Spacing.xl,
-  },
   footer: {
     borderTopWidth: 1,
     borderTopColor: Colors.light.border,

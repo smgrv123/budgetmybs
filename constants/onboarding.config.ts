@@ -1,4 +1,5 @@
-import { DebtLabels, FixedExpenseLabels, SavingsLabels } from '@/db/types';
+import type { DebtPayoffPreference } from '@/db/types';
+import { DebtLabels, DebtPayoffPreferenceEnum, FixedExpenseLabels, SavingsLabels } from '@/db/types';
 
 export const OTHER_TYPE_VALUE = 'other';
 
@@ -96,3 +97,53 @@ export const SavingsFieldConfig: FieldConfig[] = [
   { id: 'type', type: 'dropdown', required: true },
   { id: 'targetAmount', type: 'currency', required: true, min: 0 },
 ];
+
+// ============================================
+// DEBT PAYOFF STRATEGIES
+// ============================================
+
+/**
+ * Strategy card configurations for debt payoff selector
+ */
+export const DEBT_PAYOFF_STRATEGY_CONFIGS: {
+  key: DebtPayoffPreference;
+  label: string;
+  description: string;
+}[] = [
+  {
+    key: DebtPayoffPreferenceEnum.AVALANCHE,
+    label: 'Avalanche',
+    description: 'Highest interest first',
+  },
+  {
+    key: DebtPayoffPreferenceEnum.SNOWBALL,
+    label: 'Snowball',
+    description: 'Smallest balance first',
+  },
+];
+
+/**
+ * Detailed information for debt payoff strategies (modal content)
+ */
+export const DEBT_PAYOFF_STRATEGY_INFO: Record<
+  DebtPayoffPreference,
+  {
+    title: string;
+    description: string;
+    benefit: string;
+    example: string;
+  }
+> = {
+  avalanche: {
+    title: 'Avalanche Method',
+    description: 'Pay off debts with the highest interest rates first',
+    benefit: 'Saves the most money on interest over time',
+    example: 'If you have a credit card at 18% APR and a personal loan at 12%, prioritize the credit card.',
+  },
+  snowball: {
+    title: 'Snowball Method',
+    description: 'Pay off debts with the smallest balances first',
+    benefit: 'Provides quick wins and psychological motivation',
+    example: 'Pay off small debts first to build momentum and stay motivated.',
+  },
+};

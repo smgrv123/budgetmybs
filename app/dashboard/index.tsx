@@ -18,7 +18,7 @@ import {
 } from '@/src/components';
 import { useDebts, useExpenses, useFixedExpenses, useProfile, useSavingsGoals } from '@/src/hooks';
 import type { QuickStatTypeValue } from '@/src/types/dashboard';
-import { calculateEMI } from '@/src/utils/budget';
+import { calculateTotalEMI, calculateTotalFixedExpenses } from '@/src/utils/budget';
 import { mapDebtToSheet, mapFixedExpenseToSheet, mapSavingsGoalToSheet } from '@/src/utils/dashboard';
 import { formatDate } from '@/src/utils/date';
 
@@ -44,9 +44,9 @@ export default function DashboardScreen() {
 
   const isLoading = isProfileLoading || isFixedExpensesLoading || isDebtsLoading || isSavingsGoalsLoading;
 
-  // Calculate totals
-  const totalFixedExpenses = fixedExpenses?.reduce((sum, e) => sum + e.amount, 0) ?? 0;
-  const totalEMI = debts?.reduce((sum, d) => sum + calculateEMI(d.principal, d.interestRate, d.tenureMonths), 0) ?? 0;
+  // Calculate totals using existing utility functions
+  const totalFixedExpenses = calculateTotalFixedExpenses(fixedExpenses ?? []);
+  const totalEMI = calculateTotalEMI(debts ?? []);
   // const savingsTarget = profile?.monthlySavingsTarget ?? 0;
   const monthlyIncome = profile?.salary ?? 0;
   const totalMonthlySavings = completedGoals.reduce((sum, s) => sum + s.targetAmount, 0);

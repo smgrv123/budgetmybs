@@ -1,6 +1,6 @@
 import { relations, sql } from 'drizzle-orm';
 import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
-import type { CategoryType, DebtType, FixedExpenseType, SavingsType } from './types';
+import type { CategoryType, DebtPayoffPreference, DebtType, FixedExpenseType, SavingsType } from './types';
 import { generateUUID } from './utils';
 
 // ============================================
@@ -15,6 +15,7 @@ export const profileTable = sqliteTable('profile', {
   salary: real('salary').notNull(),
   frivolousBudget: real('frivolous_budget').notNull(),
   monthlySavingsTarget: real('monthly_savings_target').notNull(),
+  debtPayoffPreference: text('debt_payoff_preference').$type<DebtPayoffPreference>().default('avalanche'),
   createdAt: text('created_at')
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
@@ -134,6 +135,65 @@ export const savingsGoalsTable = sqliteTable('savings_goals', {
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
   updatedAt: text('updated_at')
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
+// ============================================
+// FINANCIAL PLANS TABLE
+// ============================================
+/**
+ * Stores AI-generated financial plans with complete user data snapshots.
+ *
+ * PURPOSE:
+ * This table provides version history and analytics capabilities for the AI financial advisor.
+ * While the AI suggestions are applied directly to the profile/debts/expenses tables,
+ * keeping a historical record enables powerful future features.
+ *
+ * USE CASES:
+ * 1. **Version History & Audit Trail**
+ *    - Track what the AI originally suggested during onboarding
+ *    - Compare multiple AI-generated plans over time as user's situation changes
+ *    - Allow users to see: "What did the AI recommend 3 months ago?"
+ *
+ * 2. **Rollback Functionality**
+ *    - If user doesn't like changes after applying AI suggestions, can restore previous state
+ *    - Safety net for non-technical users who want to undo changes
+ *    - Especially useful if implementing "regenerate plan" feature
+ *
+ * 3. **Analytics & Progress Tracking**
+ *    - Dashboard feature: "Your financial health improved from 45 → 78 over 6 months"
+ *    - Show timeline of health score improvements
+ *    - Motivational insights based on historical data
+ *    - Track how recommendations evolved
+ *
+ * 4. **AI Model Improvements**
+ *    - Compare suggestions from different Gemini model versions
+ *    - A/B testing different prompts or strategies
+ *    - Quality assurance and debugging
+ *
+ * DATA STRUCTURE:
+ * - Snapshots: Complete user data at time of plan generation (profile, debts, expenses, goals)
+ * - Plan: Full AI-generated recommendations and analysis
+ * - isActive: Only one plan is "current" at a time (most recent)
+ *
+ * FUTURE-PROOFING:
+ * Even if not used immediately, this minimal storage cost enables rich features later
+ * without requiring schema migrations or data reconstruction.
+ */
+export const financialPlansTable = sqliteTable('financial_plans', {
+  id: text('id')
+    .primaryKey()
+    .$default(() => generateUUID()),
+  // Snapshot of user data at time of plan generation
+  profileSnapshot: text('profile_snapshot').notNull(), // JSON: ProfileData
+  fixedExpensesSnapshot: text('fixed_expenses_snapshot').notNull(), // JSON: FixedExpenseData[]
+  debtsSnapshot: text('debts_snapshot').notNull(), // JSON: DebtData[]
+  savingsGoalsSnapshot: text('savings_goals_snapshot').notNull(), // JSON: SavingsGoalData[]
+  // AI-generated plan
+  plan: text('plan').notNull(), // JSON: FinancialPlan
+  isActive: integer('is_active').notNull().default(1), // Current active plan
+  createdAt: text('created_at')
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
 });
