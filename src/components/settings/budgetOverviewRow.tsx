@@ -1,4 +1,4 @@
-import { Colors } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import { BText, BView } from '@/src/components/ui';
 import type { BudgetOverviewItem } from '@/src/types/settings';
 
@@ -7,9 +7,10 @@ interface BudgetOverviewRowProps extends BudgetOverviewItem {
 }
 
 export default function BudgetOverviewRow({ label, value, isNegative }: BudgetOverviewRowProps) {
+  const themeColors = useThemeColors();
   const formattedValue = `₹${value.toLocaleString('en-IN')}`;
   const displayValue = isNegative ? `-${formattedValue}` : formattedValue;
-  const valueColor = isNegative ? Colors.light.error : Colors.light.text;
+  const valueColor = isNegative ? themeColors.error : themeColors.text;
 
   return (
     <BView row justify="space-between" paddingY="sm">

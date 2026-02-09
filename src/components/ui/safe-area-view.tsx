@@ -4,7 +4,8 @@ import { StyleSheet } from 'react-native';
 import type { Edge } from 'react-native-safe-area-context';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Colors } from '@/constants/theme';
+import type { ThemeColors } from '@/hooks/use-theme-color';
+import { useThemeColors } from '@/hooks/use-theme-color';
 
 export interface BSafeAreaViewProps {
   /** Children to render */
@@ -17,15 +18,20 @@ export interface BSafeAreaViewProps {
   style?: StyleProp<ViewStyle>;
 }
 
-const getBackgroundColor = (bg?: BSafeAreaViewProps['bg']): string => {
-  if (!bg || bg === 'background') return Colors.light.background;
-  if (bg === 'backgroundSecondary') return Colors.light.backgroundSecondary;
+const getBackgroundColor = (bg: BSafeAreaViewProps['bg'], themeColors: ThemeColors): string => {
+  if (!bg || bg === 'background') return themeColors.background;
+  if (bg === 'backgroundSecondary') return themeColors.backgroundSecondary;
   return 'transparent';
 };
 
 const BSafeAreaView: FC<BSafeAreaViewProps> = ({ children, bg = 'background', edges = ['top', 'bottom'], style }) => {
+  const themeColors = useThemeColors();
+
   return (
-    <SafeAreaView edges={edges} style={[styles.container, { backgroundColor: getBackgroundColor(bg) }, style]}>
+    <SafeAreaView
+      edges={edges}
+      style={[styles.container, { backgroundColor: getBackgroundColor(bg, themeColors) }, style]}
+    >
       {children}
     </SafeAreaView>
   );

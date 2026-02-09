@@ -1,5 +1,6 @@
 import { OnboardingStrings } from '@/constants/onboarding.strings';
-import { BorderRadius, ButtonVariant, Colors, Spacing } from '@/constants/theme';
+import { BorderRadius, ButtonVariant, Spacing } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import { BFeatureCard } from '@/src/components/onboarding';
 import { BLink, BSafeAreaView, BText, BView } from '@/src/components/ui';
 import { FlatList, StyleSheet } from 'react-native';
@@ -7,6 +8,8 @@ import { FlatList, StyleSheet } from 'react-native';
 const { welcome } = OnboardingStrings;
 
 export default function WelcomeScreen() {
+  const themeColors = useThemeColors();
+
   return (
     <BSafeAreaView>
       <BView flex paddingX="xl" style={styles.content}>
@@ -32,8 +35,12 @@ export default function WelcomeScreen() {
 
       {/* Footer Section */}
       <BView paddingX="xl" paddingY="xl" style={styles.footer}>
-        <BLink variant={ButtonVariant.PRIMARY} href="/onboarding/setup" style={styles.getStartedButton}>
-          <BText color={Colors.light.white} variant="label">
+        <BLink
+          variant={ButtonVariant.PRIMARY}
+          href="/onboarding/setup"
+          style={[styles.getStartedButton, { backgroundColor: themeColors.primary }]}
+        >
+          <BText color={themeColors.white} variant="label">
             {welcome.getStartedButton}
           </BText>
         </BLink>
@@ -62,7 +69,6 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing['2xl'],
   },
   getStartedButton: {
-    backgroundColor: Colors.light.primary,
     borderRadius: BorderRadius.lg,
   },
   setupTimeHint: {

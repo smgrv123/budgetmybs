@@ -2,7 +2,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import type { FC } from 'react';
 import { StyleSheet } from 'react-native';
 
-import { Colors, SpacingValue, TextVariant } from '@/constants/theme';
+import { SpacingValue, TextVariant } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import { BText, BView } from '@/src/components/ui';
 import type { BudgetAllocationItem } from '@/src/types/financialPlan';
 import { formatIndianNumber } from '@/src/utils/format';
@@ -10,6 +11,8 @@ import { formatIndianNumber } from '@/src/utils/format';
 type BudgetAllocationCardProps = Pick<BudgetAllocationItem, 'label' | 'amount' | 'percentage'>;
 
 const BudgetAllocationCard: FC<BudgetAllocationCardProps> = ({ label, amount, percentage }) => {
+  const themeColors = useThemeColors();
+
   return (
     <BView gap={SpacingValue.SM}>
       {/* Label and Amount */}
@@ -31,9 +34,9 @@ const BudgetAllocationCard: FC<BudgetAllocationCardProps> = ({ label, amount, pe
       </BView>
 
       {/* Progress Bar */}
-      <BView style={styles.progressTrack} bg={Colors.light.muted} rounded={SpacingValue.SM}>
+      <BView style={styles.progressTrack} bg={themeColors.muted} rounded={SpacingValue.SM}>
         <LinearGradient
-          colors={[Colors.light.progressGradientStart, Colors.light.progressGradientEnd]}
+          colors={[themeColors.progressGradientStart, themeColors.progressGradientEnd]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={[styles.progressBar, { width: `${percentage}%` }]}
@@ -41,7 +44,7 @@ const BudgetAllocationCard: FC<BudgetAllocationCardProps> = ({ label, amount, pe
       </BView>
 
       {/* Percentage */}
-      <BText variant={TextVariant.CAPTION} color={Colors.light.textSecondary}>
+      <BText variant={TextVariant.CAPTION} color={themeColors.textSecondary}>
         {percentage}% of budget
       </BText>
     </BView>

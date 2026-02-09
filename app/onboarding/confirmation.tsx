@@ -5,7 +5,8 @@ import { Alert, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 
 import { AsyncStorageKeys } from '@/constants/asyncStorageKeys';
 import { OnboardingStrings } from '@/constants/onboarding.strings';
-import { ButtonVariant, Colors, ComponentSize, Spacing, SpacingValue, TextVariant } from '@/constants/theme';
+import { ButtonVariant, ComponentSize, Spacing, SpacingValue, TextVariant } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import {
   BAccordion,
   BButton,
@@ -32,6 +33,7 @@ import { useSaveOnboardingData } from '@/src/utils/saveOnboardingData';
 const { plan } = OnboardingStrings;
 
 export default function ConfirmationScreen() {
+  const themeColors = useThemeColors();
   const [isLoadingAI, setIsLoadingAI] = useState(true);
   const [aiPlan, setAIPlan] = useState<FinancialPlan | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -160,9 +162,9 @@ export default function ConfirmationScreen() {
       {/* Top Back Button */}
       <BView row gap={SpacingValue.MD} paddingX={SpacingValue.LG} paddingY={SpacingValue.SM}>
         <TouchableOpacity onPress={handleBack}>
-          <BIcon name="arrow-back" size={ComponentSize.MD} color={Colors.light.text} />
+          <BIcon name="arrow-back" size={ComponentSize.MD} color={themeColors.text} />
         </TouchableOpacity>
-        <BIcon name="sparkles" color={Colors.light.warning} size={ComponentSize.MD} />
+        <BIcon name="sparkles" color={themeColors.warning} size={ComponentSize.MD} />
         <BText variant={TextVariant.SUBHEADING}>{plan.headerTitle}</BText>
       </BView>
 
@@ -184,7 +186,7 @@ export default function ConfirmationScreen() {
                 paddingY={SpacingValue.SM}
                 style={{
                   borderTopWidth: 1,
-                  borderTopColor: Colors.light.border,
+                  borderTopColor: themeColors.border,
                 }}
               >
                 <BText variant={TextVariant.LABEL}>{OnboardingStrings.aiPlan.totalMonthlyIncome}</BText>
@@ -240,7 +242,13 @@ export default function ConfirmationScreen() {
       </ScrollView>
 
       {/* Footer - Two Action Buttons */}
-      <BView row gap={SpacingValue.MD} paddingX={SpacingValue.XL} paddingY={SpacingValue.BASE} style={styles.footer}>
+      <BView
+        row
+        gap={SpacingValue.MD}
+        paddingX={SpacingValue.XL}
+        paddingY={SpacingValue.BASE}
+        style={[styles.footer, { borderTopColor: themeColors.border }]}
+      >
         <BButton
           variant={ButtonVariant.SECONDARY}
           onPress={() => handleConfirm(false)}
@@ -248,7 +256,7 @@ export default function ConfirmationScreen() {
           rounded={SpacingValue.LG}
           style={{ flex: 1 }}
         >
-          <BText variant={TextVariant.LABEL} color={Colors.light.text}>
+          <BText variant={TextVariant.LABEL} color={themeColors.text}>
             {OnboardingStrings.aiPlan.keepOriginal}
           </BText>
         </BButton>
@@ -259,7 +267,7 @@ export default function ConfirmationScreen() {
           rounded={SpacingValue.LG}
           style={{ flex: 1 }}
         >
-          <BText variant={TextVariant.LABEL} color={Colors.light.white}>
+          <BText variant={TextVariant.LABEL} color={themeColors.white}>
             {OnboardingStrings.aiPlan.acceptPlan}
           </BText>
         </BButton>
@@ -275,6 +283,5 @@ const styles = StyleSheet.create({
   },
   footer: {
     borderTopWidth: 1,
-    borderTopColor: Colors.light.border,
   },
 });

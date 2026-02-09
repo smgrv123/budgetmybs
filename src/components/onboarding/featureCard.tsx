@@ -1,7 +1,8 @@
 import type { FC } from 'react';
 import { StyleSheet } from 'react-native';
 
-import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
+import { BorderRadius, Shadows, Spacing } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import { BCard, BIcon, BText, BView } from '../ui';
 
 export type FeatureCardProps = {
@@ -12,18 +13,16 @@ export type FeatureCardProps = {
   iconBackgroundColor?: string;
 };
 
-const BFeatureCard: FC<FeatureCardProps> = ({
-  icon,
-  title,
-  description,
-  iconColor = Colors.light.primary,
-  iconBackgroundColor = Colors.light.muted,
-}) => {
+const BFeatureCard: FC<FeatureCardProps> = ({ icon, title, description, iconColor, iconBackgroundColor }) => {
+  const themeColors = useThemeColors();
+  const resolvedIconColor = iconColor ?? themeColors.primary;
+  const resolvedIconBgColor = iconBackgroundColor ?? themeColors.muted;
+
   return (
     <BCard style={{ marginBottom: Spacing.md, ...Shadows.sm }}>
       <BView row align="center" gap="md">
-        <BView center bg={iconBackgroundColor} style={styles.iconContainer}>
-          <BIcon name={icon as any} size="base" color={iconColor} />
+        <BView center bg={resolvedIconBgColor} style={styles.iconContainer}>
+          <BIcon name={icon as any} size="base" color={resolvedIconColor} />
         </BView>
         <BView flex gap="xs">
           <BText variant="label">{title}</BText>

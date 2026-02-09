@@ -1,7 +1,6 @@
 import type { ComponentSizeType, InputVariantType, SpacingValueType, TextVariantType } from '@/constants/theme';
 import {
   BorderRadius,
-  Colors,
   ComponentHeight,
   ComponentSize,
   FontSize,
@@ -10,6 +9,7 @@ import {
   Spacing,
   TextVariant,
 } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import type { FC, ReactNode } from 'react';
 import { useState } from 'react';
 import type { StyleProp, TextInputProps, ViewStyle } from 'react-native';
@@ -63,6 +63,7 @@ const BInput: FC<BInputProps> = ({
   onBlur,
   ...props
 }) => {
+  const themeColors = useThemeColors();
   const [isFocused, setIsFocused] = useState(false);
 
   const handleFocus: TextInputProps['onFocus'] = (e) => {
@@ -76,16 +77,16 @@ const BInput: FC<BInputProps> = ({
   };
 
   const getBackgroundColor = (): string => {
-    if (!editable) return Colors.light.backgroundSecondary;
-    if (variant === InputVariant.FILLED) return Colors.light.backgroundSecondary;
-    return Colors.light.background;
+    if (!editable) return themeColors.backgroundSecondary;
+    if (variant === InputVariant.FILLED) return themeColors.backgroundSecondary;
+    return themeColors.background;
   };
 
   const getBorderColor = (): string => {
-    if (error) return Colors.light.error;
-    if (isFocused) return Colors.light.borderFocused;
+    if (error) return themeColors.error;
+    if (isFocused) return themeColors.borderFocused;
     if (variant === InputVariant.FILLED) return 'transparent';
-    return Colors.light.border;
+    return themeColors.border;
   };
 
   const currentSize = sizeStyles[size];
@@ -114,16 +115,16 @@ const BInput: FC<BInputProps> = ({
         {leftIcon && <BView style={styles.leftIcon}>{leftIcon}</BView>}
         <TextInput
           editable={editable}
-          placeholderTextColor={Colors.light.textMuted}
+          placeholderTextColor={themeColors.textMuted}
           onFocus={handleFocus}
           onBlur={handleBlur}
           {...props}
-          style={[styles.input, { fontSize: currentSize.fontSize }, style]}
+          style={[styles.input, { fontSize: currentSize.fontSize, color: themeColors.text }, style]}
         />
         {rightIcon && <BView style={styles.rightIcon}>{rightIcon}</BView>}
       </BView>
       {(error || helperText) && (
-        <BText variant="caption" color={error ? Colors.light.error : Colors.light.textMuted} style={styles.helperText}>
+        <BText variant="caption" color={error ? themeColors.error : themeColors.textMuted} style={styles.helperText}>
           {error || helperText}
         </BText>
       )}
@@ -144,7 +145,6 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    color: Colors.light.text,
     padding: 0,
   },
   leftIcon: {

@@ -1,5 +1,6 @@
 import type { ModalPositionType } from '@/constants/theme';
-import { BorderRadius, Colors, ModalPosition, Opacity, Shadows, Spacing, TextVariant } from '@/constants/theme';
+import { BorderRadius, ModalPosition, Opacity, Shadows, Spacing, TextVariant } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import type { FC } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 import { Dimensions, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
@@ -49,6 +50,7 @@ const BModal: FC<BModalProps> = ({
   style,
   ...props
 }) => {
+  const themeColors = useThemeColors();
   const isBottom = position === ModalPosition.BOTTOM;
 
   return (
@@ -68,9 +70,16 @@ const BModal: FC<BModalProps> = ({
       {...props}
     >
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.keyboardView}>
-        <BView style={[styles.container, isBottom && styles.containerBottom, containerStyle]}>
+        <BView
+          style={[
+            styles.container,
+            isBottom && styles.containerBottom,
+            { backgroundColor: themeColors.background },
+            containerStyle,
+          ]}
+        >
           {(title || showCloseButton) && (
-            <BView row style={[styles.header, headerStyle]}>
+            <BView row style={[styles.header, { borderBottomColor: themeColors.border }, headerStyle]}>
               {title ? (
                 <BText variant={TextVariant.SUBHEADING} style={styles.title}>
                   {title}
@@ -80,7 +89,7 @@ const BModal: FC<BModalProps> = ({
               )}
               {showCloseButton && (
                 <BButton variant="ghost" onPress={onClose}>
-                  <BIcon name="close" size="base" color={Colors.light.textSecondary} />
+                  <BIcon name="close" size="base" color={themeColors.textSecondary} />
                 </BButton>
               )}
             </BView>
@@ -106,7 +115,6 @@ const styles = StyleSheet.create({
     maxWidth: 400,
   },
   container: {
-    backgroundColor: Colors.light.background,
     borderRadius: BorderRadius.lg,
     maxHeight: SCREEN_HEIGHT * 0.85,
     width: '90%',
@@ -127,7 +135,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.xs,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.light.border,
   },
   title: {
     flex: 1,

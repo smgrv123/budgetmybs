@@ -1,7 +1,8 @@
 import type { FC } from 'react';
 import { StyleSheet } from 'react-native';
 
-import { ButtonVariant, Colors, ComponentSize, Spacing } from '@/constants/theme';
+import { ButtonVariant, ComponentSize, Spacing } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import BButton, { type BButtonProps } from './button';
 import BIcon from './icon';
 
@@ -15,6 +16,8 @@ export interface BFABProps extends Omit<BButtonProps, 'variant' | 'fullRounded' 
  * Positioned at bottom-right of screen
  */
 const BFAB: FC<BFABProps> = ({ icon = 'add', size = 60, onPress, ...props }) => {
+  const themeColors = useThemeColors();
+
   return (
     <BButton
       variant={ButtonVariant.PRIMARY}
@@ -25,11 +28,12 @@ const BFAB: FC<BFABProps> = ({ icon = 'add', size = 60, onPress, ...props }) => 
         {
           width: size,
           height: size,
+          shadowColor: themeColors.primary,
         },
       ]}
       {...props}
     >
-      <BIcon name={icon as any} size={ComponentSize.LG} color={Colors.light.white} />
+      <BIcon name={icon as any} size={ComponentSize.LG} color={themeColors.white} />
     </BButton>
   );
 };
@@ -42,7 +46,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 8, // Android shadow
-    shadowColor: Colors.light.primary, // iOS shadow
     shadowOffset: {
       width: 0,
       height: 4,

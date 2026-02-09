@@ -9,6 +9,7 @@ export { default as BInput } from './input';
 export { default as BLink } from './link';
 export { default as BModal } from './modal';
 export { default as BSafeAreaView } from './safe-area-view';
+export { default as BSwitch } from './switch';
 export { default as BText } from './text';
 export { default as BView } from './view';
 
@@ -22,5 +23,6 @@ export type { BInputProps } from './input';
 export type { BLinkProps } from './link';
 export type { BModalProps } from './modal';
 export type { BSafeAreaViewProps } from './safe-area-view';
+export type { BSwitchProps } from './switch';
 export type { BTextProps } from './text';
 export type { BViewProps } from './view';

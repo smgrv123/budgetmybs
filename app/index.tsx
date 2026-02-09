@@ -2,7 +2,8 @@ import { Redirect } from 'expo-router';
 import { useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 
-import { Colors, Spacing, TextVariant } from '@/constants/theme';
+import { Spacing, TextVariant } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import { BIcon, BSafeAreaView, BText, BView } from '@/src/components';
 import { useCategories, useProfile } from '@/src/hooks';
 
@@ -14,6 +15,7 @@ import { useCategories, useProfile } from '@/src/hooks';
 export default function RootScreen() {
   const { profile, isProfileLoading } = useProfile();
   const { seedCategoryAsync } = useCategories();
+  const themeColors = useThemeColors();
 
   useEffect(() => {
     seedCategoryAsync();
@@ -23,9 +25,9 @@ export default function RootScreen() {
   // Show loading state while checking profile
   if (isProfileLoading) {
     return (
-      <BSafeAreaView style={styles.container}>
+      <BSafeAreaView style={[styles.container, { backgroundColor: themeColors.background }]}>
         <BView flex center>
-          <BIcon name="sync" color={Colors.light.primary} size="lg" />
+          <BIcon name="sync" color={themeColors.primary} size="lg" />
           <BText variant={TextVariant.BODY} muted style={{ marginTop: Spacing.md }}>
             Loading...
           </BText>
@@ -46,6 +48,5 @@ export default function RootScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
   },
 });

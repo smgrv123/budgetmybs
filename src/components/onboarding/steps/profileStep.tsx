@@ -1,7 +1,8 @@
 import { FlatList, StyleSheet } from 'react-native';
 
 import { OnboardingStrings } from '@/constants/onboarding.strings';
-import { Colors, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import { BButton, BIcon, BInput, BText, BView } from '@/src/components/ui';
 import type { ProfileData } from '@/src/types';
 import { parseFormattedNumber } from '@/src/utils/format';
@@ -56,14 +57,13 @@ function ProfileStep({
     }
   };
 
-  // Create profile fields with dynamic values
-  // Create profile fields using extracted logic
   const profileFields = createProfileFields({
     profile,
     errors,
     handleChange,
   });
 
+  const themeColors = useThemeColors();
   const isButtonDisabled = !profile.name || !profile.salary;
 
   return (
@@ -82,7 +82,7 @@ function ProfileStep({
           <BView gap="xs">
             {item.icon && (
               <BView row gap="xs" align="center">
-                <BIcon name={item.icon as any} size="sm" color={Colors.light.textMuted} />
+                <BIcon name={item.icon as any} size="sm" color={themeColors.textMuted} />
                 <BText variant="label">{item.label}</BText>
               </BView>
             )}
@@ -110,7 +110,7 @@ function ProfileStep({
           disabled={isButtonDisabled}
           rounded="lg"
           paddingY="sm"
-          style={isButtonDisabled ? { backgroundColor: Colors.light.muted } : undefined}
+          style={isButtonDisabled ? { backgroundColor: themeColors.muted } : undefined}
         >
           <BText color="#FFFFFF" variant="label">
             {submitLabel}

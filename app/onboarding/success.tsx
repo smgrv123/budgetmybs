@@ -4,13 +4,11 @@ import { useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 
 import { OnboardingStrings } from '@/constants/onboarding.strings';
-import { Colors, ComponentSize, Spacing, SpacingValue, TextVariant } from '@/constants/theme';
+import { ComponentSize, Spacing, SpacingValue, TextVariant } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import { BCard, BIcon, BSafeAreaView, BText, BView } from '@/src/components';
 
 const { success } = OnboardingStrings;
-
-// Success screen gradient colors
-const SUCCESS_GRADIENT: [string, string] = [Colors.light.successGradientStart, Colors.light.successGradientEnd];
 
 // Auto-redirect delay in milliseconds
 const REDIRECT_DELAY_MS = 2000;
@@ -22,6 +20,9 @@ type CompletionItem = {
 };
 
 export default function SuccessScreen() {
+  const themeColors = useThemeColors();
+  const SUCCESS_GRADIENT: [string, string] = [themeColors.successGradientStart, themeColors.successGradientEnd];
+
   // Auto-redirect to dashboard after 2 seconds
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -34,8 +35,8 @@ export default function SuccessScreen() {
   const RenderCompletionItem = ({ item }: { item: CompletionItem }) => (
     <BCard variant="default" gap="md">
       <BView row align="center" gap="md" padding="md">
-        <BView center rounded="full" bg={Colors.light.successCheckBg} style={{ width: Spacing.xl, height: Spacing.xl }}>
-          <BIcon name={item.icon as any} color={Colors.light.successCheck} size={ComponentSize.SM} />
+        <BView center rounded="full" bg={themeColors.successCheckBg} style={{ width: Spacing.xl, height: Spacing.xl }}>
+          <BIcon name={item.icon as any} color={themeColors.successCheck} size={ComponentSize.SM} />
         </BView>
         <BText variant={TextVariant.LABEL}>{item.label}</BText>
       </BView>
@@ -52,11 +53,11 @@ export default function SuccessScreen() {
             <BView
               center
               rounded="full"
-              bg={Colors.light.white}
-              border={Colors.light.successCheck}
+              bg={themeColors.white}
+              border={themeColors.successCheck}
               style={{ width: Spacing['5xl'], height: Spacing['5xl'], borderWidth: 3 }}
             >
-              <BIcon name="checkmark" color={Colors.light.successCheck} size={ComponentSize.LG} />
+              <BIcon name="checkmark" color={themeColors.successCheck} size={ComponentSize.LG} />
             </BView>
           </BView>
 

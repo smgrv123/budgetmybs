@@ -2,7 +2,8 @@ import { Feather, FontAwesome, Ionicons, MaterialIcons } from '@expo/vector-icon
 import type { IconProps } from '@expo/vector-icons/build/createIconSet';
 import type { FC } from 'react';
 
-import { Colors, IconFamily, IconSize } from '@/constants/theme';
+import { IconFamily, IconSize } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/use-theme-color';
 
 type IconSizeKey = keyof typeof IconSize;
 
@@ -21,16 +22,12 @@ export interface BIconProps extends Omit<IconProps<AllGlyphs>, 'size'> {
   size?: IconSizeKey | number;
 }
 
-const BIcon: FC<BIconProps> = ({
-  family = IconFamily.IONICONS,
-  name,
-  size = 'base',
-  color = Colors.light.icon,
-  ...props
-}) => {
+const BIcon: FC<BIconProps> = ({ family = IconFamily.IONICONS, name, size = 'base', color, ...props }) => {
+  const themeColors = useThemeColors();
+  const iconColor = color ?? themeColors.icon;
   const iconSize = typeof size === 'number' ? size : IconSize[size];
 
-  const commonProps = { name, size: iconSize, color, ...props };
+  const commonProps = { name, size: iconSize, color: iconColor, ...props };
 
   switch (family) {
     case IconFamily.MATERIAL:

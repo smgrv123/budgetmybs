@@ -2,7 +2,8 @@ import type { FC, ReactNode } from 'react';
 import { useState } from 'react';
 import { Animated } from 'react-native';
 
-import { ButtonVariant, Colors, SpacingValue, TextVariant } from '@/constants/theme';
+import { ButtonVariant, SpacingValue, TextVariant } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import BButton from './button';
 import BIcon from './icon';
 import BText from './text';
@@ -21,13 +22,10 @@ export type BAccordionProps = {
   children: ReactNode;
 };
 
-const BAccordion: FC<BAccordionProps> = ({
-  icon,
-  iconColor = Colors.light.primary,
-  title,
-  defaultExpanded = false,
-  children,
-}) => {
+const BAccordion: FC<BAccordionProps> = ({ icon, iconColor, title, defaultExpanded = false, children }) => {
+  const themeColors = useThemeColors();
+  const resolvedIconColor = iconColor ?? themeColors.primary;
+
   const [expanded, setExpanded] = useState(defaultExpanded);
   const [chevronRotation] = useState(new Animated.Value(defaultExpanded ? 1 : 0));
 
@@ -61,11 +59,11 @@ const BAccordion: FC<BAccordionProps> = ({
           fullWidth
         >
           <BView row gap={SpacingValue.MD} align="center">
-            <BIcon name={icon as any} color={iconColor} size={SpacingValue.MD} />
+            <BIcon name={icon as any} color={resolvedIconColor} size={SpacingValue.MD} />
             <BText variant={TextVariant.SUBHEADING}>{title}</BText>
           </BView>
           <Animated.View style={{ transform: [{ rotate: rotateInterpolation }] }}>
-            <BIcon name="chevron-down" size={SpacingValue.SM} color={Colors.light.textMuted} />
+            <BIcon name="chevron-down" size={SpacingValue.SM} color={themeColors.textMuted} />
           </Animated.View>
         </BView>
       </BButton>

@@ -1,4 +1,4 @@
-import { Colors } from '@/constants/theme';
+import type { ThemeColors } from '@/hooks/use-theme-color';
 import type { QuickStatItem, StatCardItem } from '@/src/types/dashboard';
 
 /**
@@ -23,18 +23,18 @@ export const StatCardType = {
 /**
  * Create stat cards for spent and saved amounts
  */
-export const createStatCards = (spentAmount: number, savedAmount: number): StatCardItem[] => [
+export const createStatCards = (spentAmount: number, savedAmount: number, themeColors: ThemeColors): StatCardItem[] => [
   {
     id: StatCardType.SPENT,
     label: 'Spent',
     value: `₹${spentAmount.toLocaleString('en-IN')}`,
-    color: Colors.light.error,
+    color: themeColors.error,
   },
   {
     id: StatCardType.SAVED,
     label: 'Saved',
     value: `₹${savedAmount.toLocaleString('en-IN')}`,
-    color: Colors.light.success,
+    color: themeColors.success,
   },
 ];
 
@@ -47,14 +47,15 @@ export const createQuickStats = (
   totalEMI: number,
   debtsCount: number,
   completedGoalsCount: number,
-  incompleteGoalsCount: number
+  incompleteGoalsCount: number,
+  themeColors: ThemeColors
 ): QuickStatItem[] => [
   {
     id: QuickStatType.FIXED,
     icon: 'receipt-outline',
     value: `₹${totalFixedExpenses.toLocaleString('en-IN')}`,
     label: 'Fixed',
-    color: Colors.light.primary,
+    color: themeColors.primary,
     count: fixedExpensesCount,
   },
   {
@@ -62,7 +63,7 @@ export const createQuickStats = (
     icon: 'card-outline',
     value: `₹${totalEMI.toLocaleString('en-IN')}`,
     label: 'EMIs',
-    color: Colors.light.warning,
+    color: themeColors.warning,
     count: debtsCount,
   },
   {
@@ -70,7 +71,7 @@ export const createQuickStats = (
     icon: 'checkmark-circle-outline',
     value: String(completedGoalsCount),
     label: 'Completed',
-    color: Colors.light.success,
+    color: themeColors.success,
     count: completedGoalsCount,
   },
   {
@@ -78,7 +79,7 @@ export const createQuickStats = (
     icon: 'flag-outline',
     value: String(incompleteGoalsCount),
     label: 'Goals',
-    color: Colors.light.textMuted,
+    color: themeColors.textMuted,
     count: incompleteGoalsCount,
   },
 ];

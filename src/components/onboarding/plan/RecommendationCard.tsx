@@ -1,34 +1,36 @@
 import type { FC } from 'react';
 
 import { RecommendationPriority } from '@/constants/financialPlan';
-import { Colors, SpacingValue, TextVariant } from '@/constants/theme';
+import { SpacingValue, TextVariant } from '@/constants/theme';
+import { useThemeColors, type ThemeColors } from '@/hooks/use-theme-color';
 import { BText, BView } from '@/src/components/ui';
 import type { AIRecommendation } from '@/src/types/financialPlan';
 
 type RecommendationCardProps = Pick<AIRecommendation, 'title' | 'description' | 'priority'>;
 
-const getPriorityColors = (priority: AIRecommendation['priority']) => {
+const getPriorityColors = (priority: AIRecommendation['priority'], themeColors: ThemeColors) => {
   switch (priority) {
     case RecommendationPriority.HIGH:
       return {
-        text: Colors.light.priorityHigh,
-        bg: Colors.light.priorityHighBg,
+        text: themeColors.priorityHigh,
+        bg: themeColors.priorityHighBg,
       };
     case RecommendationPriority.MEDIUM:
       return {
-        text: Colors.light.priorityMedium,
-        bg: Colors.light.priorityMediumBg,
+        text: themeColors.priorityMedium,
+        bg: themeColors.priorityMediumBg,
       };
     case RecommendationPriority.LOW:
       return {
-        text: Colors.light.priorityLow,
-        bg: Colors.light.priorityLowBg,
+        text: themeColors.priorityLow,
+        bg: themeColors.priorityLowBg,
       };
   }
 };
 
 const RecommendationCard: FC<RecommendationCardProps> = ({ title, description, priority }) => {
-  const colors = getPriorityColors(priority);
+  const themeColors = useThemeColors();
+  const colors = getPriorityColors(priority, themeColors);
 
   return (
     <BView gap={SpacingValue.SM}>
@@ -45,7 +47,7 @@ const RecommendationCard: FC<RecommendationCardProps> = ({ title, description, p
       </BView>
 
       {/* Description */}
-      <BText variant={TextVariant.CAPTION} color={Colors.light.textSecondary}>
+      <BText variant={TextVariant.CAPTION} color={themeColors.textSecondary}>
         {description}
       </BText>
     </BView>

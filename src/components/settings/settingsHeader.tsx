@@ -1,4 +1,4 @@
-import { Colors } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import { BButton, BIcon, BText, BView } from '@/src/components/ui';
 import { useRouter } from 'expo-router';
 
@@ -9,6 +9,7 @@ type SettingsHeaderProps = {
 
 export default function SettingsHeader({ title, onBack }: SettingsHeaderProps) {
   const router = useRouter();
+  const themeColors = useThemeColors();
 
   const handleBack = () => {
     if (onBack) {
@@ -21,7 +22,7 @@ export default function SettingsHeader({ title, onBack }: SettingsHeaderProps) {
   return (
     <BView row align="center" gap="sm" paddingY="md">
       <BButton variant="ghost" onPress={handleBack} padding="xs">
-        <BIcon name="chevron-back" size="md" color={Colors.light.text} />
+        <BIcon name="chevron-back" size="md" color={themeColors.text} />
       </BButton>
       <BText variant="heading">{title}</BText>
     </BView>

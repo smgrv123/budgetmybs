@@ -4,7 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import { DatabaseProvider } from '@/db';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useTheme } from '@/hooks/use-color-scheme';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 export const unstable_settings = {
@@ -14,12 +14,12 @@ export const unstable_settings = {
 const queryClient = new QueryClient();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  const { colorScheme } = useTheme();
 
   return (
     <DatabaseProvider>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider value={colorScheme === 'light' ? DarkTheme : DefaultTheme}>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <Stack>
             <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="onboarding" options={{ headerShown: false }} />

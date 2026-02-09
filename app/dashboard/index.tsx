@@ -3,7 +3,8 @@ import { useState } from 'react';
 import { FlatList, ScrollView, StyleSheet, View } from 'react-native';
 
 import { createQuickStats, createStatCards, QuickStatType } from '@/constants/dashboardData';
-import { BorderRadius, ButtonVariant, Colors, Spacing, SpacingValue, TextVariant } from '@/constants/theme';
+import { BorderRadius, ButtonVariant, Spacing, SpacingValue, TextVariant } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import {
   AddTransactionModal,
   BButton,
@@ -22,20 +23,21 @@ import { calculateTotalEMI, calculateTotalFixedExpenses } from '@/src/utils/budg
 import { mapDebtToSheet, mapFixedExpenseToSheet, mapSavingsGoalToSheet } from '@/src/utils/dashboard';
 import { formatDate } from '@/src/utils/date';
 
-// Dashboard gradient colors
-const HEADER_GRADIENT: [string, string, string] = [
-  Colors.light.confirmationGradientStart,
-  Colors.light.confirmationGradientMiddle,
-  Colors.light.confirmationGradientEnd,
-];
-
 export default function DashboardScreen() {
+  const themeColors = useThemeColors();
   const { profile, isProfileLoading, isProfileError, refetchProfile } = useProfile();
   const { fixedExpenses, isFixedExpensesLoading } = useFixedExpenses();
   const { debts, isDebtsLoading } = useDebts();
   const { savingsGoals, completedGoals, incompleteGoals, isSavingsGoalsLoading, markGoalAsCompleted } =
     useSavingsGoals();
   const { expenses, totalSpent, totalSaved: totalOneOffSavings, oneOffSavings } = useExpenses();
+
+  // Gradient colors (theme-aware)
+  const HEADER_GRADIENT: [string, string, string] = [
+    themeColors.confirmationGradientStart,
+    themeColors.confirmationGradientMiddle,
+    themeColors.confirmationGradientEnd,
+  ];
 
   // Modal states
   const [isAddTransactionModalVisible, setIsAddTransactionModalVisible] = useState(false);
@@ -61,14 +63,15 @@ export default function DashboardScreen() {
   const budgetUsedPercent = monthlyIncome > 0 ? Math.round((totalCommitments / monthlyIncome) * 100) : 0;
 
   // Create stat cards and quick stats using helper functions
-  const statCards = createStatCards(spentThisMonth, savedThisMonth);
+  const statCards = createStatCards(spentThisMonth, savedThisMonth, themeColors);
   const quickStats = createQuickStats(
     totalFixedExpenses,
     fixedExpenses?.length ?? 0,
     totalEMI,
     debts?.length ?? 0,
     completedGoals?.length ?? 0,
-    incompleteGoals?.length ?? 0
+    incompleteGoals?.length ?? 0,
+    themeColors
   );
 
   // Helper function to get sheet title based on quick stat type
@@ -97,7 +100,7 @@ export default function DashboardScreen() {
     return (
       <BSafeAreaView>
         <BView flex center>
-          <BIcon name="sync" color={Colors.light.primary} size="lg" />
+          <BIcon name="sync" color={themeColors.primary} size="lg" />
           <BText variant={TextVariant.BODY} muted style={{ marginTop: Spacing.md }}>
             Loading your dashboard...
           </BText>
@@ -110,7 +113,7 @@ export default function DashboardScreen() {
     return (
       <BSafeAreaView>
         <BView flex center padding={SpacingValue.XL}>
-          <BIcon name="alert-circle-outline" color={Colors.light.error} size="lg" />
+          <BIcon name="alert-circle-outline" color={themeColors.error} size="lg" />
           <BText variant={TextVariant.SUBHEADING} center style={{ marginTop: Spacing.md }}>
             Something went wrong
           </BText>
@@ -119,7 +122,7 @@ export default function DashboardScreen() {
           </BText>
           <BView marginY="xl">
             <BButton onPress={() => refetchProfile()} paddingX="xl" paddingY="md" rounded="lg">
-              <BText variant={TextVariant.LABEL} color={Colors.light.white}>
+              <BText variant={TextVariant.LABEL} color={themeColors.white}>
                 Retry
               </BText>
             </BButton>
@@ -135,15 +138,15 @@ export default function DashboardScreen() {
         {/* Gradient Header */}
         <LinearGradient colors={HEADER_GRADIENT} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.header}>
           <BView paddingY={SpacingValue.MD}>
-            <BText variant={TextVariant.BODY} color={Colors.light.white} muted style={{ marginBottom: Spacing.xs }}>
+            <BText variant={TextVariant.BODY} color={themeColors.white} muted style={{ marginBottom: Spacing.xs }}>
               {formatDate()}
             </BText>
             <BView row justify="space-between" align="center">
-              <BText variant={TextVariant.HEADING} color={Colors.light.white}>
+              <BText variant={TextVariant.HEADING} color={themeColors.white}>
                 Hey, {profile?.name}!
               </BText>
               <BLink href="/dashboard/settings">
-                <BIcon name="settings-outline" color={Colors.light.white} size="md" />
+                <BIcon name="settings-outline" color={themeColors.white} size="md" />
               </BLink>
             </BView>
           </BView>
@@ -151,7 +154,11 @@ export default function DashboardScreen() {
 
         {/* Budget Card - Overlaps Header */}
         <BView paddingX={SpacingValue.LG} style={styles.budgetCardWrapper}>
-          <BView padding={SpacingValue.LG} style={styles.budgetCard}>
+          <BView
+            padding={SpacingValue.LG}
+            bg={themeColors.background}
+            style={[styles.budgetCard, { shadowColor: themeColors.text }]}
+          >
             <BText variant={TextVariant.CAPTION} muted style={{ marginBottom: Spacing.xs }}>
               Monthly Budget Remaining
             </BText>
@@ -159,8 +166,13 @@ export default function DashboardScreen() {
               ₹{budgetRemaining.toLocaleString('en-IN')}
             </BText>
             {/* Progress Bar */}
-            <View style={styles.progressBarBg}>
-              <View style={[styles.progressBarFill, { width: `${Math.min(budgetUsedPercent, 100)}%` }]} />
+            <View style={[styles.progressBarBg, { backgroundColor: themeColors.muted }]}>
+              <View
+                style={[
+                  styles.progressBarFill,
+                  { width: `${Math.min(budgetUsedPercent, 100)}%`, backgroundColor: themeColors.primary },
+                ]}
+              />
             </View>
             <BText variant={TextVariant.CAPTION} muted style={{ marginTop: Spacing.xs }}>
               {budgetUsedPercent}% used
@@ -196,7 +208,11 @@ export default function DashboardScreen() {
                 variant={ButtonVariant.GHOST}
                 onPress={() => handleQuickStatPress(item.id)}
                 disabled={item.count === 0}
-                style={[item.count === 0 && styles.quickStatCardDisabled, styles.statsCards]}
+                style={[
+                  item.count === 0 && styles.quickStatCardDisabled,
+                  styles.statsCards,
+                  { shadowColor: themeColors.text },
+                ]}
               >
                 <BCard variant="default" style={{ padding: Spacing.md, width: '100%' }}>
                   <BView center flex>
@@ -218,7 +234,7 @@ export default function DashboardScreen() {
         <BView paddingX={SpacingValue.LG} marginY={SpacingValue.LG}>
           <BView row style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.md }}>
             <BText variant={TextVariant.SUBHEADING}>Recent Transactions</BText>
-            <BText variant={TextVariant.CAPTION} style={{ color: Colors.light.primary }}>
+            <BText variant={TextVariant.CAPTION} style={{ color: themeColors.primary }}>
               See All
             </BText>
           </BView>
@@ -233,7 +249,7 @@ export default function DashboardScreen() {
                       {formatDate(item.date)} | {item?.category?.name ?? item.savingsType}
                     </BText>
                   </BView>
-                  <BText variant={TextVariant.LABEL} style={{ color: Colors.light.error }}>
+                  <BText variant={TextVariant.LABEL} style={{ color: themeColors.error }}>
                     -₹{item.amount.toLocaleString('en-IN')}
                   </BText>
                 </BView>
@@ -244,7 +260,7 @@ export default function DashboardScreen() {
             ItemSeparatorComponent={() => <BView style={{ height: Spacing.sm }} />}
             ListEmptyComponent={
               <BView center paddingY={SpacingValue.XL}>
-                <BIcon name="receipt-outline" size="lg" color={Colors.light.textMuted} />
+                <BIcon name="receipt-outline" size="lg" color={themeColors.textMuted} />
                 <BText variant={TextVariant.BODY} muted style={{ marginTop: Spacing.md }}>
                   No transactions yet
                 </BText>
@@ -294,9 +310,7 @@ const styles = StyleSheet.create({
     marginTop: -Spacing['2xl'],
   },
   budgetCard: {
-    backgroundColor: Colors.light.white,
     borderRadius: BorderRadius.xl,
-    shadowColor: Colors.light.text,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
@@ -304,18 +318,15 @@ const styles = StyleSheet.create({
   },
   progressBarBg: {
     height: Spacing.xs,
-    backgroundColor: Colors.light.muted,
     borderRadius: BorderRadius.xs,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: Colors.light.primary,
     borderRadius: BorderRadius.xs,
   },
   statsCards: {
     width: '48%',
-    shadowColor: Colors.light.text,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,

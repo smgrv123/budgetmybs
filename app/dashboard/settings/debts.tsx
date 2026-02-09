@@ -6,7 +6,8 @@ import {
   DEBT_STEP_CONFIG,
   parseDebtFormData,
 } from '@/constants/setup-form.config';
-import { Colors, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import BListStep from '@/src/components/onboarding/listStep';
 import { SettingsHeader } from '@/src/components/settings';
 import { BSafeAreaView, BText, BView } from '@/src/components/ui';
@@ -19,6 +20,7 @@ import { useEffect, useState } from 'react';
 
 export default function DebtsScreen() {
   const router = useRouter();
+  const themeColors = useThemeColors();
   const { debts: dbDebts, isDebtsLoading, createDebtAsync, removeDebtAsync } = useDebts();
 
   const [debts, setDebts] = useState<DebtData[]>([]);
@@ -133,7 +135,7 @@ export default function DebtsScreen() {
                 <BText variant="label" muted>
                   EMI:
                 </BText>
-                <BText variant="subheading" color={Colors.light.primary}>
+                <BText variant="subheading" color={themeColors.primary}>
                   {common.currency} {emi.toLocaleString('en-IN')}
                 </BText>
               </BView>

@@ -1,4 +1,4 @@
-import { Colors } from '@/constants/theme';
+import type { ThemeColors } from '@/hooks/use-theme-color';
 import {
   BudgetValueKey,
   FinancialDataKey,
@@ -6,29 +6,29 @@ import {
   type FinancialDataItem,
 } from '@/src/types/settings';
 
-export const FINANCIAL_DATA_ITEMS: FinancialDataItem[] = [
+export const createFinancialDataItems = (themeColors: ThemeColors): FinancialDataItem[] => [
   {
     key: FinancialDataKey.FIXED_EXPENSES,
     label: 'Fixed Expenses',
     icon: 'document-text-outline',
-    iconBgColor: Colors.light.recommendationBg,
-    iconColor: Colors.light.primary,
+    iconBgColor: themeColors.recommendationBg,
+    iconColor: themeColors.primary,
     route: '/dashboard/settings/fixed-expenses',
   },
   {
     key: FinancialDataKey.DEBTS,
     label: 'Debts & Loans',
     icon: 'card-outline',
-    iconBgColor: Colors.light.warningBackground,
-    iconColor: Colors.light.warning,
+    iconBgColor: themeColors.warningBackground,
+    iconColor: themeColors.warning,
     route: '/dashboard/settings/debts',
   },
   {
     key: FinancialDataKey.SAVINGS,
     label: 'Savings Goals',
     icon: 'wallet-outline',
-    iconBgColor: Colors.light.successBackground,
-    iconColor: Colors.light.success,
+    iconBgColor: themeColors.successBackground,
+    iconColor: themeColors.success,
     route: '/dashboard/settings/savings',
   },
 ];

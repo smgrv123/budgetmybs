@@ -1,5 +1,6 @@
 import type { TextVariantType } from '@/constants/theme';
-import { Colors, FontSize, FontWeight, LineHeight, TextVariant } from '@/constants/theme';
+import { FontSize, FontWeight, LineHeight, TextVariant } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import type { FC } from 'react';
 import type { TextProps as RNTextProps, TextStyle } from 'react-native';
 import { Text as RNText, StyleSheet } from 'react-native';
@@ -55,8 +56,9 @@ const BText: FC<BTextProps> = ({
   children,
   ...props
 }) => {
+  const themeColors = useThemeColors();
   const currentVariant = variantStyles[variant];
-  const textColor = color ?? (muted ? Colors.light.textMuted : Colors.light.text);
+  const textColor = color ?? (muted ? themeColors.textMuted : themeColors.text);
 
   return (
     <RNText

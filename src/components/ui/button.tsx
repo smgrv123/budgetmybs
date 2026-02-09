@@ -3,7 +3,9 @@ import type { PressableProps, ViewStyle } from 'react-native';
 import { ActivityIndicator, Pressable, StyleSheet } from 'react-native';
 
 import type { BorderRadiusType, ButtonVariantType, ComponentSizeType, SpacingValueType } from '@/constants/theme';
-import { BorderRadius, ButtonVariant, Colors, ComponentSize, Opacity, Spacing } from '@/constants/theme';
+import { BorderRadius, ButtonVariant, ComponentSize, Opacity, Spacing } from '@/constants/theme';
+import type { ThemeColors } from '@/hooks/use-theme-color';
+import { useThemeColors } from '@/hooks/use-theme-color';
 
 export interface BButtonProps extends PressableProps {
   variant?: ButtonVariantType;
@@ -21,30 +23,30 @@ export interface BButtonProps extends PressableProps {
   gap?: SpacingValueType;
 }
 
-const getBackgroundColor = (variant: ButtonVariantType, pressed: boolean): string => {
+const getBackgroundColor = (variant: ButtonVariantType, pressed: boolean, themeColors: ThemeColors): string => {
   if (variant === ButtonVariant.OUTLINE || variant === ButtonVariant.GHOST) {
-    return pressed ? Colors.light.backgroundSecondary : 'transparent';
+    return pressed ? themeColors.backgroundSecondary : 'transparent';
   }
 
   const colorMap: Record<ButtonVariantType, { default: string; pressed: string }> = {
-    [ButtonVariant.PRIMARY]: { default: Colors.light.primary, pressed: Colors.light.primaryPressed },
-    [ButtonVariant.SECONDARY]: { default: Colors.light.secondary, pressed: Colors.light.secondaryPressed },
-    [ButtonVariant.DANGER]: { default: Colors.light.danger, pressed: Colors.light.dangerPressed },
-    [ButtonVariant.OUTLINE]: { default: 'transparent', pressed: Colors.light.backgroundSecondary },
-    [ButtonVariant.GHOST]: { default: 'transparent', pressed: Colors.light.backgroundSecondary },
+    [ButtonVariant.PRIMARY]: { default: themeColors.primary, pressed: themeColors.primaryPressed },
+    [ButtonVariant.SECONDARY]: { default: themeColors.secondary, pressed: themeColors.secondaryPressed },
+    [ButtonVariant.DANGER]: { default: themeColors.danger, pressed: themeColors.dangerPressed },
+    [ButtonVariant.OUTLINE]: { default: 'transparent', pressed: themeColors.backgroundSecondary },
+    [ButtonVariant.GHOST]: { default: 'transparent', pressed: themeColors.backgroundSecondary },
   };
 
   return pressed ? colorMap[variant].pressed : colorMap[variant].default;
 };
 
-const getTextColor = (variant: ButtonVariantType): string => {
-  if (variant === ButtonVariant.OUTLINE) return Colors.light.primary;
-  if (variant === ButtonVariant.GHOST) return Colors.light.text;
+const getTextColor = (variant: ButtonVariantType, themeColors: ThemeColors): string => {
+  if (variant === ButtonVariant.OUTLINE) return themeColors.primary;
+  if (variant === ButtonVariant.GHOST) return themeColors.text;
   return '#FFFFFF';
 };
 
-const getBorderColor = (variant: ButtonVariantType): string => {
-  if (variant === ButtonVariant.OUTLINE) return Colors.light.primary;
+const getBorderColor = (variant: ButtonVariantType, themeColors: ThemeColors): string => {
+  if (variant === ButtonVariant.OUTLINE) return themeColors.primary;
   return 'transparent';
 };
 
@@ -67,6 +69,7 @@ const BButton: FC<BButtonProps> = ({
   style,
   ...props
 }) => {
+  const themeColors = useThemeColors();
   const isDisabled = disabled || loading;
 
   return (
@@ -76,8 +79,8 @@ const BButton: FC<BButtonProps> = ({
       style={({ pressed }) => [
         styles.button,
         {
-          backgroundColor: getBackgroundColor(variant, pressed),
-          borderColor: getBorderColor(variant),
+          backgroundColor: getBackgroundColor(variant, pressed, themeColors),
+          borderColor: getBorderColor(variant, themeColors),
           opacity: isDisabled ? Opacity.disabled : Opacity.full,
           borderRadius: fullRounded ? BorderRadius.full : rounded ? BorderRadius[rounded] : BorderRadius.base,
           ...(padding && { padding: Spacing[padding] }),
@@ -93,7 +96,7 @@ const BButton: FC<BButtonProps> = ({
         style as ViewStyle,
       ]}
     >
-      {loading ? <ActivityIndicator color={getTextColor(variant)} size="small" /> : children}
+      {loading ? <ActivityIndicator color={getTextColor(variant, themeColors)} size="small" /> : children}
     </Pressable>
   );
 };

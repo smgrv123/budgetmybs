@@ -93,8 +93,6 @@ export type ModalPositionType = (typeof ModalPosition)[keyof typeof ModalPositio
 // COLORS
 // ============================================
 
-const tintColorDark = '#fff';
-
 export const Colors = {
   light: {
     text: '#000000',
@@ -169,31 +167,76 @@ export const Colors = {
     insightCheck: '#3B82F6',
   },
   dark: {
-    text: '#ECEDEE',
+    text: '#F3F4F6',
     textSecondary: '#9CA3AF',
     textMuted: '#6B7280',
-    background: '#151718',
-    backgroundSecondary: '#1F2937',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
-    border: '#374151',
-    borderFocused: tintColorDark,
-    error: '#EF4444',
-    errorBackground: '#7F1D1D',
-    success: '#22C55E',
-    successBackground: '#14532D',
-    warning: '#F59E0B',
-    warningBackground: '#78350F',
-    overlay: 'rgba(0, 0, 0, 0.7)',
-    // Button variants
-    primary: '#0a7ea4',
-    primaryPressed: '#0C8DB8',
-    secondary: '#4B5563',
-    secondaryPressed: '#6B7280',
-    danger: '#EF4444',
-    dangerPressed: '#F87171',
+    background: '#0F1115',
+    backgroundSecondary: '#1A1D24',
+    tint: '#7B93FF', // Slightly lighter primary for dark bg visibility
+    icon: '#9CA3AF',
+    tabIconDefault: '#6B7280',
+    tabIconSelected: '#7B93FF',
+    border: 'rgba(255, 255, 255, 0.08)',
+    borderFocused: '#7B93FF',
+    borderDashed: 'rgba(255, 255, 255, 0.15)',
+    error: '#F87171', // Lighter red for dark bg
+    errorBackground: 'rgba(239, 68, 68, 0.15)',
+    success: '#4ADE80', // Lighter green for dark bg
+    successBackground: 'rgba(34, 197, 94, 0.15)',
+    warning: '#FBBF24', // Lighter amber for dark bg
+    warningBackground: 'rgba(245, 158, 11, 0.15)',
+    overlay: 'rgba(0, 0, 0, 0.75)',
+    // Button variants - same hue as light, lighter tint for dark bg
+    primary: '#7B93FF', // Same hue as light primary (#4F6BED)
+    primaryFaded: 'rgba(123, 147, 255, 0.12)',
+    primaryPressed: '#5E78E6',
+    secondary: '#374151',
+    secondaryPressed: '#4B5563',
+    danger: '#F87171',
+    dangerPressed: '#FCA5A5',
+    // Card colors - subtle elevation
+    card: '#1A1D24',
+    cardSecondary: '#22262F',
+    // Step indicator
+    stepActive: '#7B93FF',
+    stepCompleted: '#4ADE80',
+    stepInactive: '#374151',
+    stepText: '#9CA3AF',
+    // Input
+    inputBackground: '#1A1D24',
+    // Muted - subtle backgrounds
+    muted: '#22262F',
+    accent: '#2A2F3A',
+    // Common colors
+    white: '#FFFFFF',
+    // Confirmation screen gradient - desaturated for dark mode
+    confirmationGradientStart: '#5B5FC7', // Softer indigo
+    confirmationGradientMiddle: '#8B5FBF', // Softer purple
+    confirmationGradientEnd: '#C45F93', // Softer pink
+    // AI Recommendations
+    recommendationBg: 'rgba(123, 147, 255, 0.1)',
+    // Success screen
+    successGradientStart: 'rgba(34, 197, 94, 0.2)',
+    successGradientEnd: '#0F1115',
+    successCheck: '#4ADE80',
+    successCheckBg: 'rgba(34, 197, 94, 0.15)',
+    // AI Plan - Priority badges - maintain hue, use transparency for bg
+    priorityHigh: '#F87171',
+    priorityHighBg: 'rgba(239, 68, 68, 0.15)',
+    priorityMedium: '#FBBF24',
+    priorityMediumBg: 'rgba(245, 158, 11, 0.15)',
+    priorityLow: '#60A5FA',
+    priorityLowBg: 'rgba(59, 130, 246, 0.15)',
+    // AI Plan - Health score
+    healthScoreGreen: '#4ADE80',
+    // AI Plan - Progress bar gradient
+    progressGradientStart: '#5B5FC7',
+    progressGradientEnd: '#7B93FF',
+    // AI Plan - Cards - subtle transparent backgrounds
+    impactBg: 'rgba(34, 197, 94, 0.12)',
+    summaryBg: 'rgba(123, 147, 255, 0.12)',
+    insightBg: 'rgba(59, 130, 246, 0.12)',
+    insightCheck: '#60A5FA',
   },
 };
 

@@ -1,6 +1,6 @@
-import { Colors } from '@/constants/theme';
 import { clearUserData } from '@/db';
 import { DebtPayoffPreferenceEnum } from '@/db/types';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import ProfileStep from '@/src/components/onboarding/steps/profileStep';
 import { SettingsHeader } from '@/src/components/settings';
 import { BButton, BSafeAreaView, BText, BView } from '@/src/components/ui';
@@ -12,6 +12,7 @@ import { Alert } from 'react-native';
 
 export default function EditProfileScreen() {
   const router = useRouter();
+  const themeColors = useThemeColors();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { profile: dbProfile, upsertProfileAsync } = useProfile();
 
@@ -94,7 +95,7 @@ export default function EditProfileScreen() {
         {/* Delete Account Button */}
         <BView paddingY="xl">
           <BButton variant="ghost" onPress={handleDeleteAccount}>
-            <BText variant="label" color={Colors.light.error}>
+            <BText variant="label" color={themeColors.error}>
               Delete Account
             </BText>
           </BButton>

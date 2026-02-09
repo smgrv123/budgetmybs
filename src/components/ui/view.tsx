@@ -1,5 +1,7 @@
 import type { BorderRadiusType, SpacingValueType } from '@/constants/theme';
-import { BorderRadius, Colors, Spacing } from '@/constants/theme';
+import { BorderRadius, Spacing } from '@/constants/theme';
+import type { ThemeColors } from '@/hooks/use-theme-color';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import type { FC } from 'react';
 import type { FlexStyle, ViewProps as RNViewProps } from 'react-native';
 import { View as RNView, StyleSheet } from 'react-native';
@@ -43,11 +45,12 @@ const getSpacing = (value?: SpacingValueType): number | undefined => {
   return Spacing[value];
 };
 
-const getBackgroundColor = (bg?: BViewProps['bg']): string | undefined => {
+const getBackgroundColor = (bg: BViewProps['bg'], themeColors: ThemeColors): string | undefined => {
   if (!bg) return undefined;
   if (bg === 'transparent') return 'transparent';
-  if (bg === 'background') return Colors.light.background;
-  if (bg === 'backgroundSecondary') return Colors.light.backgroundSecondary;
+
+  if (bg === 'background') return themeColors.background;
+  if (bg === 'backgroundSecondary') return themeColors.backgroundSecondary;
   return bg;
 };
 
@@ -72,6 +75,8 @@ const BView: FC<BViewProps> = ({
   fullWidth = false,
   ...props
 }) => {
+  const themeColors = useThemeColors();
+
   return (
     <RNView
       {...props}
@@ -87,11 +92,11 @@ const BView: FC<BViewProps> = ({
           ...(marginX && { marginHorizontal: getSpacing(marginX) }),
           ...(marginY && { marginVertical: getSpacing(marginY) }),
           ...(gap && { gap: getSpacing(gap) }),
-          ...(bg && { backgroundColor: getBackgroundColor(bg) }),
+          ...(bg && { backgroundColor: getBackgroundColor(bg, themeColors) }),
           ...(justify && { justifyContent: justify }),
           ...(align && { alignItems: align }),
           ...(typeof border === 'string' && { borderColor: border, borderWidth: 1 }),
-          ...(border === true && { borderColor: Colors.light.border, borderWidth: 1 }),
+          ...(border === true && { borderColor: themeColors.border, borderWidth: 1 }),
           ...(rounded && { borderRadius: BorderRadius[rounded] }),
           ...(fullWidth && { width: '100%' }),
         },

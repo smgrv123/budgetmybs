@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 
-import { BorderRadius, Colors, Spacing } from '@/constants/theme';
+import { BorderRadius, Spacing } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import { CustomTypeModalConfig } from '@/src/types';
 import { Dispatch, SetStateAction } from 'react';
 import { BButton, BInput, BText, BView } from '../../ui';
@@ -20,11 +21,13 @@ export default function BCustomTypeModal({
   handleAddCustomType,
   setShowCustomTypeModal,
 }: CustomTypeModalProps) {
+  const themeColors = useThemeColors();
+
   return (
     <BView gap="md">
       <BInput placeholder={customTypeModal.placeholder} value={customTypeName} onChangeText={setCustomTypeName} />
       <BView row gap="md">
-        <BButton onPress={handleAddCustomType} style={[styles.customButton, { backgroundColor: Colors.light.primary }]}>
+        <BButton onPress={handleAddCustomType} style={[styles.customButton, { backgroundColor: themeColors.primary }]}>
           <BText color="#FFFFFF" variant="label">
             {customTypeModal.addButton}
           </BText>
@@ -32,7 +35,7 @@ export default function BCustomTypeModal({
         <BButton
           variant="ghost"
           onPress={() => setShowCustomTypeModal(false)}
-          style={[styles.customButton, { backgroundColor: Colors.light.muted }]}
+          style={[styles.customButton, { backgroundColor: themeColors.muted }]}
         >
           <BText variant="label">{customTypeModal.cancelButton}</BText>
         </BButton>

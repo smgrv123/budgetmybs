@@ -2,7 +2,8 @@ import type { FC, ReactNode } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 
 import type { CardVariantType, SpacingValueType } from '@/constants/theme';
-import { BorderRadius, CardVariant, Colors, Shadows, Spacing, SpacingValue } from '@/constants/theme';
+import { BorderRadius, CardVariant, Shadows, Spacing, SpacingValue } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import BView from './view';
 
 // Re-export for convenience
@@ -15,36 +16,38 @@ export type BCardProps = {
   gap?: SpacingValueType;
 };
 
-const variantStyles: Record<CardVariantType, ViewStyle> = {
-  [CardVariant.DEFAULT]: {
-    backgroundColor: Colors.light.card,
-    borderRadius: BorderRadius[SpacingValue.LG],
-    padding: Spacing[SpacingValue.BASE],
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-  },
-  [CardVariant.FORM]: {
-    backgroundColor: Colors.light.card,
-    borderRadius: BorderRadius[SpacingValue.LG],
-    padding: Spacing[SpacingValue.BASE],
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-    gap: Spacing[SpacingValue.MD],
-  },
-  [CardVariant.SUMMARY]: {
-    backgroundColor: Colors.light.backgroundSecondary,
-    borderRadius: BorderRadius[SpacingValue.BASE],
-    padding: Spacing[SpacingValue.MD],
-  },
-  [CardVariant.ELEVATED]: {
-    backgroundColor: Colors.light.card,
-    borderRadius: BorderRadius[SpacingValue.LG],
-    padding: Spacing[SpacingValue.BASE],
-    ...Shadows.md,
-  },
-};
-
 const BCard: FC<BCardProps> = ({ variant = CardVariant.DEFAULT, gap, children, style }) => {
+  const themeColors = useThemeColors();
+
+  const variantStyles: Record<CardVariantType, ViewStyle> = {
+    [CardVariant.DEFAULT]: {
+      backgroundColor: themeColors.card,
+      borderRadius: BorderRadius[SpacingValue.LG],
+      padding: Spacing[SpacingValue.BASE],
+      borderWidth: 1,
+      borderColor: themeColors.border,
+    },
+    [CardVariant.FORM]: {
+      backgroundColor: themeColors.card,
+      borderRadius: BorderRadius[SpacingValue.LG],
+      padding: Spacing[SpacingValue.BASE],
+      borderWidth: 1,
+      borderColor: themeColors.border,
+      gap: Spacing[SpacingValue.MD],
+    },
+    [CardVariant.SUMMARY]: {
+      backgroundColor: themeColors.backgroundSecondary,
+      borderRadius: BorderRadius[SpacingValue.BASE],
+      padding: Spacing[SpacingValue.MD],
+    },
+    [CardVariant.ELEVATED]: {
+      backgroundColor: themeColors.card,
+      borderRadius: BorderRadius[SpacingValue.LG],
+      padding: Spacing[SpacingValue.BASE],
+      ...Shadows.md,
+    },
+  };
+
   return <BView style={[variantStyles[variant], gap && { gap: Spacing[gap] }, style]}>{children}</BView>;
 };
 

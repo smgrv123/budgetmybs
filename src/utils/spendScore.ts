@@ -1,4 +1,4 @@
-import { Colors } from '@/constants/theme';
+import type { ThemeColors } from '@/hooks/use-theme-color';
 
 /**
  * Calculate monthly spend score (0-100)
@@ -51,17 +51,18 @@ export const calculateSpendScore = (data: MonthlySpendData): number => {
 /**
  * Get spend score info including color and label based on score value
  * @param score - The spend score (0-100)
+ * @param themeColors - Theme colors object for dynamic theming
  * @returns Object containing color (hex) and label (string)
  */
-export const getSpendScoreInfo = (score: number): { color: string; label: string } => {
+export const getSpendScoreInfo = (score: number, themeColors: ThemeColors): { color: string; label: string } => {
   if (score >= 80) {
-    return { color: Colors.light.success, label: 'Excellent' };
+    return { color: themeColors.success, label: 'Excellent' };
   }
   if (score >= 60) {
-    return { color: Colors.light.warning, label: 'Good' };
+    return { color: themeColors.warning, label: 'Good' };
   }
   if (score >= 40) {
-    return { color: Colors.light.warning, label: 'Fair' };
+    return { color: themeColors.warning, label: 'Fair' };
   }
-  return { color: Colors.light.danger, label: 'Needs Improvement' };
+  return { color: themeColors.danger, label: 'Needs Improvement' };
 };

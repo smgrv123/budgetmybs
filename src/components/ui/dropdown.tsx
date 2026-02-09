@@ -5,7 +5,8 @@ import type { StyleProp, ViewStyle } from 'react-native';
 import { FlatList, Pressable, StyleSheet } from 'react-native';
 
 import type { ComponentSizeType } from '@/constants/theme';
-import { BorderRadius, Colors, ComponentHeight, ComponentSize, FontSize, Opacity, Spacing } from '@/constants/theme';
+import { BorderRadius, ComponentHeight, ComponentSize, FontSize, Opacity, Spacing } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import BButton from './button';
 import BIcon from './icon';
 import BInput from './input';
@@ -50,6 +51,7 @@ const BDropdown: FC<BDropdownProps> = ({
   searchable = false,
   leftIcon,
 }) => {
+  const themeColors = useThemeColors();
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -80,7 +82,7 @@ const BDropdown: FC<BDropdownProps> = ({
         <BText style={[styles.optionText, { fontSize: currentSize.fontSize }, isSelected && styles.optionTextSelected]}>
           {item.label}
         </BText>
-        {isSelected && <BIcon name="checkmark" size="sm" color={Colors.light.primary} />}
+        {isSelected && <BIcon name="checkmark" size="sm" color={themeColors.primary} />}
       </BButton>
     );
   };
@@ -94,7 +96,7 @@ const BDropdown: FC<BDropdownProps> = ({
           onChangeText={setSearchQuery}
           containerStyle={styles.searchInput}
           size={ComponentSize.SM}
-          leftIcon={<BIcon name="search" size="sm" color={Colors.light.textMuted} />}
+          leftIcon={<BIcon name="search" size="sm" color={themeColors.textMuted} />}
         />
       )}
       <FlatList
@@ -131,26 +133,27 @@ const BDropdown: FC<BDropdownProps> = ({
             height: currentSize.height,
             paddingHorizontal: currentSize.paddingHorizontal,
             opacity: disabled ? Opacity.disabled : pressed ? Opacity.pressed : Opacity.full,
-            borderColor: error ? Colors.light.error : Colors.light.border,
+            borderColor: error ? themeColors.error : themeColors.border,
+            backgroundColor: themeColors.background,
           },
           style,
         ]}
       >
         <BView row align="center" gap="sm" flex>
-          {leftIcon && <BIcon name={leftIcon as any} size="sm" color={Colors.light.textMuted} />}
+          {leftIcon && <BIcon name={leftIcon as any} size="sm" color={themeColors.textMuted} />}
           <BText
             style={{ fontSize: currentSize.fontSize }}
-            color={selectedOption ? Colors.light.text : Colors.light.textMuted}
+            color={selectedOption ? themeColors.text : themeColors.textMuted}
             numberOfLines={1}
             ellipsizeMode="tail"
           >
             {selectedOption?.label ?? placeholder}
           </BText>
         </BView>
-        <BIcon name="chevron-down" size="sm" color={Colors.light.textSecondary} />
+        <BIcon name="chevron-down" size="sm" color={themeColors.textSecondary} />
       </Pressable>
       {error && (
-        <BText variant="caption" color={Colors.light.error} style={styles.error}>
+        <BText variant="caption" color={themeColors.error} style={styles.error}>
           {error}
         </BText>
       )}
@@ -184,7 +187,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     borderWidth: 1,
     borderRadius: BorderRadius.base,
-    backgroundColor: Colors.light.background,
   },
   error: {
     marginTop: Spacing.xs,
@@ -206,15 +208,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.sm,
     borderRadius: BorderRadius.sm,
   },
-  optionSelected: {
-    backgroundColor: Colors.light.backgroundSecondary,
-  },
+  optionSelected: {},
   optionText: {
     flex: 1,
     textAlign: 'left',
   },
   optionTextSelected: {
-    color: Colors.light.primary,
     fontWeight: '600',
   },
 });

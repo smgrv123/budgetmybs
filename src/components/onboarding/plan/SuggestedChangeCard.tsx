@@ -1,6 +1,7 @@
 import type { FC } from 'react';
 
-import { Colors, SpacingValue, TextVariant } from '@/constants/theme';
+import { SpacingValue, TextVariant } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import { BIcon, BText, BView } from '@/src/components/ui';
 import type { SuggestedChange } from '@/src/types/financialPlan';
 import { formatIndianNumber } from '@/src/utils/format';
@@ -17,6 +18,7 @@ const SuggestedChangeCard: FC<SuggestedChangeCardProps> = ({
   reason,
   impact,
 }) => {
+  const themeColors = useThemeColors();
   const difference = suggestedValue - currentValue;
   const isIncrease = difference > 0;
 
@@ -28,11 +30,11 @@ const SuggestedChangeCard: FC<SuggestedChangeCardProps> = ({
       {/* Current → Suggested */}
       <BView gap={SpacingValue.SM}>
         <BView row gap={SpacingValue.SM} align="center">
-          <BText variant={TextVariant.BODY} color={Colors.light.textSecondary}>
+          <BText variant={TextVariant.BODY} color={themeColors.textSecondary}>
             {formatIndianNumber(currentValue, true)}
           </BText>
-          <BIcon name="arrow-forward" size={SpacingValue.SM} color={Colors.light.textMuted} />
-          <BText variant={TextVariant.SUBHEADING} color={isIncrease ? Colors.light.danger : Colors.light.success}>
+          <BIcon name="arrow-forward" size={SpacingValue.SM} color={themeColors.textMuted} />
+          <BText variant={TextVariant.SUBHEADING} color={isIncrease ? themeColors.danger : themeColors.success}>
             {formatIndianNumber(suggestedValue, true)}
           </BText>
         </BView>
@@ -40,9 +42,9 @@ const SuggestedChangeCard: FC<SuggestedChangeCardProps> = ({
           <BIcon
             name={isIncrease ? 'trending-up' : 'trending-down'}
             size={SpacingValue.SM}
-            color={isIncrease ? Colors.light.danger : Colors.light.success}
+            color={isIncrease ? themeColors.danger : themeColors.success}
           />
-          <BText variant={TextVariant.CAPTION} color={isIncrease ? Colors.light.danger : Colors.light.success}>
+          <BText variant={TextVariant.CAPTION} color={isIncrease ? themeColors.danger : themeColors.success}>
             {isIncrease ? '+' : ''}
             {formatIndianNumber(Math.abs(difference), true)}
           </BText>
@@ -50,13 +52,13 @@ const SuggestedChangeCard: FC<SuggestedChangeCardProps> = ({
       </BView>
 
       {/* Reason */}
-      <BText variant={TextVariant.CAPTION} color={Colors.light.textSecondary}>
+      <BText variant={TextVariant.CAPTION} color={themeColors.textSecondary}>
         {reason}
       </BText>
 
       {/* Impact Badge */}
-      <BView padding={SpacingValue.SM} rounded={SpacingValue.BASE} bg={Colors.light.impactBg}>
-        <BText variant={TextVariant.CAPTION} color={Colors.light.textSecondary}>
+      <BView padding={SpacingValue.SM} rounded={SpacingValue.BASE} bg={themeColors.impactBg}>
+        <BText variant={TextVariant.CAPTION} color={themeColors.textSecondary}>
           {impact}
         </BText>
       </BView>

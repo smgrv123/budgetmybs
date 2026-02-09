@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 
-import { ButtonVariant, Colors, ComponentSize, Spacing, SpacingValue, TextVariant } from '@/constants/theme';
+import { ButtonVariant, ComponentSize, Spacing, SpacingValue, TextVariant } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import { BButton, BIcon, BSafeAreaView, BText, BView } from '@/src/components';
 
 type ErrorState = 'network' | 'api_failure' | 'timeout';
@@ -15,7 +16,7 @@ type ErrorConfig = {
   skipText?: string;
 };
 
-const ERROR_CONFIGS: Record<ErrorState, ErrorConfig> = {
+const ERROR_CONFIGS: Record<ErrorState, Omit<ErrorConfig, 'iconColor'>> = {
   network: {
     title: 'No Internet Connection',
     description: "We couldn't connect to the internet. AI analysis requires an active connection.",
@@ -25,7 +26,6 @@ const ERROR_CONFIGS: Record<ErrorState, ErrorConfig> = {
       'Restart your router if using WiFi',
     ],
     icon: 'cloud-offline-outline',
-    iconColor: Colors.light.error,
     retryText: 'Try Again',
     skipText: 'Proceed Without AI',
   },
@@ -34,7 +34,6 @@ const ERROR_CONFIGS: Record<ErrorState, ErrorConfig> = {
     description: 'We encountered an error while generating your financial plan.',
     suggestions: ['The AI service may be temporarily unavailable', 'Your data is safe and saved locally'],
     icon: 'alert-circle',
-    iconColor: Colors.light.warning,
     retryText: 'Try Again',
     skipText: 'Proceed Without AI',
   },
@@ -43,7 +42,6 @@ const ERROR_CONFIGS: Record<ErrorState, ErrorConfig> = {
     description: 'The AI analysis is taking longer than expected.',
     suggestions: ['This may be due to slow internet', 'Try again with a better connection'],
     icon: 'time',
-    iconColor: Colors.light.warning,
     retryText: 'Try Again',
     skipText: 'Proceed Without AI',
   },
@@ -56,7 +54,9 @@ const ERROR_CONFIGS: Record<ErrorState, ErrorConfig> = {
  */
 export default function OnboardingError() {
   const { errorState } = useLocalSearchParams<{ errorState: ErrorState }>();
+  const themeColors = useThemeColors();
   const config = ERROR_CONFIGS[errorState || 'api_failure'];
+  const iconColor = errorState === 'network' ? themeColors.error : themeColors.warning;
 
   const handleRetry = () => {
     router.back();
@@ -73,10 +73,10 @@ export default function OnboardingError() {
             width: Spacing['4xl'],
             height: Spacing['4xl'],
             borderRadius: Spacing['2xl'],
-            backgroundColor: `${config.iconColor}20`,
+            backgroundColor: `${iconColor}20`,
           }}
         >
-          <BIcon name={config.icon as any} size={ComponentSize.LG} color={config.iconColor} />
+          <BIcon name={config.icon as any} size={ComponentSize.LG} color={iconColor} />
         </BView>
 
         {/* Title */}
@@ -104,14 +104,14 @@ export default function OnboardingError() {
         {/* Action Buttons */}
         <BView gap={SpacingValue.MD} style={{ width: '100%', maxWidth: 360 }}>
           <BButton variant={ButtonVariant.PRIMARY} onPress={handleRetry} rounded="lg">
-            <BText variant={TextVariant.LABEL} color={Colors.light.white}>
+            <BText variant={TextVariant.LABEL} color={themeColors.white}>
               {config.retryText}
             </BText>
           </BButton>
 
           {config.skipText && (
             <BButton variant={ButtonVariant.SECONDARY} onPress={handleRetry} rounded="lg">
-              <BText variant={TextVariant.LABEL} color={Colors.light.text}>
+              <BText variant={TextVariant.LABEL} color={themeColors.text}>
                 {config.skipText}
               </BText>
             </BButton>

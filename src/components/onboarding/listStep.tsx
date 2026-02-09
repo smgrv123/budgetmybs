@@ -2,7 +2,8 @@ import { Fragment, ReactNode, useEffect, useRef, useState } from 'react';
 import { ScrollView } from 'react-native';
 
 import { isOtherType } from '@/constants/onboarding.config';
-import { ButtonVariant, Colors } from '@/constants/theme';
+import { ButtonVariant } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import type { CustomTypeModalConfig, FormField, ItemCardConfig, ListStepStrings } from '@/src/types';
 import { formatIndianNumber, parseFormattedNumber } from '@/src/utils/format';
 import { getFieldError, validateForm } from '@/src/validation/onboarding';
@@ -54,6 +55,7 @@ function ListStep<T extends { tempId: string }>({
   nextButtonLabel,
   footerContent,
 }: ListStepProps<T>): React.JSX.Element {
+  const themeColors = useThemeColors();
   const scrollViewRef = useRef<ScrollView>(null);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState(initialFormData);
@@ -189,7 +191,7 @@ function ListStep<T extends { tempId: string }>({
                 rounded="base"
                 paddingY="sm"
                 variant={ButtonVariant.PRIMARY}
-                style={{ flex: 1, backgroundColor: Colors.light.primary }}
+                style={{ flex: 1, backgroundColor: themeColors.primary }}
               >
                 <BText color="#FFFFFF" variant="label">
                   {strings.form.addButton}

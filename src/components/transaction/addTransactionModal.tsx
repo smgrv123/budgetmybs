@@ -3,9 +3,10 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { z } from 'zod';
 
-import { ButtonVariant, Colors, Spacing, SpacingValue, TextVariant } from '@/constants/theme';
+import { ButtonVariant, Spacing, SpacingValue, TextVariant } from '@/constants/theme';
 import { TRANSACTION_TAB_CONFIGS } from '@/constants/transactionForm.config';
 import { TRANSACTION_MODAL_TEXT, TransactionTab } from '@/constants/transactionModal';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import { BButton, BDropdown, BIcon, BInput, BModal, BText, BView } from '@/src/components/ui';
 import { useCategories, useExpenses } from '@/src/hooks';
 import { createTransactionFields } from './transactionForm';
@@ -34,6 +35,7 @@ type AddTransactionModalProps = {
  * Unified modal for adding expenses or one-off savings
  */
 const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose }) => {
+  const themeColors = useThemeColors();
   const [activeTab, setActiveTab] = useState<TransactionTab>(TransactionTab.EXPENSE);
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('');
@@ -163,7 +165,7 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose })
             style={styles.tab}
             fullWidth
           >
-            <BText variant={TextVariant.LABEL} color={activeTab === key ? Colors.light.white : Colors.light.text}>
+            <BText variant={TextVariant.LABEL} color={activeTab === key ? themeColors.white : themeColors.text}>
               {title}
             </BText>
           </BButton>
@@ -202,13 +204,13 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose })
                       <BIcon
                         name={cat.icon as any}
                         size="md"
-                        color={category === cat.id ? Colors.light.white : cat.color || Colors.light.primary}
+                        color={category === cat.id ? themeColors.white : cat.color || themeColors.primary}
                       />
                     )}
                     <BText
                       variant={TextVariant.CAPTION}
                       numberOfLines={1}
-                      color={category === cat.id ? Colors.light.white : Colors.light.text}
+                      color={category === cat.id ? themeColors.white : themeColors.text}
                     >
                       {cat.name}
                     </BText>
@@ -230,7 +232,7 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose })
       </ScrollView>
 
       {/* Submit Button */}
-      <BView style={styles.submitContainer}>
+      <BView style={[styles.submitContainer, { borderTopColor: themeColors.border }]}>
         <BButton
           variant={ButtonVariant.PRIMARY}
           onPress={handleSubmit}
@@ -238,7 +240,7 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose })
           disabled={!canSubmit || isLoading}
           fullWidth
         >
-          <BText variant={TextVariant.LABEL} color={Colors.light.white}>
+          <BText variant={TextVariant.LABEL} color={themeColors.white}>
             {currentConfig.submitLabel}
           </BText>
         </BButton>
@@ -267,7 +269,6 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.md,
     paddingBottom: Spacing.base,
     borderTopWidth: 1,
-    borderTopColor: Colors.light.border,
   },
 });
 

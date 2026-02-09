@@ -1,4 +1,4 @@
-import { Colors } from '@/constants/theme';
+import type { ThemeColors } from '@/hooks/use-theme-color';
 
 /**
  * Dashboard stat card item interface
@@ -24,45 +24,54 @@ export interface QuickStatItem {
 /**
  * Create stat cards data based on calculated values
  */
-export const createStatCards = (spentThisMonth: number, savedThisMonth: number): StatCardItem[] => [
+export const createStatCards = (
+  spentThisMonth: number,
+  savedThisMonth: number,
+  themeColors: ThemeColors
+): StatCardItem[] => [
   {
     id: 'spent',
     label: 'Spent',
     value: `₹${spentThisMonth.toLocaleString('en-IN')}`,
-    color: Colors.light.error,
+    color: themeColors.error,
   },
   {
     id: 'saved',
     label: 'Saved',
     value: `₹${savedThisMonth.toLocaleString('en-IN')}`,
-    color: Colors.light.success,
+    color: themeColors.success,
   },
 ];
 
 /**
  * Create quick stats data based on calculated values
  */
-export const createQuickStats = (totalFixedExpenses: number, totalEMI: number, goalsCount: number): QuickStatItem[] => [
+export const createQuickStats = (
+  totalFixedExpenses: number,
+  totalEMI: number,
+  goalsCount: number,
+  themeColors: ThemeColors
+): QuickStatItem[] => [
   {
     id: 'fixed',
     icon: 'receipt-outline',
     value: `₹${totalFixedExpenses.toLocaleString('en-IN')}`,
     label: 'Fixed',
-    color: Colors.light.primary,
+    color: themeColors.primary,
   },
   {
     id: 'emis',
     icon: 'card-outline',
     value: `₹${totalEMI.toLocaleString('en-IN')}`,
     label: 'EMIs',
-    color: Colors.light.warning,
+    color: themeColors.warning,
   },
   {
     id: 'goals',
     icon: 'flag-outline',
     value: String(goalsCount),
     label: 'Goals',
-    color: Colors.light.success,
+    color: themeColors.success,
   },
 ];
 

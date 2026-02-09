@@ -6,8 +6,9 @@ import {
   DEBT_STEP_CONFIG,
   parseDebtFormData,
 } from '@/constants/setup-form.config';
-import { ButtonVariant, Colors, SpacingValue, TextVariant } from '@/constants/theme';
+import { ButtonVariant, SpacingValue, TextVariant } from '@/constants/theme';
 import type { DebtPayoffPreference } from '@/db/types';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import BListStep from '@/src/components/onboarding/listStep';
 import DebtPayoffStrategyModal from '@/src/components/onboarding/modals/debtPayoffStrategyModal';
 import { BButton, BIcon, BText, BView } from '@/src/components/ui';
@@ -22,6 +23,7 @@ export type DebtsStepProps = {
 };
 
 function DebtsStep({ onNext }: DebtsStepProps) {
+  const themeColors = useThemeColors();
   const { debts: debtsList, addDebt, removeDebt, profile, updateProfileField } = useOnboardingStore();
   const [showStrategyModal, setShowStrategyModal] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState<DebtPayoffPreference | null>(null);
@@ -76,7 +78,7 @@ function DebtsStep({ onNext }: DebtsStepProps) {
               <BText variant={TextVariant.LABEL} muted>
                 EMI:
               </BText>
-              <BText variant={TextVariant.SUBHEADING} color={Colors.light.primary}>
+              <BText variant={TextVariant.SUBHEADING} color={themeColors.primary}>
                 {formatCurrency(emi)}
               </BText>
             </BView>
@@ -85,7 +87,13 @@ function DebtsStep({ onNext }: DebtsStepProps) {
         customTypeModal={DEBT_STEP_CONFIG.customTypeModal}
         footerContent={
           debtsList.length > 0 ? (
-            <BView padding={SpacingValue.LG} style={styles.footerContainer}>
+            <BView
+              padding={SpacingValue.LG}
+              style={[
+                styles.footerContainer,
+                { backgroundColor: themeColors.background, borderTopColor: themeColors.border },
+              ]}
+            >
               <BView row justify="space-between" align="center" marginY={SpacingValue.MD}>
                 <BText variant={TextVariant.LABEL}>Payoff Strategy</BText>
               </BView>
@@ -107,18 +115,18 @@ function DebtsStep({ onNext }: DebtsStepProps) {
                           <BView>
                             <BText
                               variant={TextVariant.LABEL}
-                              color={isSelected ? Colors.light.white : Colors.light.text}
+                              color={isSelected ? themeColors.white : themeColors.text}
                             >
                               {config.label}
                             </BText>
                             <BText
                               variant={TextVariant.CAPTION}
-                              color={isSelected ? Colors.light.white : Colors.light.textMuted}
+                              color={isSelected ? themeColors.white : themeColors.textMuted}
                             >
                               {config.description}
                             </BText>
                           </BView>
-                          {isSelected && <BIcon name="checkmark-circle" size={20} color={Colors.light.white} />}
+                          {isSelected && <BIcon name="checkmark-circle" size={20} color={themeColors.white} />}
                         </BView>
                       </BButton>
                       <BButton
@@ -129,7 +137,7 @@ function DebtsStep({ onNext }: DebtsStepProps) {
                         <BIcon
                           name="information-circle-outline"
                           size={20}
-                          color={isSelected ? Colors.light.white : Colors.light.primary}
+                          color={isSelected ? themeColors.white : themeColors.primary}
                         />
                       </BButton>
                     </BView>
@@ -152,9 +160,7 @@ function DebtsStep({ onNext }: DebtsStepProps) {
 
 const styles = StyleSheet.create({
   footerContainer: {
-    backgroundColor: Colors.light.background,
     borderTopWidth: 1,
-    borderTopColor: Colors.light.border,
   },
   cardWrapper: {
     position: 'relative',

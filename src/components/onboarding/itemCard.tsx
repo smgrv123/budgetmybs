@@ -2,7 +2,8 @@ import type { FC, ReactNode } from 'react';
 import { Alert } from 'react-native';
 
 import { OnboardingStrings } from '@/constants/onboarding.strings';
-import { Colors, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import { formatCurrency } from '@/src/utils/format';
 import { BButton, BCard, BIcon, BText, BView } from '../ui';
 
@@ -29,6 +30,8 @@ const BItemCard: FC<ItemCardProps> = ({
   extra,
   confirmDelete = true,
 }) => {
+  const themeColors = useThemeColors();
+
   const handleDelete = () => {
     if (confirmDelete && onDelete) {
       Alert.alert(
@@ -61,7 +64,7 @@ const BItemCard: FC<ItemCardProps> = ({
           </BView>
           {onDelete && (
             <BButton variant="ghost" onPress={handleDelete} padding="xs" rounded="sm">
-              <BIcon name="trash-outline" size="sm" color={Colors.light.error} />
+              <BIcon name="trash-outline" size="sm" color={themeColors.error} />
             </BButton>
           )}
         </BView>
@@ -73,7 +76,7 @@ const BItemCard: FC<ItemCardProps> = ({
               <BText variant="caption" muted>
                 {secondaryLabel}:{' '}
               </BText>
-              <BText variant="caption" color={Colors.light.primary}>
+              <BText variant="caption" color={themeColors.primary}>
                 {formatCurrency(secondaryAmount)}
               </BText>
             </BView>

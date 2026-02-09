@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native';
 
-import { BorderRadius, Colors, Spacing } from '@/constants/theme';
+import { BorderRadius, Spacing } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import { ListStepStrings } from '@/src/types';
 import { BButton, BText, BView } from '../ui';
 
@@ -12,11 +13,12 @@ type SkipStepButtonProps = {
 };
 
 export default function BSkipStepButton({ onNext, strings, showSkip, nextButtonLabel }: SkipStepButtonProps) {
+  const themeColors = useThemeColors();
   const buttonLabel = nextButtonLabel ?? (showSkip ? strings.continueButton : strings.skipButton);
 
   return (
     <BView paddingY="sm">
-      <BButton fullWidth onPress={onNext} style={styles.continueButton}>
+      <BButton fullWidth onPress={onNext} style={[styles.continueButton, { backgroundColor: themeColors.primary }]}>
         <BText color="#FFFFFF" variant="label">
           {buttonLabel}
         </BText>
@@ -27,7 +29,6 @@ export default function BSkipStepButton({ onNext, strings, showSkip, nextButtonL
 
 const styles = StyleSheet.create({
   continueButton: {
-    backgroundColor: Colors.light.primary,
     borderRadius: BorderRadius.base,
     paddingVertical: Spacing.sm,
   },

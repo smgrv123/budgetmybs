@@ -5,13 +5,13 @@ import { QuickStatType } from '@/constants/dashboardData';
 import {
   BorderRadius,
   ButtonVariant,
-  Colors,
   IconFamily,
   IconSize,
   Spacing,
   SpacingValue,
   TextVariant,
 } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import { BButton, BIcon, BModal, BText, BView } from '@/src/components/ui';
 import type { QuickStatTypeValue } from '@/src/types/dashboard';
 
@@ -68,8 +68,16 @@ const QuickStatSheet: FC<QuickStatSheetProps> = ({
   savingsGoals = [],
   onMarkGoalComplete,
 }) => {
+  const themeColors = useThemeColors();
+
   const renderFixedExpense = ({ item }: { item: FixedExpenseItem }) => (
-    <BView row justify="space-between" align="center" paddingY={SpacingValue.SM} style={styles.listItem}>
+    <BView
+      row
+      justify="space-between"
+      align="center"
+      paddingY={SpacingValue.SM}
+      style={[styles.listItem, { borderBottomColor: themeColors.border }]}
+    >
       <BView flex>
         <BText variant={TextVariant.LABEL}>{item.name}</BText>
         <BText variant={TextVariant.CAPTION} muted>
@@ -81,7 +89,13 @@ const QuickStatSheet: FC<QuickStatSheetProps> = ({
   );
 
   const renderDebt = ({ item }: { item: DebtItem }) => (
-    <BView row justify="space-between" align="center" paddingY={SpacingValue.SM} style={styles.listItem}>
+    <BView
+      row
+      justify="space-between"
+      align="center"
+      paddingY={SpacingValue.SM}
+      style={[styles.listItem, { borderBottomColor: themeColors.border }]}
+    >
       <BView flex>
         <BText variant={TextVariant.LABEL}>{item.name}</BText>
         <BText variant={TextVariant.CAPTION} muted>
@@ -102,7 +116,13 @@ const QuickStatSheet: FC<QuickStatSheetProps> = ({
     const showCheckbox = !item.isCompleted && type === QuickStatType.INCOMPLETE && onMarkGoalComplete;
 
     return (
-      <BView row justify="space-between" align="center" paddingY={SpacingValue.SM} style={styles.listItem}>
+      <BView
+        row
+        justify="space-between"
+        align="center"
+        paddingY={SpacingValue.SM}
+        style={[styles.listItem, { borderBottomColor: themeColors.border }]}
+      >
         <BView flex row align="center" gap={SpacingValue.SM}>
           {showCheckbox && (
             <BButton
@@ -111,12 +131,12 @@ const QuickStatSheet: FC<QuickStatSheetProps> = ({
               style={styles.checkbox}
               paddingX={SpacingValue.SM}
             >
-              <BIcon name="checkbox-outline" size={IconSize.base} color={Colors.light.textMuted} />
+              <BIcon name="checkbox-outline" size={IconSize.base} color={themeColors.textMuted} />
             </BButton>
           )}
           {item.isCompleted && (
             <BView center style={styles.completedBadge}>
-              <BIcon name="check" family={IconFamily.FONTAWESOME} size="sm" color={Colors.light.success} />
+              <BIcon name="check" family={IconFamily.FONTAWESOME} size="sm" color={themeColors.success} />
             </BView>
           )}
           <BView flex>
@@ -207,7 +227,6 @@ const styles = StyleSheet.create({
   },
   listItem: {
     borderBottomWidth: 1,
-    borderBottomColor: Colors.light.border,
   },
   checkbox: {
     borderRadius: BorderRadius.sm,

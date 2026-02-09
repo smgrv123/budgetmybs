@@ -1,7 +1,8 @@
 import type { FC } from 'react';
 import { StyleSheet } from 'react-native';
 
-import { BorderRadius, Colors, Spacing } from '@/constants/theme';
+import { BorderRadius, Spacing } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import { BButton, BIcon, BText } from '../ui';
 
 export interface AddItemButtonProps {
@@ -10,10 +11,12 @@ export interface AddItemButtonProps {
 }
 
 const BAddItemButton: FC<AddItemButtonProps> = ({ label, onPress }) => {
+  const themeColors = useThemeColors();
+
   return (
-    <BButton variant="ghost" onPress={onPress} style={styles.container}>
-      <BIcon name="add" size="sm" color={Colors.light.textSecondary} />
-      <BText variant="label" color={Colors.light.textSecondary} style={styles.label}>
+    <BButton variant="ghost" onPress={onPress} style={[styles.container, { borderColor: themeColors.borderDashed }]}>
+      <BIcon name="add" size="sm" color={themeColors.textSecondary} />
+      <BText variant="label" color={themeColors.textSecondary} style={styles.label}>
         {label || 'not'}
       </BText>
     </BButton>
@@ -30,7 +33,6 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
     borderWidth: 1.5,
     borderStyle: 'dashed',
-    borderColor: Colors.light.borderDashed,
     backgroundColor: 'transparent',
   },
   label: {

@@ -2,7 +2,8 @@ import type { FC, ReactNode } from 'react';
 import { KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 
 import { getTotalSteps } from '@/constants/onboarding.config';
-import { Colors, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
+import { useThemeColors } from '@/hooks/use-theme-color';
 import { BButton, BIcon, BSafeAreaView, BText, BView } from '../ui';
 import BStepIndicator from './stepIndicator';
 
@@ -26,6 +27,7 @@ const BOnboardingLayout: FC<OnboardingLayoutProps> = ({
   showStepIndicator = true,
 }) => {
   const totalSteps = getTotalSteps();
+  const themeColors = useThemeColors();
 
   return (
     <BSafeAreaView>
@@ -38,7 +40,7 @@ const BOnboardingLayout: FC<OnboardingLayoutProps> = ({
         <BView row paddingX="base" paddingY="md" style={styles.header}>
           {showBack && onBack ? (
             <BButton variant="ghost" onPress={onBack} style={styles.backButton}>
-              <BIcon name="chevron-back" size={'base'} color={Colors.light.text} />
+              <BIcon name="chevron-back" size={'base'} color={themeColors.text} />
             </BButton>
           ) : (
             <BView style={styles.backButtonPlaceholder} />
@@ -61,7 +63,12 @@ const BOnboardingLayout: FC<OnboardingLayoutProps> = ({
 
         {/* Footer */}
         {footer && (
-          <BView paddingX="base" paddingY="base" bg="background" style={styles.footer}>
+          <BView
+            paddingX="base"
+            paddingY="base"
+            bg="background"
+            style={[styles.footer, { borderTopColor: themeColors.border }]}
+          >
             {footer}
           </BView>
         )}
@@ -93,7 +100,6 @@ const styles = StyleSheet.create({
   },
   footer: {
     borderTopWidth: 1,
-    borderTopColor: Colors.light.border,
   },
 });
 
