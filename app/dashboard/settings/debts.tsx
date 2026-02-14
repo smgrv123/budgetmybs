@@ -1,3 +1,6 @@
+import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+
 import { DebtTypeOptions } from '@/constants/onboarding.config';
 import {
   common,
@@ -15,8 +18,6 @@ import { useDebts } from '@/src/hooks';
 import type { DebtData } from '@/src/types';
 import { calculateEMI } from '@/src/utils/budget';
 import { generateUUID } from '@/src/utils/id';
-import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
 
 export default function DebtsScreen() {
   const router = useRouter();
@@ -78,6 +79,7 @@ export default function DebtsScreen() {
             tenureMonths: item.tenureMonths,
             remainingMonths: item.tenureMonths,
             startDate: null,
+            dayOfMonth: item.dayOfMonth ?? 1,
           });
         })
       );

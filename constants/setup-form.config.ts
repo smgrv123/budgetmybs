@@ -94,6 +94,7 @@ export const FIXED_EXPENSE_FIELD_CONFIGS: Omit<FormField, 'leftIcon'>[] = [
     type: 'input',
     placeholder: fixedExpenses.form.dayOfMonth.placeholder,
     keyboardType: 'numeric',
+    helperText: fixedExpenses.form.dayOfMonth.helperText,
   },
 ];
 
@@ -120,6 +121,13 @@ export const DEBT_FIELD_CONFIGS: Omit<FormField, 'leftIcon'>[] = [
     label: debts.form.tenureMonths.label,
     placeholder: debts.form.tenureMonths.placeholder,
     keyboardType: 'numeric',
+  },
+  {
+    key: 'dayOfMonth',
+    type: 'input',
+    placeholder: debts.form.dayOfMonth.placeholder,
+    keyboardType: 'numeric',
+    helperText: debts.form.dayOfMonth.helperText,
   },
 ];
 
@@ -163,7 +171,7 @@ export const DEBT_STEP_CONFIG: StepConfig = {
     skipButton: debts.skipButton,
     form: { addButton: debts.form.addButton, cancelButton: debts.form.cancelButton },
   },
-  initialFormData: { name: '', type: '', principal: '', interestRate: '', tenureMonths: '' },
+  initialFormData: { name: '', type: '', principal: '', interestRate: '', tenureMonths: '', dayOfMonth: '' },
   validationSchema: debtSchema,
   customTypeModal: {
     title: debts.customTypeModal.title,
@@ -196,7 +204,7 @@ export const parseFixedExpenseFormData = (data: Record<string, string>) => ({
   name: data.name,
   type: data.type,
   amount: parseFormattedNumber(data.amount),
-  dayOfMonth: data.dayOfMonth ? parseInt(data.dayOfMonth, 10) : null,
+  dayOfMonth: data.dayOfMonth ? parseInt(data.dayOfMonth, 10) : 1,
 });
 
 export const parseDebtFormData = (data: Record<string, string>) => ({
@@ -205,6 +213,7 @@ export const parseDebtFormData = (data: Record<string, string>) => ({
   principal: parseFormattedNumber(data.principal),
   interestRate: parseFloat(data.interestRate) || 0,
   tenureMonths: parseInt(data.tenureMonths, 10) || 0,
+  dayOfMonth: data.dayOfMonth ? parseInt(data.dayOfMonth, 10) : 1,
 });
 
 export const parseSavingsFormData = (data: Record<string, string>) => ({

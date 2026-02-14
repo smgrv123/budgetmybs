@@ -5,6 +5,16 @@
 import dayjs from 'dayjs';
 
 // ============================================
+// RECURRING KEY FORMAT
+// ============================================
+
+/**
+ * Generate a dedup key for recurring transactions
+ * Format: "sourceType:sourceId"
+ */
+export const makeRecurringKey = (sourceType: string, sourceId: string): string => `${sourceType}:${sourceId}`;
+
+// ============================================
 // DATE FORMATTING
 // ============================================
 

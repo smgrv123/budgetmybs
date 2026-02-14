@@ -51,7 +51,7 @@ export const createFixedExpense = async (data: CreateFixedExpenseInput) => {
     .values({
       ...data,
       customType: data.customType ?? null,
-      dayOfMonth: data.dayOfMonth ?? null,
+      dayOfMonth: data.dayOfMonth ?? 1,
     })
     .returning();
 

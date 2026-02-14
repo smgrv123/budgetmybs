@@ -20,6 +20,8 @@ type FixedExpenseItem = {
   name: string;
   type: string;
   amount: number;
+  dayOfMonth: number;
+  isPaidThisMonth: boolean;
 };
 
 type DebtItem = {
@@ -27,6 +29,8 @@ type DebtItem = {
   name: string;
   type: string;
   emi: number;
+  dayOfMonth: number;
+  isPaidThisMonth: boolean;
 };
 
 type SavingsGoalItem = {
@@ -76,15 +80,26 @@ const QuickStatSheet: FC<QuickStatSheetProps> = ({
       justify="space-between"
       align="center"
       paddingY={SpacingValue.SM}
-      style={[styles.listItem, { borderBottomColor: themeColors.border }]}
+      style={[styles.listItem, { borderBottomColor: themeColors.border }, item.isPaidThisMonth && styles.paidItem]}
     >
       <BView flex>
-        <BText variant={TextVariant.LABEL}>{item.name}</BText>
+        <BView row align="center" gap={SpacingValue.XS}>
+          <BText variant={TextVariant.LABEL} style={item.isPaidThisMonth ? styles.paidText : undefined}>
+            {item.name}
+          </BText>
+          <BView paddingX={SpacingValue.XS} paddingY={SpacingValue.XS} rounded="xs" bg={themeColors.muted}>
+            <BText variant={TextVariant.CAPTION} style={{ fontSize: 10 }}>
+              Day {item.dayOfMonth}
+            </BText>
+          </BView>
+        </BView>
         <BText variant={TextVariant.CAPTION} muted>
           {item.type}
         </BText>
       </BView>
-      <BText variant={TextVariant.LABEL}>₹{item.amount.toLocaleString('en-IN')}</BText>
+      <BText variant={TextVariant.LABEL} style={item.isPaidThisMonth ? styles.paidText : undefined}>
+        ₹{item.amount.toLocaleString('en-IN')}
+      </BText>
     </BView>
   );
 
@@ -94,16 +109,27 @@ const QuickStatSheet: FC<QuickStatSheetProps> = ({
       justify="space-between"
       align="center"
       paddingY={SpacingValue.SM}
-      style={[styles.listItem, { borderBottomColor: themeColors.border }]}
+      style={[styles.listItem, { borderBottomColor: themeColors.border }, item.isPaidThisMonth && styles.paidItem]}
     >
       <BView flex>
-        <BText variant={TextVariant.LABEL}>{item.name}</BText>
+        <BView row align="center" gap={SpacingValue.XS}>
+          <BText variant={TextVariant.LABEL} style={item.isPaidThisMonth ? styles.paidText : undefined}>
+            {item.name}
+          </BText>
+          <BView paddingX={SpacingValue.XS} paddingY={SpacingValue.XS} rounded="xs" bg={themeColors.muted}>
+            <BText variant={TextVariant.CAPTION} style={{ fontSize: 10 }}>
+              Day {item.dayOfMonth}
+            </BText>
+          </BView>
+        </BView>
         <BText variant={TextVariant.CAPTION} muted>
           {item.type}
         </BText>
       </BView>
       <BView align="flex-end">
-        <BText variant={TextVariant.LABEL}>₹{item.emi.toLocaleString('en-IN')}</BText>
+        <BText variant={TextVariant.LABEL} style={item.isPaidThisMonth ? styles.paidText : undefined}>
+          ₹{item.emi.toLocaleString('en-IN')}
+        </BText>
         <BText variant={TextVariant.CAPTION} muted>
           /month
         </BText>
@@ -240,6 +266,13 @@ const styles = StyleSheet.create({
   completedText: {
     textDecorationLine: 'line-through',
     opacity: 0.5,
+  },
+  paidText: {
+    textDecorationLine: 'line-through',
+    opacity: 0.5,
+  },
+  paidItem: {
+    opacity: 0.6,
   },
 });
 

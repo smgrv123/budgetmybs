@@ -60,6 +60,13 @@ export const debtSchema = z.object({
     .min(0, { message: validation.minValue(0) })
     .max(100, { message: validation.interestRate }),
   tenureMonths: z.number().int().positive({ message: validation.positiveNumber }),
+  dayOfMonth: z
+    .number()
+    .int()
+    .min(1, { message: validation.dayOfMonth })
+    .max(31, { message: validation.dayOfMonth })
+    .optional()
+    .nullable(),
 });
 
 export type DebtFormData = z.infer<typeof debtSchema>;

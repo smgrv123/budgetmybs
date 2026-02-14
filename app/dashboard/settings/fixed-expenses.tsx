@@ -71,7 +71,7 @@ export default function FixedExpensesScreen() {
             type: item.type,
             customType: item.customType ?? null,
             amount: item.amount,
-            dayOfMonth: item.dayOfMonth ?? null,
+            dayOfMonth: item.dayOfMonth ?? 1,
           })
         )
       );

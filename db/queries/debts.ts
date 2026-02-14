@@ -65,6 +65,7 @@ export const createDebt = async (data: CreateDebtInput) => {
       ...data,
       customType: data.customType ?? null,
       startDate: data.startDate ?? null,
+      dayOfMonth: data.dayOfMonth ?? 1,
     })
     .returning();
 

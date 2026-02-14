@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import { DEBT_PAYOFF_STRATEGY_CONFIGS, DebtTypeOptions } from '@/constants/onboarding.config';
 import {
   common,
@@ -14,9 +16,7 @@ import DebtPayoffStrategyModal from '@/src/components/onboarding/modals/debtPayo
 import { BButton, BIcon, BText, BView } from '@/src/components/ui';
 import { useOnboardingStore } from '@/src/store';
 import { calculateEMI } from '@/src/utils/budget';
-import { formatCurrency } from '@/src/utils/format';
-import { useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { formatCurrency, parseFormattedNumber } from '@/src/utils/format';
 
 export type DebtsStepProps = {
   onNext: () => void;
@@ -68,7 +68,7 @@ function DebtsStep({ onNext }: DebtsStepProps) {
           const emi =
             formData.principal && formData.interestRate && formData.tenureMonths
               ? calculateEMI(
-                  parseFloat(formData.principal) || 0,
+                  parseFormattedNumber(formData.principal),
                   parseFloat(formData.interestRate) || 0,
                   parseInt(formData.tenureMonths, 10) || 0
                 )
@@ -88,57 +88,48 @@ function DebtsStep({ onNext }: DebtsStepProps) {
         footerContent={
           debtsList.length > 0 ? (
             <BView
-              padding={SpacingValue.LG}
-              style={[
-                styles.footerContainer,
-                { backgroundColor: themeColors.background, borderTopColor: themeColors.border },
-              ]}
+              paddingY={SpacingValue.MD}
+              bg={themeColors.background}
+              style={{ borderTopColor: themeColors.border, borderTopWidth: 1 }}
             >
               <BView row justify="space-between" align="center" marginY={SpacingValue.MD}>
                 <BText variant={TextVariant.LABEL}>Payoff Strategy</BText>
               </BView>
 
-              <BView row gap={SpacingValue.MD}>
+              <BView row gap={SpacingValue.BASE}>
                 {DEBT_PAYOFF_STRATEGY_CONFIGS.map((config) => {
                   const isSelected = profile.debtPayoffPreference === config.key;
 
                   return (
-                    <BView key={config.key} flex style={styles.cardWrapper}>
+                    <BView key={config.key} flex>
                       <BButton
                         variant={isSelected ? ButtonVariant.PRIMARY : ButtonVariant.OUTLINE}
                         onPress={() => handleStrategySelect(config.key)}
-                        rounded="base"
-                        paddingY={SpacingValue.MD}
-                        style={styles.cardButton}
+                        rounded={SpacingValue.BASE}
+                        paddingY={SpacingValue.XS}
+                        paddingX={SpacingValue.SM}
+                        fullWidth
+                        style={{ flexDirection: 'column', alignItems: 'flex-start' }}
                       >
-                        <BView row justify="space-between" align="center" style={styles.cardContent}>
-                          <BView>
-                            <BText
-                              variant={TextVariant.LABEL}
-                              color={isSelected ? themeColors.white : themeColors.text}
-                            >
-                              {config.label}
-                            </BText>
-                            <BText
-                              variant={TextVariant.CAPTION}
-                              color={isSelected ? themeColors.white : themeColors.textMuted}
-                            >
-                              {config.description}
-                            </BText>
-                          </BView>
-                          {isSelected && <BIcon name="checkmark-circle" size={20} color={themeColors.white} />}
+                        <BView row justify="space-between" align="center" fullWidth>
+                          <BText variant={TextVariant.LABEL} color={isSelected ? themeColors.white : themeColors.text}>
+                            {config.label}
+                          </BText>
+                          <BButton variant={ButtonVariant.GHOST} onPress={() => handleInfoClick(config.key)}>
+                            <BIcon
+                              name="information-circle-outline"
+                              size={20}
+                              color={isSelected ? themeColors.white : themeColors.primary}
+                            />
+                          </BButton>
                         </BView>
-                      </BButton>
-                      <BButton
-                        variant={ButtonVariant.GHOST}
-                        onPress={() => handleInfoClick(config.key)}
-                        style={styles.infoButton}
-                      >
-                        <BIcon
-                          name="information-circle-outline"
-                          size={20}
-                          color={isSelected ? themeColors.white : themeColors.primary}
-                        />
+
+                        <BText
+                          variant={TextVariant.CAPTION}
+                          color={isSelected ? themeColors.white : themeColors.textMuted}
+                        >
+                          {config.description}
+                        </BText>
                       </BButton>
                     </BView>
                   );
@@ -157,30 +148,5 @@ function DebtsStep({ onNext }: DebtsStepProps) {
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  footerContainer: {
-    borderTopWidth: 1,
-  },
-  cardWrapper: {
-    position: 'relative',
-  },
-  cardButton: {
-    width: '100%',
-  },
-  cardContent: {
-    width: '100%',
-  },
-  infoButton: {
-    position: 'absolute',
-    top: 4,
-    right: 4,
-    width: 28,
-    height: 28,
-    padding: 0,
-    minWidth: 0,
-    minHeight: 0,
-  },
-});
 
 export default DebtsStep;

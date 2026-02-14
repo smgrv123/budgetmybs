@@ -4,6 +4,7 @@ import { FlatList, ScrollView, StyleSheet, View } from 'react-native';
 
 import { createQuickStats, createStatCards, QuickStatType } from '@/constants/dashboardData';
 import { BorderRadius, ButtonVariant, Spacing, SpacingValue, TextVariant } from '@/constants/theme';
+import { RecurringSourceTypeEnum } from '@/db/types';
 import { useThemeColors } from '@/hooks/use-theme-color';
 import {
   AddTransactionModal,
@@ -17,7 +18,7 @@ import {
   BView,
   QuickStatSheet,
 } from '@/src/components';
-import { useDebts, useExpenses, useFixedExpenses, useProfile, useSavingsGoals } from '@/src/hooks';
+import { useDebts, useExpenses, useFixedExpenses, useProfile, useRecurringStatus, useSavingsGoals } from '@/src/hooks';
 import type { QuickStatTypeValue } from '@/src/types/dashboard';
 import { calculateTotalEMI, calculateTotalFixedExpenses } from '@/src/utils/budget';
 import { mapDebtToSheet, mapFixedExpenseToSheet, mapSavingsGoalToSheet } from '@/src/utils/dashboard';
@@ -31,6 +32,7 @@ export default function DashboardScreen() {
   const { savingsGoals, completedGoals, incompleteGoals, isSavingsGoalsLoading, markGoalAsCompleted } =
     useSavingsGoals();
   const { expenses, totalSpent, totalSaved: totalOneOffSavings, oneOffSavings } = useExpenses();
+  const { isItemProcessed } = useRecurringStatus();
 
   // Gradient colors (theme-aware)
   const HEADER_GRADIENT: [string, string, string] = [
@@ -246,7 +248,12 @@ export default function DashboardScreen() {
                   <BView flex>
                     <BText variant={TextVariant.LABEL}>{item.description || 'Expense'}</BText>
                     <BText variant={TextVariant.CAPTION} muted>
-                      {formatDate(item.date)} | {item?.category?.name ?? item.savingsType}
+                      {formatDate(item.date)} |{' '}
+                      {'category' in item && item.category
+                        ? item.category.name
+                        : 'savingsType' in item
+                          ? item.savingsType
+                          : ''}
                     </BText>
                   </BView>
                   <BText variant={TextVariant.LABEL} style={{ color: themeColors.error }}>
@@ -288,8 +295,10 @@ export default function DashboardScreen() {
         onClose={() => setQuickStatSheetVisible(false)}
         type={selectedQuickStat ?? QuickStatType.FIXED}
         title={getSheetTitle(selectedQuickStat)}
-        fixedExpenses={fixedExpenses?.map(mapFixedExpenseToSheet)}
-        debts={debts?.map(mapDebtToSheet)}
+        fixedExpenses={fixedExpenses?.map((fe) =>
+          mapFixedExpenseToSheet(fe, isItemProcessed(RecurringSourceTypeEnum.FIXED_EXPENSE, fe.id))
+        )}
+        debts={debts?.map((d) => mapDebtToSheet(d, isItemProcessed(RecurringSourceTypeEnum.DEBT_EMI, d.id)))}
         savingsGoals={savingsGoals?.map(mapSavingsGoalToSheet)}
         onMarkGoalComplete={(goalId) => {
           markGoalAsCompleted(goalId);

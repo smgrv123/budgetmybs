@@ -27,6 +27,7 @@ export type DebtData = {
   principal: number;
   interestRate: number;
   tenureMonths: number;
+  dayOfMonth?: number | null;
 };
 
 export type SavingsGoalData = {

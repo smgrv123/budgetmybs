@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1766904361064,
-      "tag": "0000_small_puff_adder",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1768749252436,
-      "tag": "0001_talented_agent_brand",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1769781799363,
-      "tag": "0002_acoustic_shockwave",
+      "when": 1770996401549,
+      "tag": "0000_brainy_red_shift",
       "breakpoints": true
     }
   ]

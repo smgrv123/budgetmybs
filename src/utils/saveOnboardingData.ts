@@ -37,7 +37,7 @@ export const useSaveOnboardingData = () => {
           type: expense.type,
           customType: expense.customType || null,
           amount: expense.amount,
-          dayOfMonth: expense.dayOfMonth ?? null,
+          dayOfMonth: expense.dayOfMonth ?? 1,
         })
       ),
 
@@ -55,6 +55,7 @@ export const useSaveOnboardingData = () => {
           tenureMonths: debt.tenureMonths,
           remainingMonths: debt.tenureMonths,
           startDate: null,
+          dayOfMonth: debt.dayOfMonth ?? 1,
         });
       }),
 

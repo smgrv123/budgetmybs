@@ -41,6 +41,7 @@ export {
 
 // Expenses queries
 export {
+  buildExpenseValues,
   createExpense,
   createOneOffSaving,
   deleteExpense,
@@ -48,12 +49,19 @@ export {
   getExpensesByMonth,
   getExpensesWithCategory,
   getImpulsePurchaseStats,
+  getLastProcessedRecurringMonth,
   getOneOffSavings,
+  getProcessedRecurringByMonth,
+  getProcessedRecurringKeys,
   getSpendingByCategory,
   getTotalSavedByMonth,
   getTotalSpentByMonth,
+  isRecurringProcessed,
   updateExpense,
 } from './expenses';
+
+// Recurring transaction queries
+export { getMonthsToProcess, processRecurringTransactions } from './recurring';
 
 // Savings goals queries
 export {

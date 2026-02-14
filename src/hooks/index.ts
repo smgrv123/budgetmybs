@@ -11,6 +11,7 @@ export {
 } from './useExpenses';
 export { FIXED_EXPENSES_QUERY_KEY, TOTAL_FIXED_EXPENSES_QUERY_KEY, useFixedExpenses } from './useFixedExpenses';
 export { PROFILE_QUERY_KEY, useProfile } from './useProfile';
+export { useRecurringStatus } from './useRecurringStatus';
 export {
   COMPLETED_GOALS_QUERY_KEY,
   INCOMPLETE_GOALS_QUERY_KEY,

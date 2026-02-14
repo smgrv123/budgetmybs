@@ -1,6 +1,13 @@
 import { relations, sql } from 'drizzle-orm';
 import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
-import type { CategoryType, DebtPayoffPreference, DebtType, FixedExpenseType, SavingsType } from './types';
+import type {
+  CategoryType,
+  DebtPayoffPreference,
+  DebtType,
+  FixedExpenseType,
+  RecurringSourceType,
+  SavingsType,
+} from './types';
 import { generateUUID } from './utils';
 
 // ============================================
@@ -36,7 +43,7 @@ export const fixedExpensesTable = sqliteTable('fixed_expenses', {
   type: text('type').$type<FixedExpenseType>().notNull(),
   customType: text('custom_type'), // Only if type = "other"
   amount: real('amount').notNull(),
-  dayOfMonth: integer('day_of_month'), // 1-31, null = anytime
+  dayOfMonth: integer('day_of_month').notNull().default(1), // 1-31, nullable
   isActive: integer('is_active').notNull().default(1),
   createdAt: text('created_at')
     .notNull()
@@ -64,6 +71,7 @@ export const debtsTable = sqliteTable('debts', {
   tenureMonths: integer('tenure_months').notNull(),
   remainingMonths: integer('remaining_months').notNull(),
   startDate: text('start_date'), // Optional
+  dayOfMonth: integer('day_of_month').notNull().default(1), // 1-31, nullable
   isActive: integer('is_active').notNull().default(1),
   createdAt: text('created_at')
     .notNull()
@@ -104,6 +112,9 @@ export const expensesTable = sqliteTable('expenses', {
   amount: real('amount').notNull(),
   categoryId: text('category_id'), // FK to categories, null for savings
   description: text('description'),
+  sourceType: text('source_type').$type<RecurringSourceType | null>().default(null), // fixed_expense | debt_emi | null
+  sourceId: text('source_id'), // origin row id
+  sourceMonth: text('source_month'), // YYYY-MM
   date: text('date')
     .notNull()
     .default(sql`(date('now'))`), // YYYY-MM-DD

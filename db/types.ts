@@ -97,6 +97,18 @@ export type SavingsType = (typeof SavingsTypeEnum)[keyof typeof SavingsTypeEnum]
 
 export const SAVINGS_TYPES = Object.values(SavingsTypeEnum);
 
+/**
+ * Recurring expense source types
+ */
+export const RecurringSourceTypeEnum = {
+  FIXED_EXPENSE: 'fixed_expense',
+  DEBT_EMI: 'debt_emi',
+} as const;
+
+export type RecurringSourceType = (typeof RecurringSourceTypeEnum)[keyof typeof RecurringSourceTypeEnum];
+
+export const RECURRING_SOURCE_TYPES = Object.values(RecurringSourceTypeEnum);
+
 // ============================================
 // DISPLAY LABELS (for UI)
 // ============================================

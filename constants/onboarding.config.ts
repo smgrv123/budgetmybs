@@ -90,6 +90,7 @@ export const DebtFieldConfig: FieldConfig[] = [
   { id: 'principal', type: 'currency', required: true, min: 0 },
   { id: 'interestRate', type: 'number', required: true, min: 0, max: 100 },
   { id: 'tenureMonths', type: 'number', required: true, min: 1 },
+  { id: 'dayOfMonth', type: 'number', required: false, min: 1, max: 31 },
 ];
 
 export const SavingsFieldConfig: FieldConfig[] = [

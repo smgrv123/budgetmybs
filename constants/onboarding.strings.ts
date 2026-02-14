@@ -78,7 +78,7 @@ export const OnboardingStrings = {
       },
       dayOfMonth: {
         placeholder: 'Day of month (optional)',
-        helperText: 'When is this expense due?',
+        helperText: 'If not provided, defaults to 1st of every month',
       },
       addButton: 'Add',
       cancelButton: 'Cancel',
@@ -119,6 +119,10 @@ export const OnboardingStrings = {
         label: 'Tenure',
         placeholder: 'Months',
         suffix: 'months',
+      },
+      dayOfMonth: {
+        placeholder: 'Day of month (optional)',
+        helperText: 'If not provided, defaults to 1st of every month.',
       },
       addButton: 'Add',
       cancelButton: 'Cancel',

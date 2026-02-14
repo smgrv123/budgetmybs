@@ -60,8 +60,8 @@ export type CreateFixedExpenseInput = Pick<FixedExpense, 'name' | 'type' | 'amou
 export type UpdateFixedExpenseInput = Partial<Omit<FixedExpense, 'id' | 'createdAt' | 'updatedAt'>>;
 
 // Debts
-export type CreateDebtInput = Omit<Debt, 'id' | 'isActive' | 'createdAt' | 'updatedAt'> &
-  Partial<Pick<Debt, 'customType' | 'startDate'>>;
+export type CreateDebtInput = Omit<Debt, 'id' | 'isActive' | 'createdAt' | 'updatedAt' | 'dayOfMonth'> &
+  Partial<Pick<Debt, 'customType' | 'startDate' | 'dayOfMonth'>>;
 export type UpdateDebtInput = Partial<Omit<Debt, 'id' | 'createdAt' | 'updatedAt'>>;
 
 // Categories
