@@ -3,7 +3,7 @@ import { FontSize, FontWeight, LineHeight, TextVariant } from '@/constants/theme
 import { useThemeColors } from '@/hooks/use-theme-color';
 import type { FC } from 'react';
 import type { TextProps as RNTextProps, TextStyle } from 'react-native';
-import { Text as RNText, StyleSheet } from 'react-native';
+import { Text as RNText } from 'react-native';
 
 export interface BTextProps extends RNTextProps {
   /** Typography variant */
@@ -64,7 +64,6 @@ const BText: FC<BTextProps> = ({
     <RNText
       {...props}
       style={[
-        styles.base,
         {
           fontSize: currentVariant.fontSize,
           fontWeight: currentVariant.fontWeight,
@@ -79,9 +78,5 @@ const BText: FC<BTextProps> = ({
     </RNText>
   );
 };
-
-const styles = StyleSheet.create({
-  base: {},
-});
 
 export default BText;

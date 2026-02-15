@@ -20,8 +20,6 @@ export interface BModalProps extends Partial<RNModalProps> {
   onClose: () => void;
   /** Modal title (optional) */
   title?: string;
-  /** Modal content */
-  // content: ReactNode;
   /** Show close button in header */
   showCloseButton?: boolean;
   /** Close on backdrop press */

@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
-import { FlatList, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { createQuickStats, createStatCards, QuickStatType } from '@/constants/dashboardData';
 import { BorderRadius, ButtonVariant, Spacing, SpacingValue, TextVariant } from '@/constants/theme';
@@ -51,7 +51,6 @@ export default function DashboardScreen() {
   // Calculate totals using existing utility functions
   const totalFixedExpenses = calculateTotalFixedExpenses(fixedExpenses ?? []);
   const totalEMI = calculateTotalEMI(debts ?? []);
-  // const savingsTarget = profile?.monthlySavingsTarget ?? 0;
   const monthlyIncome = profile?.salary ?? 0;
   const totalMonthlySavings = completedGoals.reduce((sum, s) => sum + s.targetAmount, 0);
 
@@ -133,6 +132,8 @@ export default function DashboardScreen() {
       </BSafeAreaView>
     );
   }
+
+  const combinedTransactions = [...expenses, ...oneOffSavings];
 
   return (
     <BSafeAreaView edges={['bottom']}>
@@ -234,49 +235,50 @@ export default function DashboardScreen() {
 
         {/* Recent Transactions */}
         <BView paddingX={SpacingValue.LG} marginY={SpacingValue.LG}>
-          <BView row style={{ justifyContent: 'space-between', alignItems: 'center', marginBottom: Spacing.md }}>
+          <BView row justify="space-between" align="center" style={{ marginBottom: Spacing.md }}>
             <BText variant={TextVariant.SUBHEADING}>Recent Transactions</BText>
             <BText variant={TextVariant.CAPTION} style={{ color: themeColors.primary }}>
               See All
             </BText>
           </BView>
-          <FlatList
-            data={[...expenses, ...oneOffSavings]}
-            renderItem={({ item }) => (
-              <BCard variant="default" style={{ padding: Spacing.md }}>
-                <BView row justify="space-between" align="center">
-                  <BView flex>
-                    <BText variant={TextVariant.LABEL}>{item.description || 'Expense'}</BText>
-                    <BText variant={TextVariant.CAPTION} muted>
-                      {formatDate(item.date)} |{' '}
-                      {'category' in item && item.category
-                        ? item.category.name
-                        : 'savingsType' in item
-                          ? item.savingsType
-                          : ''}
+          {combinedTransactions.length === 0 ? (
+            <BView center paddingY={SpacingValue.XL}>
+              <BIcon name="receipt-outline" size="lg" color={themeColors.textMuted} />
+              <BText variant={TextVariant.BODY} muted style={{ marginTop: Spacing.md }}>
+                No transactions yet
+              </BText>
+              <BText variant={TextVariant.CAPTION} muted>
+                Tap the + button to add your first expense
+              </BText>
+            </BView>
+          ) : (
+            combinedTransactions.map((item, index) => (
+              <View key={item.id}>
+                {index > 0 && <BView style={{ height: Spacing.sm }} />}
+                <BCard
+                  variant="default"
+                  style={{
+                    padding: Spacing.md,
+                  }}
+                >
+                  <BView row justify="space-between" align="center">
+                    <BView flex>
+                      <BText variant={TextVariant.LABEL}>{item.description || 'Expense'}</BText>
+                      <BText variant={TextVariant.CAPTION} muted>
+                        {formatDate(item.date)} |{' '}
+                        {('category' in item && item.category?.name) ||
+                          ('savingsType' in item && item.savingsType) ||
+                          ''}
+                      </BText>
+                    </BView>
+                    <BText variant={TextVariant.LABEL} style={{ color: themeColors.error }}>
+                      -₹{item.amount.toLocaleString('en-IN')}
                     </BText>
                   </BView>
-                  <BText variant={TextVariant.LABEL} style={{ color: themeColors.error }}>
-                    -₹{item.amount.toLocaleString('en-IN')}
-                  </BText>
-                </BView>
-              </BCard>
-            )}
-            keyExtractor={(item) => item.id}
-            scrollEnabled={false}
-            ItemSeparatorComponent={() => <BView style={{ height: Spacing.sm }} />}
-            ListEmptyComponent={
-              <BView center paddingY={SpacingValue.XL}>
-                <BIcon name="receipt-outline" size="lg" color={themeColors.textMuted} />
-                <BText variant={TextVariant.BODY} muted style={{ marginTop: Spacing.md }}>
-                  No transactions yet
-                </BText>
-                <BText variant={TextVariant.CAPTION} muted>
-                  Tap the + button to add your first expense
-                </BText>
-              </BView>
-            }
-          />
+                </BCard>
+              </View>
+            ))
+          )}
         </BView>
       </ScrollView>
 

@@ -53,15 +53,6 @@ export type QuickStatSheetProps = {
   onMarkGoalComplete?: (goalId: string) => void;
 };
 
-// const EmptyState: FC<{ icon: string; message: string }> = ({ icon, message }) => (
-//   <BView center paddingY={SpacingValue.XL}>
-//     <BIcon name={icon as any} size="lg" color={Colors.light.textMuted} />
-//     <BText variant={TextVariant.BODY} muted style={{ marginTop: Spacing.md }}>
-//       {message}
-//     </BText>
-//   </BView>
-// );
-
 const QuickStatSheet: FC<QuickStatSheetProps> = ({
   isVisible,
   onClose,
@@ -84,7 +75,7 @@ const QuickStatSheet: FC<QuickStatSheetProps> = ({
     >
       <BView flex>
         <BView row align="center" gap={SpacingValue.XS}>
-          <BText variant={TextVariant.LABEL} style={item.isPaidThisMonth ? styles.paidText : undefined}>
+          <BText variant={TextVariant.LABEL} style={item.isPaidThisMonth ? styles.strikethroughText : undefined}>
             {item.name}
           </BText>
           <BView paddingX={SpacingValue.XS} paddingY={SpacingValue.XS} rounded="xs" bg={themeColors.muted}>
@@ -97,7 +88,7 @@ const QuickStatSheet: FC<QuickStatSheetProps> = ({
           {item.type}
         </BText>
       </BView>
-      <BText variant={TextVariant.LABEL} style={item.isPaidThisMonth ? styles.paidText : undefined}>
+      <BText variant={TextVariant.LABEL} style={item.isPaidThisMonth ? styles.strikethroughText : undefined}>
         ₹{item.amount.toLocaleString('en-IN')}
       </BText>
     </BView>
@@ -113,7 +104,7 @@ const QuickStatSheet: FC<QuickStatSheetProps> = ({
     >
       <BView flex>
         <BView row align="center" gap={SpacingValue.XS}>
-          <BText variant={TextVariant.LABEL} style={item.isPaidThisMonth ? styles.paidText : undefined}>
+          <BText variant={TextVariant.LABEL} style={item.isPaidThisMonth ? styles.strikethroughText : undefined}>
             {item.name}
           </BText>
           <BView paddingX={SpacingValue.XS} paddingY={SpacingValue.XS} rounded="xs" bg={themeColors.muted}>
@@ -127,7 +118,7 @@ const QuickStatSheet: FC<QuickStatSheetProps> = ({
         </BText>
       </BView>
       <BView align="flex-end">
-        <BText variant={TextVariant.LABEL} style={item.isPaidThisMonth ? styles.paidText : undefined}>
+        <BText variant={TextVariant.LABEL} style={item.isPaidThisMonth ? styles.strikethroughText : undefined}>
           ₹{item.emi.toLocaleString('en-IN')}
         </BText>
         <BText variant={TextVariant.CAPTION} muted>
@@ -166,7 +157,7 @@ const QuickStatSheet: FC<QuickStatSheetProps> = ({
             </BView>
           )}
           <BView flex>
-            <BText variant={TextVariant.LABEL} style={item.isCompleted ? styles.completedText : undefined}>
+            <BText variant={TextVariant.LABEL} style={item.isCompleted ? styles.strikethroughText : undefined}>
               {item.name}
             </BText>
             <BText variant={TextVariant.CAPTION} muted>
@@ -174,7 +165,7 @@ const QuickStatSheet: FC<QuickStatSheetProps> = ({
             </BText>
           </BView>
         </BView>
-        <BText variant={TextVariant.LABEL} style={item.isCompleted ? styles.completedText : undefined}>
+        <BText variant={TextVariant.LABEL} style={item.isCompleted ? styles.strikethroughText : undefined}>
           ₹{item.targetAmount.toLocaleString('en-IN')}
         </BText>
       </BView>
@@ -224,11 +215,6 @@ const QuickStatSheet: FC<QuickStatSheetProps> = ({
     const config = sheetConfig[type as keyof typeof sheetConfig];
     if (!config) return null;
 
-    // Show empty state if no data
-    // if (config.data.length === 0) {
-    //   return <EmptyState icon={config.emptyIcon} message={config.emptyMessage} />;
-    // }
-
     // Render the list
     return (
       <FlatList
@@ -263,11 +249,7 @@ const styles = StyleSheet.create({
     width: IconSize.lg,
     height: IconSize.lg,
   },
-  completedText: {
-    textDecorationLine: 'line-through',
-    opacity: 0.5,
-  },
-  paidText: {
+  strikethroughText: {
     textDecorationLine: 'line-through',
     opacity: 0.5,
   },

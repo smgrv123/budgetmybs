@@ -2,20 +2,16 @@ import type { FC } from 'react';
 import type { SwitchProps } from 'react-native';
 import { Switch } from 'react-native';
 
-import { Colors } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-color-scheme';
-import { ColorScheme } from '@/src/types';
+import { useThemeColors } from '@/hooks/use-theme-color';
 
 export interface BSwitchProps extends Omit<SwitchProps, 'trackColor' | 'thumbColor' | 'ios_backgroundColor'> {
   useThemeColors?: boolean;
 }
 
-const BSwitch: FC<BSwitchProps> = ({ useThemeColors = true, ...props }) => {
-  const { colorScheme } = useTheme();
-  const resolvedColorScheme = colorScheme ?? ColorScheme.LIGHT;
-  const themeColors = Colors[resolvedColorScheme];
+const BSwitch: FC<BSwitchProps> = ({ useThemeColors: useThemeColorsProp = true, ...props }) => {
+  const themeColors = useThemeColors();
 
-  if (!useThemeColors) {
+  if (!useThemeColorsProp) {
     return <Switch {...props} />;
   }
 
