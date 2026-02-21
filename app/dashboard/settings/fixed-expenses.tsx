@@ -1,3 +1,9 @@
+import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+
+import BListStep from '@/src/components/onboarding/listStep';
+import { SettingsHeader } from '@/src/components/settings';
+import { BSafeAreaView, BText, BView } from '@/src/components/ui';
 import { FixedExpenseTypeOptions } from '@/src/constants/onboarding.config';
 import {
   common,
@@ -6,14 +12,10 @@ import {
   FIXED_EXPENSE_STEP_CONFIG,
   parseFixedExpenseFormData,
 } from '@/src/constants/setup-form.config';
-import BListStep from '@/src/components/onboarding/listStep';
-import { SettingsHeader } from '@/src/components/settings';
-import { BSafeAreaView, BText, BView } from '@/src/components/ui';
 import { useFixedExpenses } from '@/src/hooks';
 import type { FixedExpenseData } from '@/src/types';
+import { formatIndianNumber } from '@/src/utils/format';
 import { generateUUID } from '@/src/utils/id';
-import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
 
 export default function FixedExpensesScreen() {
   const router = useRouter();
@@ -21,6 +23,7 @@ export default function FixedExpensesScreen() {
     fixedExpenses: dbExpenses,
     isFixedExpensesLoading,
     createFixedExpenseAsync,
+    updateFixedExpenseAsync,
     removeFixedExpenseAsync,
   } = useFixedExpenses();
 
@@ -47,6 +50,10 @@ export default function FixedExpensesScreen() {
     setExpenses((prev) => [...prev, { ...expense, tempId: generateUUID() }]);
   };
 
+  const updateExpense = (tempId: string, data: Partial<FixedExpenseData>) => {
+    setExpenses((prev) => prev.map((e) => (e.tempId === tempId ? { ...e, ...data } : e)));
+  };
+
   const removeExpense = (tempId: string) => {
     setExpenses((prev) => prev.filter((e) => e.tempId !== tempId));
   };
@@ -62,10 +69,24 @@ export default function FixedExpensesScreen() {
   const handleSaveChanges = async () => {
     try {
       const dbIds = new Set((dbExpenses || []).map((exp) => exp.id));
-      const addedItems = expenses.filter((item) => !dbIds.has(item.tempId));
 
-      await Promise.all(
-        addedItems.map((item) =>
+      // New items (not yet in DB)
+      const addedItems = expenses.filter((item) => !dbIds.has(item.tempId));
+      // Modified items (exist in DB but content has changed)
+      const updatedItems = expenses.filter((item) => {
+        if (!dbIds.has(item.tempId)) return false;
+        const original = dbExpenses?.find((e) => e.id === item.tempId);
+        if (!original) return false;
+        return (
+          original.name !== item.name ||
+          original.type !== item.type ||
+          original.amount !== item.amount ||
+          original.dayOfMonth !== item.dayOfMonth
+        );
+      });
+
+      await Promise.all([
+        ...addedItems.map((item) =>
           createFixedExpenseAsync({
             name: item.name,
             type: item.type,
@@ -73,10 +94,21 @@ export default function FixedExpensesScreen() {
             amount: item.amount,
             dayOfMonth: item.dayOfMonth ?? 1,
           })
-        )
-      );
-
-      await Promise.all(removedItemIds.map((id) => removeFixedExpenseAsync(id)));
+        ),
+        ...updatedItems.map((item) =>
+          updateFixedExpenseAsync({
+            id: item.tempId,
+            data: {
+              name: item.name,
+              type: item.type,
+              customType: item.customType ?? null,
+              amount: item.amount,
+              dayOfMonth: item.dayOfMonth ?? 1,
+            },
+          })
+        ),
+        ...removedItemIds.map((id) => removeFixedExpenseAsync(id)),
+      ]);
 
       router.back();
     } catch (error) {
@@ -104,8 +136,15 @@ export default function FixedExpensesScreen() {
             getTitle: (item) => item.name,
             getSubtitle: (item) => getTypeLabel(item.type),
             getAmount: (item) => item.amount,
+            toFormData: (item) => ({
+              name: item.name,
+              type: item.type,
+              amount: formatIndianNumber(item.amount),
+              dayOfMonth: item.dayOfMonth ? String(item.dayOfMonth) : '',
+            }),
           }}
           onRemoveItem={handleRemoveItem}
+          onEditItem={(tempId, data) => updateExpense(tempId, data)}
           formFields={formFields}
           initialFormData={FIXED_EXPENSE_STEP_CONFIG.initialFormData}
           validationSchema={FIXED_EXPENSE_STEP_CONFIG.validationSchema}

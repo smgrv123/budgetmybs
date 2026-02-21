@@ -1,3 +1,5 @@
+import BListStep from '@/src/components/onboarding/listStep';
+import { BText } from '@/src/components/ui';
 import { FixedExpenseTypeOptions } from '@/src/constants/onboarding.config';
 import {
   common,
@@ -6,16 +8,15 @@ import {
   FIXED_EXPENSE_STEP_CONFIG,
   parseFixedExpenseFormData,
 } from '@/src/constants/setup-form.config';
-import BListStep from '@/src/components/onboarding/listStep';
-import { BText } from '@/src/components/ui';
 import { useOnboardingStore } from '@/src/store';
+import { formatIndianNumber } from '@/src/utils/format';
 
 export type FixedExpensesStepProps = {
   onNext: () => void;
 };
 
 function FixedExpensesStep({ onNext }: FixedExpensesStepProps) {
-  const { fixedExpenses: expenses, addFixedExpense, removeFixedExpense } = useOnboardingStore();
+  const { fixedExpenses: expenses, addFixedExpense, removeFixedExpense, updateFixedExpense } = useOnboardingStore();
 
   const getTypeLabel = (type: string) => {
     const option = FixedExpenseTypeOptions.find((o) => o.value === type);
@@ -33,8 +34,15 @@ function FixedExpensesStep({ onNext }: FixedExpensesStepProps) {
         getTitle: (item) => item.name,
         getSubtitle: (item) => getTypeLabel(item.type),
         getAmount: (item) => item.amount,
+        toFormData: (item) => ({
+          name: item.name,
+          type: item.type,
+          amount: formatIndianNumber(item.amount),
+          dayOfMonth: item.dayOfMonth ? String(item.dayOfMonth) : '',
+        }),
       }}
       onRemoveItem={removeFixedExpense}
+      onEditItem={(tempId, data) => updateFixedExpense(tempId, data)}
       formFields={formFields}
       initialFormData={FIXED_EXPENSE_STEP_CONFIG.initialFormData}
       validationSchema={FIXED_EXPENSE_STEP_CONFIG.validationSchema}

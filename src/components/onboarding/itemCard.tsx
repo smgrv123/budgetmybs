@@ -2,7 +2,7 @@ import type { FC, ReactNode } from 'react';
 import { Alert } from 'react-native';
 
 import { OnboardingStrings } from '@/src/constants/onboarding.strings';
-import { Spacing } from '@/src/constants/theme';
+import { ButtonVariant, IconFamily, IconSize, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { formatCurrency } from '@/src/utils/format';
 import { BButton, BCard, BIcon, BText, BView } from '../ui';
@@ -14,6 +14,8 @@ export type ItemCardProps = {
   secondaryAmount?: number;
   secondaryLabel?: string;
   onDelete?: () => void;
+  onEdit?: () => void;
+  isEditing?: boolean;
   extra?: ReactNode;
   confirmDelete?: boolean;
 };
@@ -27,6 +29,8 @@ const BItemCard: FC<ItemCardProps> = ({
   secondaryAmount,
   secondaryLabel,
   onDelete,
+  onEdit,
+  isEditing = false,
   extra,
   confirmDelete = true,
 }) => {
@@ -50,33 +54,52 @@ const BItemCard: FC<ItemCardProps> = ({
 
   return (
     <BCard style={{ marginBottom: Spacing.md }}>
-      <BView flex gap="sm">
+      <BView flex gap={SpacingValue.SM}>
         <BView row justify="space-between" align="flex-start">
-          <BView flex marginX="sm">
-            <BText variant="label" numberOfLines={1}>
+          <BView flex>
+            <BText variant={TextVariant.SUBHEADING} numberOfLines={1}>
               {title}
             </BText>
             {subtitle && (
-              <BText variant="caption" muted style={{ marginTop: Spacing.xs }}>
+              <BText variant={TextVariant.CAPTION} muted style={{ marginTop: Spacing.xs }}>
                 {subtitle}
               </BText>
             )}
           </BView>
-          {onDelete && (
-            <BButton variant="ghost" onPress={handleDelete} padding="xs" rounded="sm">
-              <BIcon name="trash-outline" size="sm" color={themeColors.error} />
-            </BButton>
+          {!isEditing && (
+            <BView row gap="xs">
+              {onEdit && (
+                <BButton
+                  variant={ButtonVariant.GHOST}
+                  onPress={onEdit}
+                  padding={SpacingValue.XS}
+                  rounded={SpacingValue.SM}
+                >
+                  <BIcon family={IconFamily.FEATHER} name="edit-2" size={IconSize.sm} color={themeColors.primary} />
+                </BButton>
+              )}
+              {onDelete && (
+                <BButton
+                  variant={ButtonVariant.GHOST}
+                  onPress={handleDelete}
+                  padding={SpacingValue.XS}
+                  rounded={SpacingValue.SM}
+                >
+                  <BIcon name="trash-outline" size={IconSize.sm} color={themeColors.error} />
+                </BButton>
+              )}
+            </BView>
           )}
         </BView>
 
         <BView row align="center" justify="space-between" style={{ flexWrap: 'wrap' }}>
-          <BText variant="subheading">{formatCurrency(amount)}</BText>
+          <BText variant={TextVariant.LABEL}>{formatCurrency(amount)}</BText>
           {secondaryAmount !== undefined && secondaryLabel && (
             <BView row center>
-              <BText variant="caption" muted>
+              <BText variant={TextVariant.CAPTION} muted>
                 {secondaryLabel}:{' '}
               </BText>
-              <BText variant="caption" color={themeColors.primary}>
+              <BText variant={TextVariant.CAPTION} color={themeColors.primary}>
                 {formatCurrency(secondaryAmount)}
               </BText>
             </BView>

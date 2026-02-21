@@ -60,6 +60,7 @@ export type ItemCardConfig<T> = {
   getAmount: (item: T) => number;
   getSecondaryAmount?: (item: T) => number;
   secondaryLabel?: string;
+  toFormData?: (item: T) => Record<string, string>;
 };
 
 export type ListStepStrings = {
@@ -71,6 +72,8 @@ export type ListStepStrings = {
   form: {
     addButton: string;
     cancelButton: string;
+    saveButton: string;
+    cancelEditButton: string;
   };
 };
 

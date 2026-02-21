@@ -82,6 +82,8 @@ export const OnboardingStrings = {
       },
       addButton: 'Add',
       cancelButton: 'Cancel',
+      saveButton: 'Save',
+      cancelEditButton: 'Cancel',
     },
     customTypeModal: {
       title: 'Add Custom Category',
@@ -126,6 +128,8 @@ export const OnboardingStrings = {
       },
       addButton: 'Add',
       cancelButton: 'Cancel',
+      saveButton: 'Save',
+      cancelEditButton: 'Cancel',
     },
     customTypeModal: {
       title: 'Add Custom Debt Type',
@@ -155,6 +159,8 @@ export const OnboardingStrings = {
       },
       addButton: 'Add',
       cancelButton: 'Cancel',
+      saveButton: 'Save',
+      cancelEditButton: 'Cancel',
     },
     customTypeModal: {
       title: 'Add Custom Savings Type',

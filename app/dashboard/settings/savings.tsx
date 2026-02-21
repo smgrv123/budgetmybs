@@ -1,3 +1,9 @@
+import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+
+import BListStep from '@/src/components/onboarding/listStep';
+import { SettingsHeader } from '@/src/components/settings';
+import { BSafeAreaView, BText, BView } from '@/src/components/ui';
 import { SavingsTypeOptions } from '@/src/constants/onboarding.config';
 import {
   common,
@@ -6,14 +12,10 @@ import {
   SAVINGS_FIELD_CONFIGS,
   SAVINGS_STEP_CONFIG,
 } from '@/src/constants/setup-form.config';
-import BListStep from '@/src/components/onboarding/listStep';
-import { SettingsHeader } from '@/src/components/settings';
-import { BSafeAreaView, BText, BView } from '@/src/components/ui';
 import { useSavingsGoals } from '@/src/hooks';
 import type { SavingsGoalData } from '@/src/types';
+import { formatIndianNumber } from '@/src/utils/format';
 import { generateUUID } from '@/src/utils/id';
-import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react';
 
 export default function SavingsScreen() {
   const router = useRouter();
@@ -21,6 +23,7 @@ export default function SavingsScreen() {
     savingsGoals: dbGoals,
     isSavingsGoalsLoading,
     createSavingsGoalAsync,
+    updateSavingsGoalAsync,
     removeSavingsGoalAsync,
   } = useSavingsGoals();
 
@@ -46,6 +49,10 @@ export default function SavingsScreen() {
     setGoals((prev) => [...prev, { ...goal, tempId: generateUUID() }]);
   };
 
+  const updateGoal = (tempId: string, data: Partial<SavingsGoalData>) => {
+    setGoals((prev) => prev.map((g) => (g.tempId === tempId ? { ...g, ...data } : g)));
+  };
+
   const removeGoal = (tempId: string) => {
     setGoals((prev) => prev.filter((g) => g.tempId !== tempId));
   };
@@ -61,20 +68,41 @@ export default function SavingsScreen() {
   const handleSaveChanges = async () => {
     try {
       const dbIds = new Set((dbGoals || []).map((goal) => goal.id));
-      const addedItems = goals.filter((item) => !dbIds.has(item.tempId));
 
-      await Promise.all(
-        addedItems.map((item) =>
+      // New items (not yet in DB)
+      const addedItems = goals.filter((item) => !dbIds.has(item.tempId));
+      // Modified items (exist in DB but content has changed)
+      const updatedItems = goals.filter((item) => {
+        if (!dbIds.has(item.tempId)) return false;
+        const original = dbGoals?.find((g) => g.id === item.tempId);
+        if (!original) return false;
+        return (
+          original.name !== item.name || original.type !== item.type || original.targetAmount !== item.targetAmount
+        );
+      });
+
+      await Promise.all([
+        ...addedItems.map((item) =>
           createSavingsGoalAsync({
             name: item.name,
             type: item.type,
             customType: item.customType ?? null,
             targetAmount: item.targetAmount,
           })
-        )
-      );
-
-      await Promise.all(removedItemIds.map((id) => removeSavingsGoalAsync(id)));
+        ),
+        ...updatedItems.map((item) =>
+          updateSavingsGoalAsync({
+            id: item.tempId,
+            data: {
+              name: item.name,
+              type: item.type,
+              customType: item.customType ?? null,
+              targetAmount: item.targetAmount,
+            },
+          })
+        ),
+        ...removedItemIds.map((id) => removeSavingsGoalAsync(id)),
+      ]);
 
       router.back();
     } catch (error) {
@@ -102,8 +130,14 @@ export default function SavingsScreen() {
             getTitle: (item) => item.name,
             getSubtitle: (item) => getTypeLabel(item.type),
             getAmount: (item) => item.targetAmount,
+            toFormData: (item) => ({
+              name: item.name,
+              type: item.type,
+              targetAmount: formatIndianNumber(item.targetAmount),
+            }),
           }}
           onRemoveItem={handleRemoveItem}
+          onEditItem={(tempId, data) => updateGoal(tempId, data)}
           formFields={formFields}
           initialFormData={SAVINGS_STEP_CONFIG.initialFormData}
           validationSchema={SAVINGS_STEP_CONFIG.validationSchema}

@@ -27,7 +27,7 @@ export type StepConfig = {
     addButton: string;
     continueButton: string;
     skipButton: string;
-    form: { addButton: string; cancelButton: string };
+    form: { addButton: string; cancelButton: string; saveButton: string; cancelEditButton: string };
   };
   initialFormData: Record<string, string>;
   validationSchema: ZodType;
@@ -150,7 +150,12 @@ export const FIXED_EXPENSE_STEP_CONFIG: StepConfig = {
     addButton: fixedExpenses.addButton,
     continueButton: fixedExpenses.continueButton,
     skipButton: fixedExpenses.skipButton,
-    form: { addButton: fixedExpenses.form.addButton, cancelButton: fixedExpenses.form.cancelButton },
+    form: {
+      addButton: fixedExpenses.form.addButton,
+      cancelButton: fixedExpenses.form.cancelButton,
+      saveButton: fixedExpenses.form.saveButton,
+      cancelEditButton: fixedExpenses.form.cancelEditButton,
+    },
   },
   initialFormData: { name: '', type: '', amount: '', dayOfMonth: '' },
   validationSchema: fixedExpenseSchema,
@@ -169,7 +174,12 @@ export const DEBT_STEP_CONFIG: StepConfig = {
     addButton: debts.addButton,
     continueButton: debts.continueButton,
     skipButton: debts.skipButton,
-    form: { addButton: debts.form.addButton, cancelButton: debts.form.cancelButton },
+    form: {
+      addButton: debts.form.addButton,
+      cancelButton: debts.form.cancelButton,
+      saveButton: debts.form.saveButton,
+      cancelEditButton: debts.form.cancelEditButton,
+    },
   },
   initialFormData: { name: '', type: '', principal: '', interestRate: '', tenureMonths: '', dayOfMonth: '' },
   validationSchema: debtSchema,
@@ -188,7 +198,12 @@ export const SAVINGS_STEP_CONFIG: StepConfig = {
     addButton: savings.addButton,
     continueButton: savings.continueButton,
     skipButton: savings.skipButton,
-    form: { addButton: savings.form.addButton, cancelButton: savings.form.cancelButton },
+    form: {
+      addButton: savings.form.addButton,
+      cancelButton: savings.form.cancelButton,
+      saveButton: savings.form.saveButton,
+      cancelEditButton: savings.form.cancelEditButton,
+    },
   },
   initialFormData: { name: '', type: '', targetAmount: '' },
   validationSchema: savingsGoalSchema,

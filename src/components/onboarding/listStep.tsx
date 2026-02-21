@@ -2,13 +2,11 @@ import { Fragment, ReactNode, useEffect, useRef, useState } from 'react';
 import { ScrollView } from 'react-native';
 
 import { isOtherType } from '@/src/constants/onboarding.config';
-import { ButtonVariant } from '@/src/constants/theme';
-import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { CustomTypeModalConfig, FormField, ItemCardConfig, ListStepStrings } from '@/src/types';
 import { formatIndianNumber, parseFormattedNumber } from '@/src/utils/format';
-import { getFieldError, validateForm } from '@/src/validation/onboarding';
-import { BButton, BCard, BDropdown, BInput, BModal, BText, BView } from '../ui';
+import { BModal, BText, BView } from '../ui';
 import BAddItemButton from './addItemButton';
+import BItemForm from './addItemForm';
 import BItemCard from './itemCard';
 import BCustomTypeModal from './modals/customType';
 import BSkipStepButton from './skipStepButton';
@@ -21,6 +19,7 @@ export type ListStepProps<T extends { tempId: string }> = {
   items: T[];
   itemCardConfig: ItemCardConfig<T>;
   onRemoveItem: (tempId: string) => void;
+  onEditItem?: (tempId: string, data: any) => void;
 
   // Form
   formFields: FormField[];
@@ -39,11 +38,14 @@ export type ListStepProps<T extends { tempId: string }> = {
   footerContent?: ReactNode; // Additional content above skip/continue button
 };
 
+const CURRENCY_FIELDS = ['amount', 'principal', 'targetAmount'];
+
 function ListStep<T extends { tempId: string }>({
   strings,
   items,
   itemCardConfig,
   onRemoveItem,
+  onEditItem,
   formFields,
   initialFormData,
   validationSchema,
@@ -55,71 +57,75 @@ function ListStep<T extends { tempId: string }>({
   nextButtonLabel,
   footerContent,
 }: ListStepProps<T>): React.JSX.Element {
-  const themeColors = useThemeColors();
   const scrollViewRef = useRef<ScrollView>(null);
+
+  // ── Add-item form state ──────────────────────────────────────────────────
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState(initialFormData);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+  // ── Edit-item state ──────────────────────────────────────────────────────
+  const [editingTempId, setEditingTempId] = useState<string | null>(null);
+  const [editFormData, setEditFormData] = useState<Record<string, string>>(initialFormData);
+  const [editFormErrors, setEditFormErrors] = useState<Record<string, string>>({});
+
+  // ── Custom type modal state ──────────────────────────────────────────────
   const [showCustomTypeModal, setShowCustomTypeModal] = useState(false);
   const [customTypeName, setCustomTypeName] = useState('');
 
-  // Auto-scroll to form when it opens
+  // Auto-scroll to add form when it opens
   useEffect(() => {
     if (showForm) {
-      // Small delay to ensure form is rendered before scrolling
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 100);
     }
   }, [showForm]);
 
-  const handleAddItem = () => {
-    const parsedData = parseFormData(formData);
-    const result = validateForm(validationSchema, parsedData);
+  // ── Field-change helpers (parameterised by which form state to update) ───
 
-    if (!result.success) {
-      setFormErrors(result.errors);
-      return;
-    }
+  const makeFieldChangeHandler =
+    (
+      data: Record<string, string>,
+      setData: (d: Record<string, string>) => void,
+      errors: Record<string, string>,
+      setErrors: (e: Record<string, string>) => void
+    ) =>
+    (key: string, value: string) => {
+      let formattedValue = value;
+      if (CURRENCY_FIELDS.includes(key)) {
+        formattedValue = formatIndianNumber(parseFormattedNumber(value));
+      }
+      setData({ ...data, [key]: formattedValue });
+      if (errors[key]) {
+        setErrors({ ...errors, [key]: '' });
+      }
+    };
 
-    onAddItem(parsedData);
-    setFormData(initialFormData);
-    setFormErrors({});
-    setShowForm(false);
-  };
+  const handleFieldChange = makeFieldChangeHandler(formData, setFormData, formErrors, setFormErrors);
+  const handleEditFieldChange = makeFieldChangeHandler(
+    editFormData,
+    setEditFormData,
+    editFormErrors,
+    setEditFormErrors
+  );
 
-  const handleCancel = () => {
-    setShowForm(false);
-    setFormData(initialFormData);
-    setFormErrors({});
-  };
+  // ── Dropdown helpers ─────────────────────────────────────────────────────
 
-  const CURRENCY_FIELDS = ['amount', 'principal', 'targetAmount'];
+  const makeDropdownHandler =
+    (fieldChangeHandler: (key: string, value: string) => void) => (key: string, value: string | number) => {
+      const stringValue = String(value);
+      if (isOtherType(stringValue) && customTypeModal) {
+        setTimeout(() => setShowCustomTypeModal(true), 500);
+      } else {
+        fieldChangeHandler(key, stringValue);
+      }
+    };
 
-  const handleFieldChange = (key: string, value: string) => {
-    let formattedValue = value;
+  const handleDropdownSelect = makeDropdownHandler(handleFieldChange);
+  const handleEditDropdownSelect = makeDropdownHandler(handleEditFieldChange);
 
-    // Format currency fields with Indian number formatting
-    if (CURRENCY_FIELDS.includes(key)) {
-      // Parse first to strip existing commas, then reformat
-      formattedValue = formatIndianNumber(parseFormattedNumber(value));
-    }
-
-    setFormData({ ...formData, [key]: formattedValue });
-    if (formErrors[key]) {
-      setFormErrors({ ...formErrors, [key]: '' });
-    }
-  };
-
-  const handleDropdownSelect = (key: string, value: string | number) => {
-    const stringValue = String(value);
-    if (isOtherType(stringValue) && customTypeModal) {
-      // Delay opening custom modal to allow dropdown modal to close first.
-      setTimeout(() => setShowCustomTypeModal(true), 500);
-    } else {
-      handleFieldChange(key, stringValue);
-    }
-  };
+  // ── Custom type modal ────────────────────────────────────────────────────
 
   const handleAddCustomType = () => {
     if (customTypeName.trim()) {
@@ -129,31 +135,57 @@ function ListStep<T extends { tempId: string }>({
     }
   };
 
-  const renderFormField = ({ item }: { item: FormField }) => {
-    if (item.type === 'dropdown') {
-      return (
-        <BDropdown
-          placeholder={item.placeholder}
-          options={item.options || []}
-          value={formData[item.key]}
-          onValueChange={(value) => handleDropdownSelect(item.key, value)}
-        />
-      );
-    }
+  // ── Add-item handlers ────────────────────────────────────────────────────
 
-    return (
-      <BInput
-        label={item.label}
-        placeholder={item.placeholder}
-        value={formData[item.key]}
-        onChangeText={(text) => handleFieldChange(item.key, text)}
-        keyboardType={item.keyboardType}
-        error={getFieldError(formErrors, item.key)}
-        leftIcon={item.leftIcon}
-        helperText={item.helperText}
-      />
-    );
+  const handleAddItemSuccess = (parsedData: any) => {
+    onAddItem(parsedData);
+    setFormData(initialFormData);
+    setFormErrors({});
+    setShowForm(false);
   };
+
+  const handleCancelAdd = () => {
+    setShowForm(false);
+    setFormData(initialFormData);
+    setFormErrors({});
+  };
+
+  const handleOpenAddForm = () => {
+    // Close any active edit session first
+    if (editingTempId) {
+      handleCancelEdit();
+    }
+    setShowForm(true);
+  };
+
+  // ── Edit-item handlers ───────────────────────────────────────────────────
+
+  const handleStartEdit = (item: T) => {
+    // Close add form if open
+    if (showForm) {
+      setShowForm(false);
+      setFormData(initialFormData);
+      setFormErrors({});
+    }
+    setEditingTempId(item.tempId);
+    setEditFormData(itemCardConfig.toFormData ? itemCardConfig.toFormData(item) : initialFormData);
+    setEditFormErrors({});
+  };
+
+  const handleCancelEdit = () => {
+    setEditingTempId(null);
+    setEditFormData(initialFormData);
+    setEditFormErrors({});
+  };
+
+  const handleSaveEditSuccess = (parsedData: any) => {
+    if (editingTempId && onEditItem) {
+      onEditItem(editingTempId, parsedData);
+    }
+    handleCancelEdit();
+  };
+
+  // ── Render ───────────────────────────────────────────────────────────────
 
   return (
     <BView flex gap="xl">
@@ -165,51 +197,64 @@ function ListStep<T extends { tempId: string }>({
       </BView>
 
       <ScrollView ref={scrollViewRef} style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-        {items.map((item) => (
-          <BItemCard
-            key={item.tempId}
-            title={itemCardConfig.getTitle(item)}
-            subtitle={itemCardConfig.getSubtitle?.(item)}
-            amount={itemCardConfig.getAmount(item)}
-            secondaryAmount={itemCardConfig.getSecondaryAmount?.(item)}
-            secondaryLabel={itemCardConfig.secondaryLabel}
-            onDelete={() => onRemoveItem(item.tempId)}
-          />
-        ))}
+        {items.map((item) => {
+          const isEditing = editingTempId === item.tempId;
+          const canEdit = !!onEditItem && !!itemCardConfig.toFormData;
 
+          return (
+            <Fragment key={item.tempId}>
+              {/* Inline edit form — only for the item being edited */}
+              {isEditing ? (
+                <BItemForm
+                  formFields={formFields}
+                  formData={editFormData}
+                  formErrors={editFormErrors}
+                  setFormErrors={setEditFormErrors}
+                  validationSchema={validationSchema}
+                  parseFormData={parseFormData}
+                  onSubmitAction={handleSaveEditSuccess}
+                  onCancelAction={handleCancelEdit}
+                  onFieldChange={handleEditFieldChange}
+                  onDropdownChange={handleEditDropdownSelect}
+                  extraFormContent={extraFormContent}
+                  submitLabel={strings.form.saveButton}
+                  cancelLabel={strings.form.cancelEditButton}
+                />
+              ) : (
+                <BItemCard
+                  title={itemCardConfig.getTitle(item)}
+                  subtitle={itemCardConfig.getSubtitle?.(item)}
+                  amount={itemCardConfig.getAmount(item)}
+                  secondaryAmount={itemCardConfig.getSecondaryAmount?.(item)}
+                  secondaryLabel={itemCardConfig.secondaryLabel}
+                  onDelete={isEditing ? undefined : () => onRemoveItem(item.tempId)}
+                  onEdit={canEdit && !isEditing ? () => handleStartEdit(item) : undefined}
+                  isEditing={isEditing}
+                />
+              )}
+            </Fragment>
+          );
+        })}
+
+        {/* Add form / Add button — always visible; tapping Add while editing closes edit first */}
         {showForm ? (
-          <BCard variant="form">
-            <BView gap="md">
-              {formFields.map((field) => (
-                <Fragment key={field.key}>{renderFormField({ item: field })}</Fragment>
-              ))}
-            </BView>
-            {extraFormContent?.(formData)}
-            <BView row gap="md">
-              <BButton
-                onPress={handleAddItem}
-                rounded="base"
-                paddingY="sm"
-                variant={ButtonVariant.PRIMARY}
-                style={{ flex: 1, backgroundColor: themeColors.primary }}
-              >
-                <BText color="#FFFFFF" variant="label">
-                  {strings.form.addButton}
-                </BText>
-              </BButton>
-              <BButton
-                variant={ButtonVariant.OUTLINE}
-                onPress={handleCancel}
-                rounded="base"
-                paddingY="sm"
-                style={{ flex: 1 }}
-              >
-                <BText variant="label">{strings.form.cancelButton}</BText>
-              </BButton>
-            </BView>
-          </BCard>
+          <BItemForm
+            formFields={formFields}
+            formData={formData}
+            formErrors={formErrors}
+            setFormErrors={setFormErrors}
+            validationSchema={validationSchema}
+            parseFormData={parseFormData}
+            onSubmitAction={handleAddItemSuccess}
+            onCancelAction={handleCancelAdd}
+            onFieldChange={handleFieldChange}
+            onDropdownChange={handleDropdownSelect}
+            extraFormContent={extraFormContent}
+            submitLabel={strings.form.addButton}
+            cancelLabel={strings.form.cancelButton}
+          />
         ) : (
-          <BAddItemButton label={strings.addButton} onPress={() => setShowForm(true)} />
+          <BAddItemButton label={strings.addButton} onPress={handleOpenAddForm} />
         )}
       </ScrollView>
 

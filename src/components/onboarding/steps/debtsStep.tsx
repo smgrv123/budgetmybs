@@ -1,5 +1,9 @@
 import { useState } from 'react';
 
+import type { DebtPayoffPreference } from '@/db/types';
+import BListStep from '@/src/components/onboarding/listStep';
+import DebtPayoffStrategyModal from '@/src/components/onboarding/modals/debtPayoffStrategyModal';
+import { BButton, BIcon, BText, BView } from '@/src/components/ui';
 import { DEBT_PAYOFF_STRATEGY_CONFIGS, DebtTypeOptions } from '@/src/constants/onboarding.config';
 import {
   common,
@@ -9,14 +13,10 @@ import {
   parseDebtFormData,
 } from '@/src/constants/setup-form.config';
 import { ButtonVariant, SpacingValue, TextVariant } from '@/src/constants/theme';
-import type { DebtPayoffPreference } from '@/db/types';
-import BListStep from '@/src/components/onboarding/listStep';
-import DebtPayoffStrategyModal from '@/src/components/onboarding/modals/debtPayoffStrategyModal';
-import { BButton, BIcon, BText, BView } from '@/src/components/ui';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { useOnboardingStore } from '@/src/store';
 import { calculateEMI } from '@/src/utils/budget';
-import { formatCurrency, parseFormattedNumber } from '@/src/utils/format';
+import { formatCurrency, formatIndianNumber, parseFormattedNumber } from '@/src/utils/format';
 
 export type DebtsStepProps = {
   onNext: () => void;
@@ -24,7 +24,7 @@ export type DebtsStepProps = {
 
 function DebtsStep({ onNext }: DebtsStepProps) {
   const themeColors = useThemeColors();
-  const { debts: debtsList, addDebt, removeDebt, profile, updateProfileField } = useOnboardingStore();
+  const { debts: debtsList, addDebt, removeDebt, updateDebt, profile, updateProfileField } = useOnboardingStore();
   const [showStrategyModal, setShowStrategyModal] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState<DebtPayoffPreference | null>(null);
 
@@ -56,8 +56,17 @@ function DebtsStep({ onNext }: DebtsStepProps) {
           getAmount: (item) => item.principal,
           getSecondaryAmount: (item) => calculateEMI(item.principal, item.interestRate, item.tenureMonths),
           secondaryLabel: 'EMI',
+          toFormData: (item) => ({
+            name: item.name,
+            type: item.type,
+            principal: formatIndianNumber(item.principal),
+            interestRate: String(item.interestRate),
+            tenureMonths: String(item.tenureMonths),
+            dayOfMonth: item.dayOfMonth ? String(item.dayOfMonth) : '',
+          }),
         }}
         onRemoveItem={removeDebt}
+        onEditItem={(tempId, data) => updateDebt(tempId, data)}
         formFields={formFields}
         initialFormData={DEBT_STEP_CONFIG.initialFormData}
         validationSchema={DEBT_STEP_CONFIG.validationSchema}

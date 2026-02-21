@@ -44,7 +44,10 @@ export interface DropdownOptionConfig {
 }
 
 export const FixedExpenseTypeOptions: DropdownOptionConfig[] = Object.entries(FixedExpenseLabels).map(
-  ([value, label]) => ({ value, label })
+  ([value, label]) => ({
+    value,
+    label,
+  })
 );
 
 export const DebtTypeOptions: DropdownOptionConfig[] = Object.entries(DebtLabels).map(([value, label]) => ({

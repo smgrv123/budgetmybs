@@ -1,6 +1,9 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 
+import BListStep from '@/src/components/onboarding/listStep';
+import { SettingsHeader } from '@/src/components/settings';
+import { BSafeAreaView, BText, BView } from '@/src/components/ui';
 import { DebtTypeOptions } from '@/src/constants/onboarding.config';
 import {
   common,
@@ -10,19 +13,17 @@ import {
   parseDebtFormData,
 } from '@/src/constants/setup-form.config';
 import { Spacing } from '@/src/constants/theme';
-import BListStep from '@/src/components/onboarding/listStep';
-import { SettingsHeader } from '@/src/components/settings';
-import { BSafeAreaView, BText, BView } from '@/src/components/ui';
 import { useDebts } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { DebtData } from '@/src/types';
 import { calculateEMI } from '@/src/utils/budget';
+import { formatIndianNumber, parseFormattedNumber } from '@/src/utils/format';
 import { generateUUID } from '@/src/utils/id';
 
 export default function DebtsScreen() {
   const router = useRouter();
   const themeColors = useThemeColors();
-  const { debts: dbDebts, isDebtsLoading, createDebtAsync, removeDebtAsync } = useDebts();
+  const { debts: dbDebts, isDebtsLoading, createDebtAsync, updateDebtAsync, removeDebtAsync } = useDebts();
 
   const [debts, setDebts] = useState<DebtData[]>([]);
   const [removedItemIds, setRemovedItemIds] = useState<string[]>([]);
@@ -48,6 +49,10 @@ export default function DebtsScreen() {
     setDebts((prev) => [...prev, { ...debt, tempId: generateUUID() }]);
   };
 
+  const updateDebt = (tempId: string, data: Partial<DebtData>) => {
+    setDebts((prev) => prev.map((d) => (d.tempId === tempId ? { ...d, ...data } : d)));
+  };
+
   const removeDebt = (tempId: string) => {
     setDebts((prev) => prev.filter((d) => d.tempId !== tempId));
   };
@@ -63,10 +68,25 @@ export default function DebtsScreen() {
   const handleSaveChanges = async () => {
     try {
       const dbIds = new Set((dbDebts || []).map((debt) => debt.id));
-      const addedItems = debts.filter((item) => !dbIds.has(item.tempId));
 
-      await Promise.all(
-        addedItems.map((item) => {
+      // New items (not yet in DB)
+      const addedItems = debts.filter((item) => !dbIds.has(item.tempId));
+      // Modified items (exist in DB but content has changed)
+      const updatedItems = debts.filter((item) => {
+        if (!dbIds.has(item.tempId)) return false;
+        const original = dbDebts?.find((d) => d.id === item.tempId);
+        if (!original) return false;
+        return (
+          original.name !== item.name ||
+          original.type !== item.type ||
+          original.principal !== item.principal ||
+          original.interestRate !== item.interestRate ||
+          original.tenureMonths !== item.tenureMonths
+        );
+      });
+
+      await Promise.all([
+        ...addedItems.map((item) => {
           const emiAmount = calculateEMI(item.principal, item.interestRate, item.tenureMonths);
           return createDebtAsync({
             name: item.name,
@@ -81,10 +101,25 @@ export default function DebtsScreen() {
             startDate: null,
             dayOfMonth: item.dayOfMonth ?? 1,
           });
-        })
-      );
-
-      await Promise.all(removedItemIds.map((id) => removeDebtAsync(id)));
+        }),
+        ...updatedItems.map((item) => {
+          const emiAmount = calculateEMI(item.principal, item.interestRate, item.tenureMonths);
+          return updateDebtAsync({
+            id: item.tempId,
+            data: {
+              name: item.name,
+              type: item.type,
+              customType: item.customType ?? null,
+              principal: item.principal,
+              interestRate: item.interestRate,
+              emiAmount,
+              tenureMonths: item.tenureMonths,
+              dayOfMonth: item.dayOfMonth ?? 1,
+            },
+          });
+        }),
+        ...removedItemIds.map((id) => removeDebtAsync(id)),
+      ]);
 
       router.back();
     } catch (error) {
@@ -114,8 +149,17 @@ export default function DebtsScreen() {
             getAmount: (item) => item.principal,
             getSecondaryAmount: (item) => calculateEMI(item.principal, item.interestRate, item.tenureMonths),
             secondaryLabel: 'EMI',
+            toFormData: (item) => ({
+              name: item.name,
+              type: item.type,
+              principal: formatIndianNumber(item.principal),
+              interestRate: String(item.interestRate),
+              tenureMonths: String(item.tenureMonths),
+              dayOfMonth: item.dayOfMonth ? String(item.dayOfMonth) : '',
+            }),
           }}
           onRemoveItem={handleRemoveItem}
+          onEditItem={(tempId, data) => updateDebt(tempId, data)}
           formFields={formFields}
           initialFormData={DEBT_STEP_CONFIG.initialFormData}
           validationSchema={DEBT_STEP_CONFIG.validationSchema}
@@ -127,7 +171,7 @@ export default function DebtsScreen() {
             const emi =
               formData.principal && formData.interestRate && formData.tenureMonths
                 ? calculateEMI(
-                    parseFloat(formData.principal) || 0,
+                    parseFormattedNumber(formData.principal),
                     parseFloat(formData.interestRate) || 0,
                     parseInt(formData.tenureMonths, 10) || 0
                   )
