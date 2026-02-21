@@ -1,6 +1,6 @@
-import type { ModalPositionType } from '@/constants/theme';
-import { BorderRadius, ModalPosition, Opacity, Shadows, Spacing, TextVariant } from '@/constants/theme';
-import { useThemeColors } from '@/hooks/use-theme-color';
+import type { ModalPositionType } from '@/src/constants/theme';
+import { BorderRadius, ModalPosition, Opacity, Shadows, Spacing, TextVariant } from '@/src/constants/theme';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { FC } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 import { Dimensions, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';

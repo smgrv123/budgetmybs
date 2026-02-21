@@ -1,8 +1,8 @@
 import type { FC } from 'react';
 import { StyleSheet } from 'react-native';
 
-import { BorderRadius, Shadows, Spacing } from '@/constants/theme';
-import { useThemeColors } from '@/hooks/use-theme-color';
+import { BorderRadius, Shadows, Spacing } from '@/src/constants/theme';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { BCard, BIcon, BText, BView } from '../ui';
 
 export type FeatureCardProps = {

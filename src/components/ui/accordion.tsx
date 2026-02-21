@@ -2,8 +2,8 @@ import type { FC, ReactNode } from 'react';
 import { useState } from 'react';
 import { Animated } from 'react-native';
 
-import { ButtonVariant, SpacingValue, TextVariant } from '@/constants/theme';
-import { useThemeColors } from '@/hooks/use-theme-color';
+import { ButtonVariant, SpacingValue, TextVariant } from '@/src/constants/theme';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import BButton from './button';
 import BIcon from './icon';
 import BText from './text';

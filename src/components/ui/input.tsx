@@ -1,4 +1,4 @@
-import type { ComponentSizeType, InputVariantType, SpacingValueType, TextVariantType } from '@/constants/theme';
+import type { ComponentSizeType, InputVariantType, SpacingValueType, TextVariantType } from '@/src/constants/theme';
 import {
   BorderRadius,
   ComponentHeight,
@@ -8,8 +8,8 @@ import {
   Opacity,
   Spacing,
   TextVariant,
-} from '@/constants/theme';
-import { useThemeColors } from '@/hooks/use-theme-color';
+} from '@/src/constants/theme';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { FC, ReactNode } from 'react';
 import { useState } from 'react';
 import type { StyleProp, TextInputProps, ViewStyle } from 'react-native';

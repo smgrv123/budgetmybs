@@ -2,7 +2,7 @@ import type { FC } from 'react';
 import type { SwitchProps } from 'react-native';
 import { Switch } from 'react-native';
 
-import { useThemeColors } from '@/hooks/use-theme-color';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 
 export interface BSwitchProps extends Omit<SwitchProps, 'trackColor' | 'thumbColor' | 'ios_backgroundColor'> {
   useThemeColors?: boolean;

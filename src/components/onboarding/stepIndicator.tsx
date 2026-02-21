@@ -1,8 +1,8 @@
 import type { FC } from 'react';
 import { StyleSheet } from 'react-native';
 
-import { Spacing } from '@/constants/theme';
-import { useThemeColors } from '@/hooks/use-theme-color';
+import { Spacing } from '@/src/constants/theme';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { BIcon, BText, BView } from '../ui';
 
 export type StepIndicatorProps = {

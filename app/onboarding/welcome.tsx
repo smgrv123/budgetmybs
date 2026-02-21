@@ -1,8 +1,8 @@
-import { OnboardingStrings } from '@/constants/onboarding.strings';
-import { BorderRadius, ButtonVariant, Spacing } from '@/constants/theme';
-import { useThemeColors } from '@/hooks/use-theme-color';
+import { OnboardingStrings } from '@/src/constants/onboarding.strings';
+import { BorderRadius, ButtonVariant, Spacing } from '@/src/constants/theme';
 import { BFeatureCard } from '@/src/components/onboarding';
 import { BLink, BSafeAreaView, BText, BView } from '@/src/components/ui';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { FlatList, StyleSheet } from 'react-native';
 
 const { welcome } = OnboardingStrings;

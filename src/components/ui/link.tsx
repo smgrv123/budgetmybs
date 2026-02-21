@@ -1,4 +1,4 @@
-import { ButtonVariant, Opacity } from '@/constants/theme';
+import { ButtonVariant, Opacity } from '@/src/constants/theme';
 import type { Href } from 'expo-router';
 import { Link as ExpoLink } from 'expo-router';
 import type { FC, ReactNode } from 'react';

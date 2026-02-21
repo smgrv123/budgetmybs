@@ -3,10 +3,9 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 
-import { AsyncStorageKeys } from '@/constants/asyncStorageKeys';
-import { OnboardingStrings } from '@/constants/onboarding.strings';
-import { ButtonVariant, ComponentSize, Spacing, SpacingValue, TextVariant } from '@/constants/theme';
-import { useThemeColors } from '@/hooks/use-theme-color';
+import { AsyncStorageKeys } from '@/src/constants/asyncStorageKeys';
+import { OnboardingStrings } from '@/src/constants/onboarding.strings';
+import { ButtonVariant, ComponentSize, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
 import {
   BAccordion,
   BButton,
@@ -29,6 +28,7 @@ import { applyAISuggestions } from '@/src/utils/applyAISuggestions';
 import { formatIndianNumber } from '@/src/utils/format';
 import { ensureNetworkAvailable, NetworkError, pollNetworkConnection } from '@/src/utils/network';
 import { useSaveOnboardingData } from '@/src/utils/saveOnboardingData';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 
 const { plan } = OnboardingStrings;
 

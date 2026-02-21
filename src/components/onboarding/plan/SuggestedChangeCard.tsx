@@ -1,8 +1,8 @@
 import type { FC } from 'react';
 
-import { SpacingValue, TextVariant } from '@/constants/theme';
-import { useThemeColors } from '@/hooks/use-theme-color';
+import { SpacingValue, TextVariant } from '@/src/constants/theme';
 import { BIcon, BText, BView } from '@/src/components/ui';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { SuggestedChange } from '@/src/types/financialPlan';
 import { formatIndianNumber } from '@/src/utils/format';
 

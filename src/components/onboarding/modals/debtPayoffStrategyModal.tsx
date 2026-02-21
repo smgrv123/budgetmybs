@@ -1,8 +1,8 @@
-import { DEBT_PAYOFF_STRATEGY_INFO } from '@/constants/onboarding.config';
-import { ButtonVariant, SpacingValue, TextVariant } from '@/constants/theme';
+import { DEBT_PAYOFF_STRATEGY_INFO } from '@/src/constants/onboarding.config';
+import { ButtonVariant, SpacingValue, TextVariant } from '@/src/constants/theme';
 import type { DebtPayoffPreference } from '@/db/types';
-import { useThemeColors } from '@/hooks/use-theme-color';
 import { BButton, BModal, BText, BView } from '@/src/components/ui';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 
 type DebtPayoffStrategyModalProps = {
   isVisible: boolean;

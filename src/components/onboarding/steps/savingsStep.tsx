@@ -1,11 +1,11 @@
-import { SavingsTypeOptions } from '@/constants/onboarding.config';
+import { SavingsTypeOptions } from '@/src/constants/onboarding.config';
 import {
   common,
   createFormFieldsWithCurrency,
   parseSavingsFormData,
   SAVINGS_FIELD_CONFIGS,
   SAVINGS_STEP_CONFIG,
-} from '@/constants/setup-form.config';
+} from '@/src/constants/setup-form.config';
 import BListStep from '@/src/components/onboarding/listStep';
 import { BText } from '@/src/components/ui';
 import { useOnboardingStore } from '@/src/store';

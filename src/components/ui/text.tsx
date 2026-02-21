@@ -1,6 +1,6 @@
-import type { TextVariantType } from '@/constants/theme';
-import { FontSize, FontWeight, LineHeight, TextVariant } from '@/constants/theme';
-import { useThemeColors } from '@/hooks/use-theme-color';
+import type { TextVariantType } from '@/src/constants/theme';
+import { FontSize, FontWeight, LineHeight, TextVariant } from '@/src/constants/theme';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { FC } from 'react';
 import type { TextProps as RNTextProps, TextStyle } from 'react-native';
 import { Text as RNText } from 'react-native';

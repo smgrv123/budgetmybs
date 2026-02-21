@@ -4,8 +4,8 @@ import { StyleSheet } from 'react-native';
 import type { Edge } from 'react-native-safe-area-context';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import type { ThemeColors } from '@/hooks/use-theme-color';
-import { useThemeColors } from '@/hooks/use-theme-color';
+import type { ThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 
 export interface BSafeAreaViewProps {
   /** Children to render */

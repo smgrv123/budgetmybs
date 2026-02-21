@@ -1,4 +1,4 @@
-import { common, PROFILE_FIELD_CONFIGS } from '@/constants/setup-form.config';
+import { common, PROFILE_FIELD_CONFIGS } from '@/src/constants/setup-form.config';
 import type { ProfileData, ProfileField } from '@/src/types';
 import { formatIndianNumber } from '@/src/utils/format';
 import { getFieldError } from '@/src/validation/onboarding';

@@ -1,8 +1,8 @@
 import type { FC } from 'react';
 
-import { SpacingValue, TextVariant } from '@/constants/theme';
-import { useThemeColors } from '@/hooks/use-theme-color';
+import { SpacingValue, TextVariant } from '@/src/constants/theme';
 import { BIcon, BText, BView } from '@/src/components/ui';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 
 type InsightCardProps = {
   insight: string;

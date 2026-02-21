@@ -1,9 +1,9 @@
 import type { FC } from 'react';
 
-import { OnboardingStrings } from '@/constants/onboarding.strings';
-import { CardVariant, SpacingValue, TextVariant } from '@/constants/theme';
-import { useThemeColors } from '@/hooks/use-theme-color';
+import { OnboardingStrings } from '@/src/constants/onboarding.strings';
+import { CardVariant, SpacingValue, TextVariant } from '@/src/constants/theme';
 import { BCard, BIcon, BText, BView } from '@/src/components/ui';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 
 type HealthScoreCardProps = {
   originalScore: number;

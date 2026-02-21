@@ -1,6 +1,6 @@
 import { createElement } from 'react';
 
-import { TRANSACTION_MODAL_TEXT } from '@/constants/transactionModal';
+import { TRANSACTION_MODAL_TEXT } from '@/src/constants/transactionModal';
 import type { TransactionField, TransactionFieldConfig } from '@/src/types/transaction';
 import { BText } from '../ui';
 

@@ -1,4 +1,4 @@
-import type { ThemeColors } from '@/hooks/use-theme-color';
+import type { ThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import {
   BudgetValueKey,
   FinancialDataKey,

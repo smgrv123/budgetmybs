@@ -1,9 +1,9 @@
 import type { FC, ReactNode } from 'react';
 import { KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 
-import { getTotalSteps } from '@/constants/onboarding.config';
-import { Spacing } from '@/constants/theme';
-import { useThemeColors } from '@/hooks/use-theme-color';
+import { getTotalSteps } from '@/src/constants/onboarding.config';
+import { Spacing } from '@/src/constants/theme';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { BButton, BIcon, BSafeAreaView, BText, BView } from '../ui';
 import BStepIndicator from './stepIndicator';
 

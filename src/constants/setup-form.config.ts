@@ -1,8 +1,8 @@
 import { ReactNode } from 'react';
 import type { ZodType } from 'zod';
 
-import { DebtTypeOptions, FixedExpenseTypeOptions, SavingsTypeOptions } from '@/constants/onboarding.config';
-import { OnboardingStrings } from '@/constants/onboarding.strings';
+import { DebtTypeOptions, FixedExpenseTypeOptions, SavingsTypeOptions } from '@/src/constants/onboarding.config';
+import { OnboardingStrings } from '@/src/constants/onboarding.strings';
 import type { FormField } from '@/src/types';
 import { parseFormattedNumber } from '@/src/utils/format';
 import { debtSchema, fixedExpenseSchema, profileSchema, savingsGoalSchema } from '@/src/validation/onboarding';

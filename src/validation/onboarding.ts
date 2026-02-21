@@ -1,4 +1,4 @@
-import { OnboardingStrings } from '@/constants/onboarding.strings';
+import { OnboardingStrings } from '@/src/constants/onboarding.strings';
 import { z } from 'zod';
 
 const { validation } = OnboardingStrings;

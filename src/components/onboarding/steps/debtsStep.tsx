@@ -1,19 +1,19 @@
 import { useState } from 'react';
 
-import { DEBT_PAYOFF_STRATEGY_CONFIGS, DebtTypeOptions } from '@/constants/onboarding.config';
+import { DEBT_PAYOFF_STRATEGY_CONFIGS, DebtTypeOptions } from '@/src/constants/onboarding.config';
 import {
   common,
   createFormFieldsWithCurrency,
   DEBT_FIELD_CONFIGS,
   DEBT_STEP_CONFIG,
   parseDebtFormData,
-} from '@/constants/setup-form.config';
-import { ButtonVariant, SpacingValue, TextVariant } from '@/constants/theme';
+} from '@/src/constants/setup-form.config';
+import { ButtonVariant, SpacingValue, TextVariant } from '@/src/constants/theme';
 import type { DebtPayoffPreference } from '@/db/types';
-import { useThemeColors } from '@/hooks/use-theme-color';
 import BListStep from '@/src/components/onboarding/listStep';
 import DebtPayoffStrategyModal from '@/src/components/onboarding/modals/debtPayoffStrategyModal';
 import { BButton, BIcon, BText, BView } from '@/src/components/ui';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { useOnboardingStore } from '@/src/store';
 import { calculateEMI } from '@/src/utils/budget';
 import { formatCurrency, parseFormattedNumber } from '@/src/utils/format';

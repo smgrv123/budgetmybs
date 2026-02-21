@@ -1,5 +1,5 @@
-import { useThemeColors } from '@/hooks/use-theme-color';
 import { BButton, BIcon, BText, BView } from '@/src/components/ui';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { useRouter } from 'expo-router';
 
 type SettingsHeaderProps = {

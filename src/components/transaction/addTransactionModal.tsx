@@ -3,12 +3,12 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { z } from 'zod';
 
-import { ButtonVariant, Spacing, SpacingValue, TextVariant } from '@/constants/theme';
-import { TRANSACTION_TAB_CONFIGS } from '@/constants/transactionForm.config';
-import { TRANSACTION_MODAL_TEXT, TransactionTab } from '@/constants/transactionModal';
-import { useThemeColors } from '@/hooks/use-theme-color';
+import { ButtonVariant, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
+import { TRANSACTION_TAB_CONFIGS } from '@/src/constants/transactionForm.config';
+import { TRANSACTION_MODAL_TEXT, TransactionTab } from '@/src/constants/transactionModal';
 import { BButton, BDropdown, BIcon, BInput, BModal, BText, BView } from '@/src/components/ui';
 import { useCategories, useExpenses } from '@/src/hooks';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { createTransactionFields } from './transactionForm';
 
 // Validation schemas

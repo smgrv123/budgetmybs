@@ -2,10 +2,10 @@ import type { FC } from 'react';
 import type { PressableProps, ViewStyle } from 'react-native';
 import { ActivityIndicator, Pressable, StyleSheet } from 'react-native';
 
-import type { BorderRadiusType, ButtonVariantType, ComponentSizeType, SpacingValueType } from '@/constants/theme';
-import { BorderRadius, ButtonVariant, ComponentSize, Opacity, Spacing } from '@/constants/theme';
-import type { ThemeColors } from '@/hooks/use-theme-color';
-import { useThemeColors } from '@/hooks/use-theme-color';
+import type { BorderRadiusType, ButtonVariantType, ComponentSizeType, SpacingValueType } from '@/src/constants/theme';
+import { BorderRadius, ButtonVariant, ComponentSize, Opacity, Spacing } from '@/src/constants/theme';
+import type { ThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 
 export interface BButtonProps extends PressableProps {
   variant?: ButtonVariantType;

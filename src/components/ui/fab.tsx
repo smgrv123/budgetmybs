@@ -1,8 +1,8 @@
 import type { FC } from 'react';
 import { StyleSheet } from 'react-native';
 
-import { ButtonVariant, ComponentSize, Spacing } from '@/constants/theme';
-import { useThemeColors } from '@/hooks/use-theme-color';
+import { ButtonVariant, ComponentSize, Spacing } from '@/src/constants/theme';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import BButton, { type BButtonProps } from './button';
 import BIcon from './icon';
 

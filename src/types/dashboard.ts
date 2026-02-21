@@ -1,4 +1,4 @@
-import { QuickStatType, StatCardType } from '@/constants/dashboardData';
+import { QuickStatType, StatCardType } from '@/src/constants/dashboardData';
 
 /**
  * Stat card item interface

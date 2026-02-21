@@ -1,5 +1,5 @@
-import { useThemeColors } from '@/hooks/use-theme-color';
 import { BText, BView } from '@/src/components/ui';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { BudgetOverviewItem } from '@/src/types/settings';
 
 interface BudgetOverviewRowProps extends BudgetOverviewItem {

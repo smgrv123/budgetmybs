@@ -1,9 +1,9 @@
 import type { FC, ReactNode } from 'react';
 import { Alert } from 'react-native';
 
-import { OnboardingStrings } from '@/constants/onboarding.strings';
-import { Spacing } from '@/constants/theme';
-import { useThemeColors } from '@/hooks/use-theme-color';
+import { OnboardingStrings } from '@/src/constants/onboarding.strings';
+import { Spacing } from '@/src/constants/theme';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { formatCurrency } from '@/src/utils/format';
 import { BButton, BCard, BIcon, BText, BView } from '../ui';
 

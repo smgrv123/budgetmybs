@@ -2,10 +2,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
-import { createQuickStats, createStatCards, QuickStatType } from '@/constants/dashboardData';
-import { BorderRadius, ButtonVariant, Spacing, SpacingValue, TextVariant } from '@/constants/theme';
+import { createQuickStats, createStatCards, QuickStatType } from '@/src/constants/dashboardData';
+import { BorderRadius, ButtonVariant, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
 import { RecurringSourceTypeEnum } from '@/db/types';
-import { useThemeColors } from '@/hooks/use-theme-color';
 import {
   AddTransactionModal,
   BButton,
@@ -23,6 +22,7 @@ import type { QuickStatTypeValue } from '@/src/types/dashboard';
 import { calculateTotalEMI, calculateTotalFixedExpenses } from '@/src/utils/budget';
 import { mapDebtToSheet, mapFixedExpenseToSheet, mapSavingsGoalToSheet } from '@/src/utils/dashboard';
 import { formatDate } from '@/src/utils/date';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 
 export default function DashboardScreen() {
   const themeColors = useThemeColors();

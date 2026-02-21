@@ -1,9 +1,9 @@
 import { FlatList, StyleSheet } from 'react-native';
 
-import { OnboardingStrings } from '@/constants/onboarding.strings';
-import { Spacing } from '@/constants/theme';
-import { useThemeColors } from '@/hooks/use-theme-color';
+import { OnboardingStrings } from '@/src/constants/onboarding.strings';
+import { Spacing } from '@/src/constants/theme';
 import { BButton, BIcon, BInput, BText, BView } from '@/src/components/ui';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { ProfileData } from '@/src/types';
 import { parseFormattedNumber } from '@/src/utils/format';
 import { profileSchema, validateForm } from '@/src/validation/onboarding';

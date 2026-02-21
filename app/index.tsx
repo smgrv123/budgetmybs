@@ -2,11 +2,11 @@ import { Redirect } from 'expo-router';
 import { useEffect } from 'react';
 import { Alert, StyleSheet } from 'react-native';
 
-import { Spacing, TextVariant } from '@/constants/theme';
+import { Spacing, TextVariant } from '@/src/constants/theme';
 import { processRecurringTransactions } from '@/db/queries';
-import { useThemeColors } from '@/hooks/use-theme-color';
 import { BIcon, BSafeAreaView, BText, BView } from '@/src/components';
 import { useCategories, useProfile } from '@/src/hooks';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 
 /**
  * Root index screen - handles routing based on onboarding status

@@ -3,10 +3,10 @@ import { router } from 'expo-router';
 import { useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 
-import { OnboardingStrings } from '@/constants/onboarding.strings';
-import { ComponentSize, Spacing, SpacingValue, TextVariant } from '@/constants/theme';
-import { useThemeColors } from '@/hooks/use-theme-color';
+import { OnboardingStrings } from '@/src/constants/onboarding.strings';
+import { ComponentSize, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
 import { BCard, BIcon, BSafeAreaView, BText, BView } from '@/src/components';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 
 const { success } = OnboardingStrings;
 

@@ -1,20 +1,20 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 
-import { DebtTypeOptions } from '@/constants/onboarding.config';
+import { DebtTypeOptions } from '@/src/constants/onboarding.config';
 import {
   common,
   createFormFieldsWithCurrency,
   DEBT_FIELD_CONFIGS,
   DEBT_STEP_CONFIG,
   parseDebtFormData,
-} from '@/constants/setup-form.config';
-import { Spacing } from '@/constants/theme';
-import { useThemeColors } from '@/hooks/use-theme-color';
+} from '@/src/constants/setup-form.config';
+import { Spacing } from '@/src/constants/theme';
 import BListStep from '@/src/components/onboarding/listStep';
 import { SettingsHeader } from '@/src/components/settings';
 import { BSafeAreaView, BText, BView } from '@/src/components/ui';
 import { useDebts } from '@/src/hooks';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { DebtData } from '@/src/types';
 import { calculateEMI } from '@/src/utils/budget';
 import { generateUUID } from '@/src/utils/id';

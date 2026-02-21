@@ -1,13 +1,13 @@
 import type { FC, ReactNode } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 
-import type { CardVariantType, SpacingValueType } from '@/constants/theme';
-import { BorderRadius, CardVariant, Shadows, Spacing, SpacingValue } from '@/constants/theme';
-import { useThemeColors } from '@/hooks/use-theme-color';
+import type { CardVariantType, SpacingValueType } from '@/src/constants/theme';
+import { BorderRadius, CardVariant, Shadows, Spacing, SpacingValue } from '@/src/constants/theme';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import BView from './view';
 
 // Re-export for convenience
-export type { CardVariantType as CardVariant } from '@/constants/theme';
+export type { CardVariantType as CardVariant } from '@/src/constants/theme';
 
 export type BCardProps = {
   variant?: CardVariantType;

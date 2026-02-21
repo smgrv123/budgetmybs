@@ -1,5 +1,5 @@
-import { OnboardingStepId } from '@/constants/onboarding.config';
-import { OnboardingStrings } from '@/constants/onboarding.strings';
+import { OnboardingStepId } from '@/src/constants/onboarding.config';
+import { OnboardingStrings } from '@/src/constants/onboarding.strings';
 import {
   BDebtsStep,
   BFixedExpensesStep,

@@ -1,9 +1,9 @@
 import { Fragment, ReactNode, useEffect, useRef, useState } from 'react';
 import { ScrollView } from 'react-native';
 
-import { isOtherType } from '@/constants/onboarding.config';
-import { ButtonVariant } from '@/constants/theme';
-import { useThemeColors } from '@/hooks/use-theme-color';
+import { isOtherType } from '@/src/constants/onboarding.config';
+import { ButtonVariant } from '@/src/constants/theme';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { CustomTypeModalConfig, FormField, ItemCardConfig, ListStepStrings } from '@/src/types';
 import { formatIndianNumber, parseFormattedNumber } from '@/src/utils/format';
 import { getFieldError, validateForm } from '@/src/validation/onboarding';

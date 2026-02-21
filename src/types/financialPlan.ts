@@ -2,7 +2,7 @@
  * Financial plan types for Gemini AI integration
  */
 
-import type { BudgetCategory, RecommendationPriority, SuggestedChangeField } from '@/constants/financialPlan';
+import type { BudgetCategory, RecommendationPriority, SuggestedChangeField } from '@/src/constants/financialPlan';
 
 export type SuggestedChangeFieldType = (typeof SuggestedChangeField)[keyof typeof SuggestedChangeField];
 

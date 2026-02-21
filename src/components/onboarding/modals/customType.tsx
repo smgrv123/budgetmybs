@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 
-import { BorderRadius, Spacing } from '@/constants/theme';
-import { useThemeColors } from '@/hooks/use-theme-color';
+import { BorderRadius, Spacing } from '@/src/constants/theme';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { CustomTypeModalConfig } from '@/src/types';
 import { Dispatch, SetStateAction } from 'react';
 import { BButton, BInput, BText, BView } from '../../ui';

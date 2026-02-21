@@ -1,9 +1,9 @@
 import type { FC } from 'react';
 
-import { RecommendationPriority } from '@/constants/financialPlan';
-import { SpacingValue, TextVariant } from '@/constants/theme';
-import { useThemeColors, type ThemeColors } from '@/hooks/use-theme-color';
+import { RecommendationPriority } from '@/src/constants/financialPlan';
+import { SpacingValue, TextVariant } from '@/src/constants/theme';
 import { BText, BView } from '@/src/components/ui';
+import { useThemeColors, type ThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { AIRecommendation } from '@/src/types/financialPlan';
 
 type RecommendationCardProps = Pick<AIRecommendation, 'title' | 'description' | 'priority'>;

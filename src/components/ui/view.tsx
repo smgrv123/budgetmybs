@@ -1,7 +1,7 @@
-import type { BorderRadiusType, SpacingValueType } from '@/constants/theme';
-import { BorderRadius, Spacing } from '@/constants/theme';
-import type { ThemeColors } from '@/hooks/use-theme-color';
-import { useThemeColors } from '@/hooks/use-theme-color';
+import type { BorderRadiusType, SpacingValueType } from '@/src/constants/theme';
+import { BorderRadius, Spacing } from '@/src/constants/theme';
+import type { ThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { FC } from 'react';
 import type { FlexStyle, ViewProps as RNViewProps } from 'react-native';
 import { View as RNView, StyleSheet } from 'react-native';

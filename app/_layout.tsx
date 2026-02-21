@@ -4,7 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import { DatabaseProvider } from '@/db';
-import { useTheme } from '@/hooks/use-color-scheme';
+import { useTheme } from '@/src/hooks/theme-hooks/use-color-scheme';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 export const unstable_settings = {

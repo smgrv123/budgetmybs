@@ -1,11 +1,11 @@
-import { FixedExpenseTypeOptions } from '@/constants/onboarding.config';
+import { FixedExpenseTypeOptions } from '@/src/constants/onboarding.config';
 import {
   common,
   createFormFieldsWithCurrency,
   FIXED_EXPENSE_FIELD_CONFIGS,
   FIXED_EXPENSE_STEP_CONFIG,
   parseFixedExpenseFormData,
-} from '@/constants/setup-form.config';
+} from '@/src/constants/setup-form.config';
 import BListStep from '@/src/components/onboarding/listStep';
 import { SettingsHeader } from '@/src/components/settings';
 import { BSafeAreaView, BText, BView } from '@/src/components/ui';

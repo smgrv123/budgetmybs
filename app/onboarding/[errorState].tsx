@@ -1,8 +1,8 @@
 import { router, useLocalSearchParams } from 'expo-router';
 
-import { ButtonVariant, ComponentSize, Spacing, SpacingValue, TextVariant } from '@/constants/theme';
-import { useThemeColors } from '@/hooks/use-theme-color';
+import { ButtonVariant, ComponentSize, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
 import { BButton, BIcon, BSafeAreaView, BText, BView } from '@/src/components';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 
 type ErrorState = 'network' | 'api_failure' | 'timeout';
 

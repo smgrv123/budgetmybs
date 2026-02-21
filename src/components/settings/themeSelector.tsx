@@ -1,7 +1,7 @@
-import { ButtonVariant, ComponentSize, Spacing, SpacingValue, TextVariant } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-color-scheme';
-import { useThemeColors } from '@/hooks/use-theme-color';
+import { ButtonVariant, ComponentSize, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
 import { BButton, BIcon, BText, BView } from '@/src/components/ui';
+import { useTheme } from '@/src/hooks/theme-hooks/use-color-scheme';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { ThemePreference, type ThemePreferenceType } from '@/src/types';
 
 const themeOptions = [

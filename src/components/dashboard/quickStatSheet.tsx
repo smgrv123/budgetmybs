@@ -1,7 +1,7 @@
 import type { FC } from 'react';
 import { FlatList, StyleSheet } from 'react-native';
 
-import { QuickStatType } from '@/constants/dashboardData';
+import { QuickStatType } from '@/src/constants/dashboardData';
 import {
   BorderRadius,
   ButtonVariant,
@@ -10,9 +10,9 @@ import {
   Spacing,
   SpacingValue,
   TextVariant,
-} from '@/constants/theme';
-import { useThemeColors } from '@/hooks/use-theme-color';
+} from '@/src/constants/theme';
 import { BButton, BIcon, BModal, BText, BView } from '@/src/components/ui';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { QuickStatTypeValue } from '@/src/types/dashboard';
 
 type FixedExpenseItem = {

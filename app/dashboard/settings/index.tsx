@@ -1,9 +1,9 @@
-import { BUDGET_OVERVIEW_ITEMS, createFinancialDataItems } from '@/constants/settings.config';
-import { Spacing } from '@/constants/theme';
-import { useThemeColors } from '@/hooks/use-theme-color';
+import { BUDGET_OVERVIEW_ITEMS, createFinancialDataItems } from '@/src/constants/settings.config';
+import { Spacing } from '@/src/constants/theme';
 import { BudgetOverviewRow, FinancialDataRow, SettingsHeader, ThemeSelector } from '@/src/components/settings';
 import { BButton, BCard, BIcon, BSafeAreaView, BText, BView } from '@/src/components/ui';
 import { useDebts, useFixedExpenses, useProfile, useSavingsGoals } from '@/src/hooks';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { BudgetValueKey, FinancialDataKey } from '@/src/types/settings';
 import { calculateEMI } from '@/src/utils/budget';
 import { useRouter } from 'expo-router';

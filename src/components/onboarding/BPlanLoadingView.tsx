@@ -1,8 +1,8 @@
 import LottieView from 'lottie-react-native';
 import { useEffect, useState } from 'react';
 
-import { MESSAGE_ROTATION_DURATION_MS, PLAN_LOADING_MESSAGES } from '@/constants/planLoadingStrings';
-import { TextVariant } from '@/constants/theme';
+import { MESSAGE_ROTATION_DURATION_MS, PLAN_LOADING_MESSAGES } from '@/src/constants/planLoadingStrings';
+import { TextVariant } from '@/src/constants/theme';
 import { BText, BView } from '../ui/index';
 
 type BPlanLoadingViewProps = {

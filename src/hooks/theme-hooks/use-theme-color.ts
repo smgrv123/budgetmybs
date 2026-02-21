@@ -1,4 +1,4 @@
-import { Colors } from '@/constants/theme';
+import { Colors } from '@/src/constants/theme';
 import { useTheme } from './use-color-scheme';
 
 /**

@@ -1,6 +1,6 @@
-import { SpacingValue } from '@/constants/theme';
-import { useThemeColors } from '@/hooks/use-theme-color';
+import { SpacingValue } from '@/src/constants/theme';
 import { BIcon, BLink, BText, BView } from '@/src/components/ui';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { FinancialDataItem } from '@/src/types/settings';
 
 interface FinancialDataRowProps extends FinancialDataItem {

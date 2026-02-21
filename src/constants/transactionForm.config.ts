@@ -1,4 +1,4 @@
-import { TRANSACTION_MODAL_TEXT, TransactionTab } from '@/constants/transactionModal';
+import { TRANSACTION_MODAL_TEXT, TransactionTab } from '@/src/constants/transactionModal';
 import { SavingsLabels, SavingsTypeEnum } from '@/db/types';
 import type { TransactionFieldConfig } from '@/src/types/transaction';
 

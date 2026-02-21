@@ -2,9 +2,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import type { FC } from 'react';
 import { StyleSheet } from 'react-native';
 
-import { SpacingValue, TextVariant } from '@/constants/theme';
-import { useThemeColors } from '@/hooks/use-theme-color';
+import { SpacingValue, TextVariant } from '@/src/constants/theme';
 import { BText, BView } from '@/src/components/ui';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { BudgetAllocationItem } from '@/src/types/financialPlan';
 import { formatIndianNumber } from '@/src/utils/format';
 

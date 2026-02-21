@@ -1,10 +1,10 @@
 import { clearUserData } from '@/db';
 import { DebtPayoffPreferenceEnum } from '@/db/types';
-import { useThemeColors } from '@/hooks/use-theme-color';
 import ProfileStep from '@/src/components/onboarding/steps/profileStep';
 import { SettingsHeader } from '@/src/components/settings';
 import { BButton, BSafeAreaView, BText, BView } from '@/src/components/ui';
 import { useProfile } from '@/src/hooks';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { ProfileData } from '@/src/types';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';

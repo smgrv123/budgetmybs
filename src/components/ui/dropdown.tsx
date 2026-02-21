@@ -4,9 +4,9 @@ import { useMemo, useState } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 import { FlatList, Pressable, StyleSheet } from 'react-native';
 
-import type { ComponentSizeType } from '@/constants/theme';
-import { BorderRadius, ComponentHeight, ComponentSize, FontSize, Opacity, Spacing } from '@/constants/theme';
-import { useThemeColors } from '@/hooks/use-theme-color';
+import type { ComponentSizeType } from '@/src/constants/theme';
+import { BorderRadius, ComponentHeight, ComponentSize, FontSize, Opacity, Spacing } from '@/src/constants/theme';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import BButton from './button';
 import BIcon from './icon';
 import BInput from './input';
