@@ -9,6 +9,7 @@ import type { DebtData, FixedExpenseData, ProfileData, SavingsGoalData } from '@
 
 import type {
   categoriesTable,
+  chatMessagesTable,
   debtsTable,
   expensesTable,
   financialPlansTable,
@@ -94,3 +95,14 @@ export type CreateFinancialPlanInput = {
 // Monthly Snapshots
 export type CreateMonthlySnapshotInput = Pick<MonthlySnapshot, 'month' | 'frivolousBudget'> &
   Partial<Pick<MonthlySnapshot, 'rolloverFromPrevious'>>;
+
+// ============================================
+// CHAT MESSAGE TYPES
+// ============================================
+
+export type ChatMessage = typeof chatMessagesTable.$inferSelect;
+export type NewChatMessage = typeof chatMessagesTable.$inferInsert;
+
+export type CreateChatMessageInput = Pick<ChatMessage, 'role' | 'content'> &
+  Partial<Pick<ChatMessage, 'actionType' | 'actionData' | 'actionStatus' | 'quotedMessageId'>>;
+export type UpdateChatMessageInput = Partial<Pick<ChatMessage, 'actionStatus'>>;

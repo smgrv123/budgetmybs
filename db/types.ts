@@ -163,3 +163,63 @@ export const SavingsLabels: Record<SavingsType, string> = {
   emergency_fund: 'Emergency Fund',
   other: 'Other',
 };
+
+// ============================================
+// CHAT TYPES
+// ============================================
+
+export const ChatRoleEnum = {
+  USER: 'user',
+  ASSISTANT: 'assistant',
+  SYSTEM: 'system',
+} as const;
+export type ChatRole = (typeof ChatRoleEnum)[keyof typeof ChatRoleEnum];
+export const CHAT_ROLES = Object.values(ChatRoleEnum);
+
+export const ChatActionTypeEnum = {
+  ADD_EXPENSE: 'add_expense',
+  UPDATE_PROFILE: 'update_profile',
+  ADD_FIXED_EXPENSE: 'add_fixed_expense',
+  UPDATE_FIXED_EXPENSE: 'update_fixed_expense',
+  DELETE_FIXED_EXPENSE: 'delete_fixed_expense',
+  ADD_DEBT: 'add_debt',
+  UPDATE_DEBT: 'update_debt',
+  DELETE_DEBT: 'delete_debt',
+  ADD_SAVINGS_GOAL: 'add_savings_goal',
+  UPDATE_SAVINGS_GOAL: 'update_savings_goal',
+  DELETE_SAVINGS_GOAL: 'delete_savings_goal',
+} as const;
+export type ChatActionType = (typeof ChatActionTypeEnum)[keyof typeof ChatActionTypeEnum];
+export const CHAT_ACTION_TYPES = Object.values(ChatActionTypeEnum);
+
+export const ChatActionStatusEnum = {
+  PENDING: 'pending',
+  COMPLETED: 'completed',
+  CANCELLED: 'cancelled',
+} as const;
+export type ChatActionStatus = (typeof ChatActionStatusEnum)[keyof typeof ChatActionStatusEnum];
+export const CHAT_ACTION_STATUSES = Object.values(ChatActionStatusEnum);
+
+export const ProfileFieldEnum = {
+  SALARY: 'salary',
+  MONTHLY_SAVINGS_TARGET: 'monthlySavingsTarget',
+  FRIVOLOUS_BUDGET: 'frivolousBudget',
+} as const;
+export type ProfileFieldType = (typeof ProfileFieldEnum)[keyof typeof ProfileFieldEnum];
+
+export const ChatIntentEnum = {
+  ADD_EXPENSE: 'add_expense',
+  UPDATE_PROFILE: 'update_profile',
+  ADD_FIXED_EXPENSE: 'add_fixed_expense',
+  UPDATE_FIXED_EXPENSE: 'update_fixed_expense',
+  DELETE_FIXED_EXPENSE: 'delete_fixed_expense',
+  ADD_DEBT: 'add_debt',
+  UPDATE_DEBT: 'update_debt',
+  DELETE_DEBT: 'delete_debt',
+  ADD_SAVINGS_GOAL: 'add_savings_goal',
+  UPDATE_SAVINGS_GOAL: 'update_savings_goal',
+  DELETE_SAVINGS_GOAL: 'delete_savings_goal',
+  GENERAL: 'general',
+} as const;
+export type ChatIntent = (typeof ChatIntentEnum)[keyof typeof ChatIntentEnum];
+export const CHAT_INTENTS = Object.values(ChatIntentEnum);

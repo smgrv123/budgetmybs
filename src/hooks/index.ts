@@ -1,6 +1,7 @@
 // TanStack Query Hooks
 export { useAccount } from './useAccount';
 export { CATEGORIES_QUERY_KEY, useCategories } from './useCategories';
+export { CHAT_MESSAGES_QUERY_KEY, useChat } from './useChat';
 export { DEBTS_QUERY_KEY, TOTAL_EMI_QUERY_KEY, TOTAL_REMAINING_QUERY_KEY, useDebts } from './useDebts';
 export {
   EXPENSES_QUERY_KEY,

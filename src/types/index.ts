@@ -1,3 +1,4 @@
+export * from './chat';
 export * from './financialPlan';
 export * from './form';
 export * from './onboarding';

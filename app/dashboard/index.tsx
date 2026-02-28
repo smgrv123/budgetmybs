@@ -2,8 +2,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
-import { createQuickStats, createStatCards, QuickStatType } from '@/src/constants/dashboardData';
-import { BorderRadius, ButtonVariant, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
 import { RecurringSourceTypeEnum } from '@/db/types';
 import {
   AddTransactionModal,
@@ -11,18 +9,19 @@ import {
   BCard,
   BFAB,
   BIcon,
-  BLink,
   BSafeAreaView,
   BText,
   BView,
   QuickStatSheet,
 } from '@/src/components';
+import { createQuickStats, createStatCards, QuickStatType } from '@/src/constants/dashboardData';
+import { BorderRadius, ButtonVariant, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
 import { useDebts, useExpenses, useFixedExpenses, useProfile, useRecurringStatus, useSavingsGoals } from '@/src/hooks';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { QuickStatTypeValue } from '@/src/types/dashboard';
 import { calculateTotalEMI, calculateTotalFixedExpenses } from '@/src/utils/budget';
 import { mapDebtToSheet, mapFixedExpenseToSheet, mapSavingsGoalToSheet } from '@/src/utils/dashboard';
 import { formatDate } from '@/src/utils/date';
-import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 
 export default function DashboardScreen() {
   const themeColors = useThemeColors();
@@ -99,7 +98,7 @@ export default function DashboardScreen() {
 
   if (isLoading) {
     return (
-      <BSafeAreaView>
+      <BSafeAreaView edges={['top']}>
         <BView flex center>
           <BIcon name="sync" color={themeColors.primary} size="lg" />
           <BText variant={TextVariant.BODY} muted style={{ marginTop: Spacing.md }}>
@@ -112,7 +111,7 @@ export default function DashboardScreen() {
 
   if (isProfileError) {
     return (
-      <BSafeAreaView>
+      <BSafeAreaView edges={['top']}>
         <BView flex center padding={SpacingValue.XL}>
           <BIcon name="alert-circle-outline" color={themeColors.error} size="lg" />
           <BText variant={TextVariant.SUBHEADING} center style={{ marginTop: Spacing.md }}>
@@ -136,7 +135,7 @@ export default function DashboardScreen() {
   const combinedTransactions = [...expenses, ...oneOffSavings];
 
   return (
-    <BSafeAreaView edges={['bottom']}>
+    <BSafeAreaView edges={[]}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Gradient Header */}
         <LinearGradient colors={HEADER_GRADIENT} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.header}>
@@ -144,14 +143,9 @@ export default function DashboardScreen() {
             <BText variant={TextVariant.BODY} color={themeColors.white} muted style={{ marginBottom: Spacing.xs }}>
               {formatDate()}
             </BText>
-            <BView row justify="space-between" align="center">
-              <BText variant={TextVariant.HEADING} color={themeColors.white}>
-                Hey, {profile?.name}!
-              </BText>
-              <BLink href="/dashboard/settings">
-                <BIcon name="settings-outline" color={themeColors.white} size="md" />
-              </BLink>
-            </BView>
+            <BText variant={TextVariant.HEADING} color={themeColors.white}>
+              Hey, {profile?.name}!
+            </BText>
           </BView>
         </LinearGradient>
 

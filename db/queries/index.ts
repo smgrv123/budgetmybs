@@ -98,3 +98,13 @@ export {
 
 // Account queries (delete/reset)
 export { clearUserData } from './account';
+
+// Chat queries
+export {
+  clearChatHistory,
+  createChatMessage,
+  getChatMessageById,
+  getChatMessages,
+  getRecentChatMessages,
+  updateChatMessageAction,
+} from './chat';
