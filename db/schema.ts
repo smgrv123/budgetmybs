@@ -2,6 +2,9 @@ import { relations, sql } from 'drizzle-orm';
 import { integer, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import type {
   CategoryType,
+  ChatActionStatus,
+  ChatActionType,
+  ChatRole,
   DebtPayoffPreference,
   DebtType,
   FixedExpenseType,
@@ -230,6 +233,25 @@ export const monthlySnapshotsTable = sqliteTable('monthly_snapshots', {
 });
 
 // ============================================
+// CHAT MESSAGES TABLE
+// ============================================
+
+export const chatMessagesTable = sqliteTable('chat_messages', {
+  id: text('id')
+    .primaryKey()
+    .$default(() => generateUUID()),
+  role: text('role').$type<ChatRole>().notNull(),
+  content: text('content').notNull(),
+  actionType: text('action_type').$type<ChatActionType>(),
+  actionData: text('action_data', { mode: 'json' }).$type<Record<string, unknown>>(),
+  actionStatus: text('action_status').$type<ChatActionStatus>(),
+  quotedMessageId: text('quoted_message_id'),
+  createdAt: text('created_at')
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
+// ============================================
 // RELATIONS
 // ============================================
 
@@ -242,4 +264,11 @@ export const expensesRelations = relations(expensesTable, ({ one }) => ({
 
 export const categoriesRelations = relations(categoriesTable, ({ many }) => ({
   expenses: many(expensesTable),
+}));
+
+export const chatMessagesRelations = relations(chatMessagesTable, ({ one }) => ({
+  quotedMessage: one(chatMessagesTable, {
+    fields: [chatMessagesTable.quotedMessageId],
+    references: [chatMessagesTable.id],
+  }),
 }));

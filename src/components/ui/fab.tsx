@@ -41,8 +41,8 @@ const BFAB: FC<BFABProps> = ({ icon = 'add', size = 60, onPress, ...props }) => 
 const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
-    bottom: Spacing['2xl'],
-    right: Spacing.xl,
+    bottom: Spacing.base,
+    right: Spacing.base,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 8, // Android shadow

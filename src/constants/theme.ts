@@ -165,6 +165,13 @@ export const Colors = {
     summaryBg: '#F5F3FF',
     insightBg: '#F0F9FF',
     insightCheck: '#3B82F6',
+    // Chat
+    chatUserBubble: '#4F6BED',
+    chatBotBubble: '#F3F3F5',
+    chatUserText: '#FFFFFF',
+    chatBotText: '#000000',
+    chatInputBg: '#F3F3F5',
+    chatTimestamp: '#9CA3AF',
   },
   dark: {
     text: '#F3F4F6',
@@ -237,6 +244,13 @@ export const Colors = {
     summaryBg: 'rgba(123, 147, 255, 0.12)',
     insightBg: 'rgba(59, 130, 246, 0.12)',
     insightCheck: '#60A5FA',
+    // Chat
+    chatUserBubble: '#7B93FF',
+    chatBotBubble: '#1A1D24',
+    chatUserText: '#FFFFFF',
+    chatBotText: '#F3F4F6',
+    chatInputBg: '#1A1D24',
+    chatTimestamp: '#6B7280',
   },
 };
 
