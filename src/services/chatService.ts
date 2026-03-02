@@ -1,5 +1,6 @@
 import { getRecentChatMessages } from '@/db';
 import type { ChatMessage, Debt, FixedExpense, SavingsGoal } from '@/db/schema-types';
+import { DEBT_TYPES, FIXED_EXPENSE_TYPES, SAVINGS_TYPES } from '@/db/types';
 import { generateJSON } from '@/src/services/gemini';
 import type { ChatResponse } from '@/src/types/chat';
 import type { ProfileData } from '@/src/types/onboarding';
@@ -27,58 +28,82 @@ const buildSystemPrompt = (ctx: ChatContext): string => {
 All monetary values are in Indian Rupees (₹). Use Indian number formatting (e.g., ₹1,50,000).
 
 ══════════════════════════════════
+⚠️  CRITICAL EXTRACTION RULE — READ FIRST:
+══════════════════════════════════
+ONLY extract data from the CURRENT user message below.
+Do NOT reuse, carry over, or infer values from previous messages in the conversation history.
+If a value is not explicitly stated in the current message, do NOT include that field in data.
+
+══════════════════════════════════
 CAPABILITIES — what you CAN do:
 ══════════════════════════════════
 
 1. ADD EXPENSES
-   When user says things like "spent 500 on coffee", "paid 200 for auto", "bought groceries for 1500"
-   IMPORTANT: For "category" always use EXACTLY one of the category names from the list below — no short codes.
+   Triggered by: "spent 500 on coffee", "paid 200 for auto", "bought groceries for 1500"
+   - For "category" use EXACTLY one name from the Expense Categories list below. No short codes, no made-up names.
 
 2. UPDATE PROFILE
-   When user wants to change: salary, monthlySavingsTarget, frivolousBudget (fun money)
-   Example: "update salary to 150000", "set my fun budget to 5000"
+   Fields: salary, monthlySavingsTarget, frivolousBudget
+   Triggered by: "update salary to 150000", "set my fun budget to 5000"
 
-3. ADD / UPDATE FIXED EXPENSES
-   When user says "add rent of 15000", "update my internet bill to 999"
-   Types: rent, utilities, internet, phone, insurance, subscriptions, emi, groceries, transport, domestic_help, other
+3. ADD FIXED EXPENSES
+   Triggered by: "add rent of 15000", "add Netflix subscription for 649"
+   Types: ${FIXED_EXPENSE_TYPES.join(', ')}
 
-4. ADD / UPDATE DEBTS
-   When user says "I took a personal loan of 5 lakhs at 12% for 36 months"
-   Types: home_loan, car_loan, personal_loan, education_loan, credit_card, gold_loan, business_loan, other
+4. UPDATE FIXED EXPENSES
+   Triggered by: "change my Netflix to 799", "update internet bill to 999"
+   - Use existingName to identify the target (match from Fixed Expenses list below)
+   - Only include fields the user explicitly mentions changing
+   - If user wants to rename: include both existingName (old) AND name (new)
 
-5. ADD / UPDATE SAVINGS GOALS
-   When user says "I want to save 10000 monthly in mutual funds", "add PPF contribution of 5000"
-   Types: fd, rd, mutual_funds, stocks, ppf, nps, gold, crypto, emergency_fund, other
+5. DELETE FIXED EXPENSES
+   Triggered by: "remove Netflix", "delete my internet subscription"
+   - Confirm deletion in your message before returning this intent
+   - Use existingName to identify the target
 
-6. FINANCIAL PLANNING & ADVICE
-   When users ask for financial advice, budgeting help, or money planning:
+6. ADD DEBTS
+   Triggered by: "I took a personal loan of 5 lakhs at 12% for 36 months"
+   Types: ${DEBT_TYPES.join(', ')}
 
-   - Analyze their ACTUAL financial picture — reference their real income, expenses, debts, savings
-   - Build a personalized budget allocation based on their specific commitments and goals, not generic rules
-   - Recommend debt payoff strategies aligned with their chosen preference (avalanche or snowball)
-   - Identify specific areas where they're overspending relative to their income
-   - Suggest emergency fund targets based on their actual monthly expenses
-   - Provide actionable, step-by-step plans with exact ₹ amounts from their data
-   - Compare their actual spending ratios against their own targets/goals
-   - Be conversational but data-driven — always cite their real numbers
-   - Proactively suggest follow-ups (e.g., "Would you like me to adjust your savings target?")
-   - Factor in Indian-specific instruments (PPF, NPS, ELSS for tax saving, FD rates)
-   - Consider inflation (~6% for India) for long-term planning recommendations
+7. UPDATE DEBTS
+   Triggered by: "update my car loan EMI to 28000", "change car loan interest rate to 10%"
+   - Use existingName to identify the target (match from Active Debts list below)
+   - Only include fields the user explicitly mentions changing
+   - If user wants to rename: include both existingName (old) AND name (new)
 
-══════════════════════════════════
-RESTRICTIONS — what you CANNOT do:
-══════════════════════════════════
-- CANNOT delete or remove any data
-- CANNOT modify data without showing a confirmation form first
-- CANNOT perform any destructive or irreversible changes
-- If asked to delete/remove, politely refuse and suggest alternatives
+8. DELETE DEBTS
+   Triggered by: "I've paid off my car loan", "remove my personal loan"
+   - Confirm deletion in your message before returning this intent
+   - Use existingName to identify the target
+
+9. ADD SAVINGS GOALS
+   Triggered by: "I want to save 10000 monthly in mutual funds", "add PPF contribution of 5000"
+   Types: ${SAVINGS_TYPES.join(', ')}
+
+10. UPDATE SAVINGS GOALS
+    Triggered by: "update emergency fund target to 15000", "change my SIP to 12000 monthly"
+    - Use existingName to identify the target (match from Savings Goals list below)
+    - Only include fields the user explicitly mentions changing
+    - If user wants to rename: include both existingName (old) AND name (new)
+
+11. DELETE SAVINGS GOALS
+    Triggered by: "remove my emergency fund goal", "delete the PPF goal"
+    - Confirm deletion in your message before returning this intent
+    - Use existingName to identify the target
+
+12. FINANCIAL PLANNING & ADVICE
+    - Analyze their ACTUAL financial picture — cite real ₹ amounts from their data
+    - Recommend debt payoff strategies aligned with their preference (${profile.debtPayoffPreference})
+    - Factor in Indian-specific instruments (PPF, NPS, ELSS, FD rates)
+    - Consider inflation (~6% for India) for long-term planning
+    - Proactively suggest follow-ups
 
 ══════════════════════════════════
 RESPONSE FORMAT — ALWAYS valid JSON:
 ══════════════════════════════════
 
-Add expense (use EXACT category name from the list provided in context):
-{ "intent": "add_expense", "data": { "amount": 500, "category": "Food & Dining", "description": "coffee" }, "message": "..." }
+Add expense (category MUST be exact name from list):
+{ "intent": "add_expense", "data": { "amount": 500, "category": "Food & Dining", "description": "coffee" }, "message": "Got it! Recorded ₹500 for coffee under Food & Dining." }
 
 Update profile:
 { "intent": "update_profile", "data": { "field": "salary", "value": 150000 }, "message": "..." }
@@ -86,22 +111,34 @@ Update profile:
 Add fixed expense:
 { "intent": "add_fixed_expense", "data": { "name": "Netflix", "type": "subscriptions", "amount": 649 }, "message": "..." }
 
-Update fixed expense:
+Update fixed expense (only changed fields + existingName):
 { "intent": "update_fixed_expense", "data": { "existingName": "Netflix", "amount": 799 }, "message": "..." }
+
+Rename + update fixed expense:
+{ "intent": "update_fixed_expense", "data": { "existingName": "Netflix", "name": "Disney+", "amount": 899 }, "message": "..." }
+
+Delete fixed expense:
+{ "intent": "delete_fixed_expense", "data": { "existingName": "Netflix" }, "message": "Are you sure you want to delete Netflix? This cannot be undone." }
 
 Add debt:
 { "intent": "add_debt", "data": { "name": "Car Loan", "type": "car_loan", "principal": 800000, "interestRate": 9.5, "emiAmount": 25000, "tenureMonths": 36, "remainingMonths": 36, "remaining": 800000 }, "message": "..." }
 
-Update debt:
+Update debt (only changed fields + existingName):
 { "intent": "update_debt", "data": { "existingName": "Car Loan", "emiAmount": 28000 }, "message": "..." }
 
+Delete debt:
+{ "intent": "delete_debt", "data": { "existingName": "Car Loan" }, "message": "Are you sure you want to delete Car Loan? This cannot be undone." }
+
 Add savings goal:
-{ "intent": "add_savings_goal", "data": { "name": "Mutual Funds SIP", "type": "mutual_funds", "targetAmount": 10000 }, "message": "..." }
+{ "intent": "add_savings_goal", "data": { "name": "Emergency Fund", "type": "emergency_fund", "targetAmount": 100000 }, "message": "..." }
 
-Update savings goal:
-{ "intent": "update_savings_goal", "data": { "existingName": "Mutual Funds SIP", "targetAmount": 15000 }, "message": "..." }
+Update savings goal (only changed fields + existingName):
+{ "intent": "update_savings_goal", "data": { "existingName": "Emergency Fund", "targetAmount": 150000 }, "message": "..." }
 
-General / advice / restricted:
+Delete savings goal:
+{ "intent": "delete_savings_goal", "data": { "existingName": "Emergency Fund" }, "message": "Are you sure you want to delete Emergency Fund? This cannot be undone." }
+
+General / advice:
 { "intent": "general", "message": "..." }
 
 ══════════════════════════════════
@@ -125,7 +162,7 @@ const formatHistory = (messages: ChatMessage[]): string => {
   if (messages.length === 0) return '';
 
   return (
-    '\n\n══════════════════════════════════\nCONVERSATION HISTORY (for context):\n══════════════════════════════════\n' +
+    '\n\n══════════════════════════════════\nCONVERSATION HISTORY (for context only — do NOT extract data from here):\n══════════════════════════════════\n' +
     messages.map((m) => `${m.role === 'user' ? 'User' : 'FinAI'}: ${m.content}`).join('\n')
   );
 };
@@ -152,7 +189,7 @@ export const sendChatMessage = async (userMessage: string, context: ChatContext)
   const fullPrompt = `${systemPrompt}${historyBlock}
 
 ══════════════════════════════════
-CURRENT USER MESSAGE:
+CURRENT USER MESSAGE (extract data ONLY from this):
 ══════════════════════════════════
 ${userMessage}
 

@@ -11,7 +11,17 @@ export const CHAT_STRINGS = {
   FORM_SAVING: 'Saving...',
   FORM_CONFIRM: 'Confirm',
   FORM_CANCEL: 'Cancel',
+  DELETE_CONFIRM_SUFFIX: '? This cannot be undone.',
+  DELETE_CONFIRM_PREFIX: 'Are you sure you want to delete',
+  DELETE_BUTTON: 'Delete',
 } as const;
+
+export const DeleteEntityType = {
+  FIXED_EXPENSE: 'Fixed Expense',
+  DEBT: 'Debt',
+  SAVINGS_GOAL: 'Savings Goal',
+} as const;
+export type DeleteEntityTypeValue = (typeof DeleteEntityType)[keyof typeof DeleteEntityType];
 
 /** Inline update form titles keyed by ChatIntentEnum value */
 export const CHAT_FORM_TITLES = {

@@ -5,17 +5,17 @@ import { useCategories } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { DropdownOption } from '@/src/types';
 import type { ChatExpenseData } from '@/src/types/chat';
-import { useMemo, useState } from 'react';
+import type { FC } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 interface InlineExpenseFormProps {
   initialData: ChatExpenseData;
-  /** Receives the resolved categoryId, not the raw LLM category string */
   onSubmit: (data: ChatExpenseData & { categoryId?: string }) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
 }
 
-export default function InlineExpenseForm({ initialData, onSubmit, onCancel, isSubmitting }: InlineExpenseFormProps) {
+const InlineExpenseForm: FC<InlineExpenseFormProps> = ({ initialData, onSubmit, onCancel, isSubmitting }) => {
   const themeColors = useThemeColors();
   const { allCategories } = useCategories();
   const [amount, setAmount] = useState(String(initialData.amount));
@@ -27,8 +27,7 @@ export default function InlineExpenseForm({ initialData, onSubmit, onCancel, isS
     [allCategories]
   );
 
-  // Resolve the LLM-returned category name to its DB id on initial render.
-  // The LLM returns the exact name (e.g. "Food & Dining"), so we match by name.
+  // Resolve the LLM-returned category name to its DB id
   const resolvedInitialId = useMemo(() => {
     if (!initialData.category) return '';
     const match = allCategories.find((c) => c.name.toLowerCase() === initialData.category!.toLowerCase());
@@ -37,14 +36,24 @@ export default function InlineExpenseForm({ initialData, onSubmit, onCancel, isS
 
   const [categoryId, setCategoryId] = useState<string>(resolvedInitialId);
 
-  // Re-resolve when categories load (they may have been empty on first render)
-  useMemo(() => {
+  // Re-resolve when categories load asynchronously (may be empty on first render)
+  useEffect(() => {
     if (!categoryId && resolvedInitialId) setCategoryId(resolvedInitialId);
   }, [resolvedInitialId]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const [error, setError] = useState<string | null>(null);
+
   const handleSubmit = () => {
     const parsed = parseFloat(amount);
-    if (!parsed || isNaN(parsed)) return;
+    if (!amount || isNaN(parsed) || parsed <= 0) {
+      setError('Please enter a valid amount greater than 0.');
+      return;
+    }
+    if (!categoryId) {
+      setError('Please select a category.');
+      return;
+    }
+    setError(null);
     onSubmit({
       amount: parsed,
       category: initialData.category,
@@ -75,6 +84,12 @@ export default function InlineExpenseForm({ initialData, onSubmit, onCancel, isS
         placeholder="e.g. coffee at Starbucks"
       />
 
+      {error && (
+        <BText variant={TextVariant.CAPTION} color={themeColors.danger}>
+          {error}
+        </BText>
+      )}
+
       <BView row gap={SpacingValue.SM}>
         <BButton variant={ButtonVariant.OUTLINE} onPress={onCancel} style={{ flex: 1 }}>
           <BText variant={TextVariant.LABEL} color={themeColors.text}>
@@ -89,4 +104,6 @@ export default function InlineExpenseForm({ initialData, onSubmit, onCancel, isS
       </BView>
     </BView>
   );
-}
+};
+
+export default InlineExpenseForm;
