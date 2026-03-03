@@ -1,8 +1,7 @@
 import { clearUserData } from '@/db';
 import { DebtPayoffPreferenceEnum } from '@/db/types';
 import ProfileStep from '@/src/components/onboarding/steps/profileStep';
-import { SettingsHeader } from '@/src/components/settings';
-import { BButton, BSafeAreaView, BText, BView } from '@/src/components/ui';
+import { BButton, BSafeAreaView, BText, BView, ScreenHeader } from '@/src/components/ui';
 import { useProfile } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { ProfileData } from '@/src/types';
@@ -78,7 +77,7 @@ export default function EditProfileScreen() {
 
   return (
     <BSafeAreaView edges={['top', 'left', 'right']}>
-      <SettingsHeader title="Edit Profile" />
+      <ScreenHeader title="Edit Profile" />
 
       <BView flex padding="base">
         <ProfileStep

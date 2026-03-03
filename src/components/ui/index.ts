@@ -9,6 +9,7 @@ export { default as BInput } from './input';
 export { default as BLink } from './link';
 export { default as BModal } from './modal';
 export { default as BSafeAreaView } from './safe-area-view';
+export { default as ScreenHeader } from './screen-header';
 export { default as BSwitch } from './switch';
 export { default as BText } from './text';
 export { default as BView } from './view';

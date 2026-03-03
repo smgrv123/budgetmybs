@@ -13,7 +13,7 @@ export const createFinancialDataItems = (themeColors: ThemeColors): FinancialDat
     icon: 'document-text-outline',
     iconBgColor: themeColors.recommendationBg,
     iconColor: themeColors.primary,
-    route: '/dashboard/settings/fixed-expenses',
+    route: '/settings/fixed-expenses',
   },
   {
     key: FinancialDataKey.DEBTS,
@@ -21,7 +21,7 @@ export const createFinancialDataItems = (themeColors: ThemeColors): FinancialDat
     icon: 'card-outline',
     iconBgColor: themeColors.warningBackground,
     iconColor: themeColors.warning,
-    route: '/dashboard/settings/debts',
+    route: '/settings/debts',
   },
   {
     key: FinancialDataKey.SAVINGS,
@@ -29,7 +29,7 @@ export const createFinancialDataItems = (themeColors: ThemeColors): FinancialDat
     icon: 'wallet-outline',
     iconBgColor: themeColors.successBackground,
     iconColor: themeColors.success,
-    route: '/dashboard/settings/savings',
+    route: '/settings/savings',
   },
 ];
 

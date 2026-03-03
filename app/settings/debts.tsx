@@ -2,8 +2,7 @@ import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 
 import BListStep from '@/src/components/onboarding/listStep';
-import { SettingsHeader } from '@/src/components/settings';
-import { BSafeAreaView, BText, BView } from '@/src/components/ui';
+import { BSafeAreaView, BText, BView, ScreenHeader } from '@/src/components/ui';
 import { DebtTypeOptions } from '@/src/constants/onboarding.config';
 import {
   common,
@@ -137,7 +136,7 @@ export default function DebtsScreen() {
 
   return (
     <BSafeAreaView edges={['top', 'left', 'right']}>
-      <SettingsHeader title="Debts & Loans" />
+      <ScreenHeader title="Debts & Loans" />
 
       <BView flex padding="base">
         <BListStep

@@ -1,7 +1,7 @@
+import { BudgetOverviewRow, FinancialDataRow, ThemeSelector } from '@/src/components/settings';
+import { BButton, BCard, BIcon, BSafeAreaView, BText, BView } from '@/src/components/ui';
 import { BUDGET_OVERVIEW_ITEMS, createFinancialDataItems } from '@/src/constants/settings.config';
 import { Spacing } from '@/src/constants/theme';
-import { BudgetOverviewRow, FinancialDataRow, SettingsHeader, ThemeSelector } from '@/src/components/settings';
-import { BButton, BCard, BIcon, BSafeAreaView, BText, BView } from '@/src/components/ui';
 import { useDebts, useFixedExpenses, useProfile, useSavingsGoals } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { BudgetValueKey, FinancialDataKey } from '@/src/types/settings';
@@ -43,7 +43,9 @@ export default function SettingsScreen() {
 
   return (
     <BSafeAreaView edges={['top', 'left', 'right']}>
-      <SettingsHeader title="Settings" />
+      <BView paddingX="base" paddingY="md">
+        <BText variant="heading">Settings</BText>
+      </BView>
 
       <ScrollView contentContainerStyle={{ padding: Spacing.base, gap: Spacing.lg }}>
         {/* Profile Section */}
@@ -63,7 +65,7 @@ export default function SettingsScreen() {
               </BView>
             </BView>
 
-            <BButton variant="outline" onPress={() => router.push('/dashboard/settings/edit-profile')} paddingY="sm">
+            <BButton variant="outline" onPress={() => router.push('/settings/edit-profile')} paddingY="sm">
               <BView row align="center" justify="center" gap="xs">
                 <BIcon name="create-outline" size="sm" color={themeColors.primary} />
                 <BText variant="label" color={themeColors.primary}>
