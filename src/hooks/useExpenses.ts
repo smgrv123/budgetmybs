@@ -2,6 +2,7 @@ import {
   createExpense,
   createOneOffSaving,
   deleteExpense,
+  getExpenseById,
   getExpensesWithCategory,
   getImpulsePurchaseStats,
   getOneOffSavings,
@@ -15,9 +16,28 @@ import { getCurrentMonth } from '@/db/utils';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const EXPENSES_QUERY_KEY = ['expenses'] as const;
+export const EXPENSE_BY_ID_QUERY_KEY = ['expenses', 'byId'] as const;
 export const ONE_OFF_SAVINGS_QUERY_KEY = ['oneOffSavings'] as const;
 export const TOTAL_SPENT_QUERY_KEY = ['expenses', 'totalSpent'] as const;
 export const TOTAL_SAVED_QUERY_KEY = ['savings', 'totalSaved'] as const;
+
+/**
+ * Fetches a single expense by ID with its category join.
+ */
+export const useExpenseById = (id: string | undefined) => {
+  const query = useQuery({
+    queryKey: [...EXPENSE_BY_ID_QUERY_KEY, id],
+    queryFn: () => getExpenseById(id!),
+    enabled: Boolean(id),
+  });
+
+  return {
+    expense: query.data ?? null,
+    isExpenseLoading: query.isLoading,
+    isExpenseError: query.isError,
+    refetchExpense: query.refetch,
+  };
+};
 
 /**
  * Hook for expenses and one-off savings queries and mutations
@@ -72,9 +92,10 @@ export const useExpenses = (month: string = getCurrentMonth()) => {
   });
 
   const updateExpenseMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateExpenseInput }) => updateExpense(id, data),
+    mutationFn: ({ id: expenseId, data }: { id: string; data: UpdateExpenseInput }) => updateExpense(expenseId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: EXPENSES_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: EXPENSE_BY_ID_QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: TOTAL_SPENT_QUERY_KEY });
     },
   });
@@ -83,6 +104,7 @@ export const useExpenses = (month: string = getCurrentMonth()) => {
     mutationFn: deleteExpense,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: EXPENSES_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: EXPENSE_BY_ID_QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: TOTAL_SPENT_QUERY_KEY });
     },
   });

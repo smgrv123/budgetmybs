@@ -89,6 +89,20 @@ export const ModalPosition = {
 } as const;
 export type ModalPositionType = (typeof ModalPosition)[keyof typeof ModalPosition];
 
+export const ToastVariant = {
+  INFO: 'info',
+  SUCCESS: 'success',
+  WARNING: 'warning',
+  ERROR: 'error',
+} as const;
+export type ToastVariantType = (typeof ToastVariant)[keyof typeof ToastVariant];
+
+export const TransactionType = {
+  EXPENSE: 'expense',
+  SAVING: 'saving',
+} as const;
+export type TransactionTypeValue = (typeof TransactionType)[keyof typeof TransactionType];
+
 // ============================================
 // COLORS
 // ============================================

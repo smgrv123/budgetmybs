@@ -5,6 +5,7 @@ import type { FC, ReactNode } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
 import { StyleSheet } from 'react-native';
 import BButton from './button';
+import BView from './view';
 
 export interface BLinkProps {
   /** Link destination - can be a route path or external URL */
@@ -19,9 +20,19 @@ export interface BLinkProps {
   disabled?: boolean;
   // variant for button
   variant?: (typeof ButtonVariant)[keyof typeof ButtonVariant];
+  // children container fullWidth
+  fullWidth?: boolean;
 }
 
-const BLink: FC<BLinkProps> = ({ href, children, style, onPress, disabled = false, variant = ButtonVariant.GHOST }) => {
+const BLink: FC<BLinkProps> = ({
+  href,
+  children,
+  style,
+  onPress,
+  disabled = false,
+  variant = ButtonVariant.GHOST,
+  fullWidth = false,
+}) => {
   return (
     <ExpoLink href={href} asChild style={styles.container}>
       <BButton
@@ -30,7 +41,7 @@ const BLink: FC<BLinkProps> = ({ href, children, style, onPress, disabled = fals
         style={[{ opacity: disabled ? Opacity.disabled : Opacity.full }, style]}
         variant={variant}
       >
-        {children}
+        <BView fullWidth={fullWidth}>{children}</BView>
       </BButton>
     </ExpoLink>
   );

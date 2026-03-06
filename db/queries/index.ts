@@ -45,6 +45,8 @@ export {
   createExpense,
   createOneOffSaving,
   deleteExpense,
+  getAllExpensesWithCategory,
+  getExpenseById,
   getExpenses,
   getExpensesByMonth,
   getExpensesWithCategory,

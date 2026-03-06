@@ -9,11 +9,13 @@ import {
   BCard,
   BFAB,
   BIcon,
+  BLink,
   BSafeAreaView,
   BText,
   BView,
   QuickStatSheet,
 } from '@/src/components';
+import { TransactionCard } from '@/src/components/transaction';
 import { createQuickStats, createStatCards, QuickStatType } from '@/src/constants/dashboardData';
 import { BorderRadius, ButtonVariant, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
 import { useDebts, useExpenses, useFixedExpenses, useProfile, useRecurringStatus, useSavingsGoals } from '@/src/hooks';
@@ -231,9 +233,11 @@ export default function DashboardScreen() {
         <BView paddingX={SpacingValue.LG} marginY={SpacingValue.LG}>
           <BView row justify="space-between" align="center" style={{ marginBottom: Spacing.md }}>
             <BText variant={TextVariant.SUBHEADING}>Recent Transactions</BText>
-            <BText variant={TextVariant.CAPTION} style={{ color: themeColors.primary }}>
-              See All
-            </BText>
+            <BLink href="/all-transactions">
+              <BText variant={TextVariant.CAPTION} style={{ color: themeColors.primary }}>
+                See All
+              </BText>
+            </BLink>
           </BView>
           {combinedTransactions.length === 0 ? (
             <BView center paddingY={SpacingValue.XL}>
@@ -247,30 +251,23 @@ export default function DashboardScreen() {
             </BView>
           ) : (
             combinedTransactions.map((item, index) => (
-              <View key={item.id}>
-                {index > 0 && <BView style={{ height: Spacing.sm }} />}
-                <BCard
-                  variant="default"
-                  style={{
-                    padding: Spacing.md,
-                  }}
-                >
-                  <BView row justify="space-between" align="center">
-                    <BView flex>
-                      <BText variant={TextVariant.LABEL}>{item.description || 'Expense'}</BText>
-                      <BText variant={TextVariant.CAPTION} muted>
-                        {formatDate(item.date)} |{' '}
-                        {('category' in item && item.category?.name) ||
-                          ('savingsType' in item && item.savingsType) ||
-                          ''}
-                      </BText>
-                    </BView>
-                    <BText variant={TextVariant.LABEL} style={{ color: themeColors.error }}>
-                      -₹{item.amount.toLocaleString('en-IN')}
-                    </BText>
-                  </BView>
-                </BCard>
-              </View>
+              <BView key={item.id}>
+                {index > 0 && <BView style={{ height: Spacing.xxs }} />}
+                <BLink href={`/transaction-detail?id=${item.id}`} fullWidth style={{ paddingVertical: 0 }}>
+                  <TransactionCard
+                    id={item.id}
+                    description={item.description}
+                    amount={item.amount}
+                    date={item.date}
+                    categoryName={'category' in item ? item.category?.name : null}
+                    categoryIcon={'category' in item ? item.category?.icon : null}
+                    categoryColor={'category' in item ? item.category?.color : null}
+                    savingsType={'savingsType' in item ? item.savingsType : null}
+                    isSaving={'isSaving' in item ? Boolean(item.isSaving) : false}
+                    isRecurring={'sourceType' in item ? Boolean(item.sourceType) : false}
+                  />
+                </BLink>
+              </BView>
             ))
           )}
         </BView>

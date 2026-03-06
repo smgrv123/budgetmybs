@@ -4,6 +4,7 @@ export { default as BButton } from './button';
 export { default as BCard } from './card';
 export { default as BDropdown } from './dropdown';
 export { default as BFAB } from './fab';
+export { default as FilterChip } from './filter-chip';
 export { default as BIcon } from './icon';
 export { default as BInput } from './input';
 export { default as BLink } from './link';
@@ -12,6 +13,7 @@ export { default as BSafeAreaView } from './safe-area-view';
 export { default as ScreenHeader } from './screen-header';
 export { default as BSwitch } from './switch';
 export { default as BText } from './text';
+export { default as BToast } from './toast';
 export { default as BView } from './view';
 
 // Re-export types

@@ -95,6 +95,44 @@ export const getExpensesWithCategory = async (month?: string) => {
 };
 
 // ============================================
+// GET SINGLE EXPENSE BY ID (with category join)
+// ============================================
+
+/**
+ * Fetch a single expense by ID, joined with its category.
+ * Returns null if not found.
+ */
+export const getExpenseById = async (id: string) => {
+  const result = await db
+    .select({
+      id: expensesTable.id,
+      amount: expensesTable.amount,
+      description: expensesTable.description,
+      date: expensesTable.date,
+      wasImpulse: expensesTable.wasImpulse,
+      isSaving: expensesTable.isSaving,
+      savingsType: expensesTable.savingsType,
+      categoryId: expensesTable.categoryId,
+      sourceType: expensesTable.sourceType,
+      sourceId: expensesTable.sourceId,
+      createdAt: expensesTable.createdAt,
+      category: {
+        id: categoriesTable.id,
+        name: categoriesTable.name,
+        type: categoriesTable.type,
+        icon: categoriesTable.icon,
+        color: categoriesTable.color,
+      },
+    })
+    .from(expensesTable)
+    .leftJoin(categoriesTable, eq(expensesTable.categoryId, categoriesTable.id))
+    .where(eq(expensesTable.id, id))
+    .limit(1);
+
+  return result[0] ?? null;
+};
+
+// ============================================
 // GET TOTAL SPENT BY MONTH
 // ============================================
 
@@ -229,6 +267,37 @@ export const getOneOffSavings = async (month?: string) => {
     .select()
     .from(expensesTable)
     .where(and(like(expensesTable.date, `${targetMonth}%`), eq(expensesTable.isSaving, 1)))
+    .orderBy(desc(expensesTable.date));
+};
+
+/**
+ * Get ALL expenses + savings across all time, with category join.
+ * No month or isSaving filter — consumers split by `isSaving` flag.
+ */
+export const getAllExpensesWithCategory = async () => {
+  return db
+    .select({
+      id: expensesTable.id,
+      amount: expensesTable.amount,
+      description: expensesTable.description,
+      date: expensesTable.date,
+      wasImpulse: expensesTable.wasImpulse,
+      isSaving: expensesTable.isSaving,
+      savingsType: expensesTable.savingsType,
+      categoryId: expensesTable.categoryId,
+      sourceType: expensesTable.sourceType,
+      sourceId: expensesTable.sourceId,
+      createdAt: expensesTable.createdAt,
+      category: {
+        id: categoriesTable.id,
+        name: categoriesTable.name,
+        type: categoriesTable.type,
+        icon: categoriesTable.icon,
+        color: categoriesTable.color,
+      },
+    })
+    .from(expensesTable)
+    .leftJoin(categoriesTable, eq(expensesTable.categoryId, categoriesTable.id))
     .orderBy(desc(expensesTable.date));
 };
 
