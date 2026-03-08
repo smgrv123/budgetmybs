@@ -1,5 +1,5 @@
 import type { ChatMessage } from '@/db/schema-types';
-import { ChatActionStatusEnum, ChatIntentEnum, ChatRoleEnum } from '@/db/types';
+import { ChatActionStatusEnum, ChatIntentEnum, ChatRoleEnum, DebtPayoffPreferenceEnum } from '@/db/types';
 import {
   ChatBubble,
   ChatHeader,
@@ -11,7 +11,16 @@ import {
 import type { UpdatableIntent } from '@/src/components/chat/inlineProfileUpdate';
 import { BSafeAreaView } from '@/src/components/ui';
 import type { DeleteEntityTypeValue } from '@/src/constants/chat';
-import { DeleteEntityType } from '@/src/constants/chat';
+import {
+  CHAT_ALERT_STRINGS,
+  DebtFieldKey,
+  FixedExpenseFieldKey,
+  CHAT_LOG_STRINGS,
+  CHAT_MESSAGE_STRINGS,
+  DeleteEntityType,
+  ProfileUpdateFieldKey,
+  SavingsGoalFieldKey,
+} from '@/src/constants/chat';
 import { Spacing } from '@/src/constants/theme';
 import {
   useCategories,
@@ -53,7 +62,8 @@ export default function ChatScreen() {
 
   const { savingsGoals, createSavingsGoalAsync, updateSavingsGoalAsync, removeSavingsGoalAsync } = useSavingsGoals();
 
-  const { messages, isMessagesLoading, sendMessageAsync, updateActionAsync, clearHistoryAsync } = useChat();
+  const { messages, isMessagesLoading, sendMessage, sendMessageAsync, updateAction, updateActionAsync, clearHistory } =
+    useChat();
 
   // ── Local state ───────────────────────────────────────────────────────────
 
@@ -77,11 +87,16 @@ export default function ChatScreen() {
     }
     if (welcomeSentRef.current) return;
     welcomeSentRef.current = true;
-    sendMessageAsync({
-      role: ChatRoleEnum.ASSISTANT,
-      content: `Hey ${profile?.name ?? 'there'}! 👋 I'm FinAI, your personal finance assistant. I can help you track expenses, update your financial details, or just answer money questions. What's on your mind?`,
-    }).catch(console.error);
-  }, [isMessagesLoading, messages.length, profile?.name, sendMessageAsync]);
+    sendMessage(
+      {
+        role: ChatRoleEnum.ASSISTANT,
+        content: CHAT_MESSAGE_STRINGS.welcome(profile?.name ?? CHAT_MESSAGE_STRINGS.fallbackProfileName),
+      },
+      {
+        onError: console.error,
+      }
+    );
+  }, [isMessagesLoading, messages.length, profile?.name, sendMessage]);
 
   // ── Auto-scroll ───────────────────────────────────────────────────────────
 
@@ -91,6 +106,14 @@ export default function ChatScreen() {
     }
   }, [messages.length]);
 
+  const runMutation = async <T,>(operation: Promise<T>): Promise<T | null> => {
+    const [result] = await Promise.allSettled([operation]);
+    if (result.status === 'fulfilled') {
+      return result.value;
+    }
+    return null;
+  };
+
   // ── Send handler ──────────────────────────────────────────────────────────
 
   const handleSend = async (text: string) => {
@@ -99,230 +122,377 @@ export default function ChatScreen() {
     setIsSending(true);
     setQuotedMessage(null);
 
-    try {
-      await sendMessageAsync({
-        role: ChatRoleEnum.USER,
-        content: text,
-        quotedMessageId: quotedMessage?.id ?? null,
-      });
-
-      const context = {
-        profile: {
-          name: profile.name,
-          salary: profile.salary,
-          monthlySavingsTarget: profile.monthlySavingsTarget,
-          frivolousBudget: profile.frivolousBudget,
-          debtPayoffPreference: profile.debtPayoffPreference ?? 'avalanche',
+    const userMessage = await runMutation(
+      sendMessageAsync(
+        {
+          role: ChatRoleEnum.USER,
+          content: text,
+          quotedMessageId: quotedMessage?.id ?? null,
         },
-        fixedExpenses,
-        debts,
-        savingsGoals,
-        categoryNames: allCategories.map((c) => c.name),
-      };
-
-      const response = await sendChatMessage(text, context);
-
-      const requiresAction = response.intent !== ChatIntentEnum.GENERAL;
-      const actionStatus = requiresAction ? ChatActionStatusEnum.PENDING : undefined;
-
-      const assistantMsg = await sendMessageAsync({
-        role: ChatRoleEnum.ASSISTANT,
-        content: response.message,
-        actionType: requiresAction ? response.intent : undefined,
-        actionData: response.data ? (response.data as Record<string, unknown>) : undefined,
-        actionStatus,
-      });
-
-      if (requiresAction && assistantMsg) {
-        switch (response.intent) {
-          case ChatIntentEnum.ADD_EXPENSE:
-            setPendingAction({ kind: 'expense', messageId: assistantMsg.id, data: response.data });
-            break;
-          case ChatIntentEnum.UPDATE_PROFILE:
-            setPendingAction({
-              kind: 'update',
-              messageId: assistantMsg.id,
-              payload: { intent: ChatIntentEnum.UPDATE_PROFILE, data: response.data },
-            });
-            break;
-          case ChatIntentEnum.ADD_FIXED_EXPENSE:
-          case ChatIntentEnum.UPDATE_FIXED_EXPENSE:
-            setPendingAction({
-              kind: 'update',
-              messageId: assistantMsg.id,
-              payload: { intent: response.intent, data: response.data },
-            });
-            break;
-          case ChatIntentEnum.DELETE_FIXED_EXPENSE:
-            setPendingAction({
-              kind: 'delete',
-              messageId: assistantMsg.id,
-              entityType: DeleteEntityType.FIXED_EXPENSE,
-              data: response.data,
-            });
-            break;
-          case ChatIntentEnum.ADD_DEBT:
-          case ChatIntentEnum.UPDATE_DEBT:
-            setPendingAction({
-              kind: 'update',
-              messageId: assistantMsg.id,
-              payload: { intent: response.intent, data: response.data },
-            });
-            break;
-          case ChatIntentEnum.DELETE_DEBT:
-            setPendingAction({
-              kind: 'delete',
-              messageId: assistantMsg.id,
-              entityType: DeleteEntityType.DEBT,
-              data: response.data,
-            });
-            break;
-          case ChatIntentEnum.ADD_SAVINGS_GOAL:
-          case ChatIntentEnum.UPDATE_SAVINGS_GOAL:
-            setPendingAction({
-              kind: 'update',
-              messageId: assistantMsg.id,
-              payload: { intent: response.intent, data: response.data },
-            });
-            break;
-          case ChatIntentEnum.DELETE_SAVINGS_GOAL:
-            setPendingAction({
-              kind: 'delete',
-              messageId: assistantMsg.id,
-              entityType: DeleteEntityType.SAVINGS_GOAL,
-              data: response.data,
-            });
-            break;
+        {
+          onError: (error) => console.error(CHAT_LOG_STRINGS.saveUserMessageError, error),
         }
-      }
-    } catch (err) {
-      console.error('Chat error:', err);
-      await sendMessageAsync({
-        role: ChatRoleEnum.ASSISTANT,
-        content: 'Sorry, I ran into an issue. Please try again in a moment.',
-      });
-    } finally {
+      )
+    );
+
+    if (!userMessage) {
       setIsSending(false);
+      return;
     }
+
+    const context = {
+      profile: {
+        name: profile.name,
+        salary: profile.salary,
+        monthlySavingsTarget: profile.monthlySavingsTarget,
+        frivolousBudget: profile.frivolousBudget,
+        debtPayoffPreference: profile.debtPayoffPreference ?? DebtPayoffPreferenceEnum.AVALANCHE,
+      },
+      fixedExpenses,
+      debts,
+      savingsGoals,
+      categoryNames: allCategories.map((c) => c.name),
+    };
+
+    let response: Awaited<ReturnType<typeof sendChatMessage>> | null = null;
+    try {
+      response = await sendChatMessage(text, context);
+    } catch (err) {
+      console.error(CHAT_LOG_STRINGS.chatServiceError, err);
+      sendMessage(
+        {
+          role: ChatRoleEnum.ASSISTANT,
+          content: CHAT_MESSAGE_STRINGS.serviceErrorReply,
+        },
+        {
+          onError: console.error,
+        }
+      );
+      setIsSending(false);
+      return;
+    }
+
+    const actionType = response.intent === ChatIntentEnum.GENERAL ? undefined : response.intent;
+    const requiresAction = Boolean(actionType);
+    const actionStatus = requiresAction ? ChatActionStatusEnum.PENDING : undefined;
+
+    const assistantMsg = await runMutation(
+      sendMessageAsync(
+        {
+          role: ChatRoleEnum.ASSISTANT,
+          content: response.message,
+          actionType,
+          actionData: response.data ? (response.data as Record<string, unknown>) : undefined,
+          actionStatus,
+        },
+        {
+          onError: (error) => console.error(CHAT_LOG_STRINGS.saveAssistantMessageError, error),
+        }
+      )
+    );
+
+    if (requiresAction && assistantMsg) {
+      switch (response.intent) {
+        case ChatIntentEnum.ADD_EXPENSE:
+          setPendingAction({ kind: 'expense', messageId: assistantMsg.id, data: response.data });
+          break;
+        case ChatIntentEnum.UPDATE_PROFILE:
+          setPendingAction({
+            kind: 'update',
+            messageId: assistantMsg.id,
+            payload: { intent: ChatIntentEnum.UPDATE_PROFILE, data: response.data },
+          });
+          break;
+        case ChatIntentEnum.ADD_FIXED_EXPENSE:
+        case ChatIntentEnum.UPDATE_FIXED_EXPENSE:
+          setPendingAction({
+            kind: 'update',
+            messageId: assistantMsg.id,
+            payload: { intent: response.intent, data: response.data },
+          });
+          break;
+        case ChatIntentEnum.DELETE_FIXED_EXPENSE:
+          setPendingAction({
+            kind: 'delete',
+            messageId: assistantMsg.id,
+            entityType: DeleteEntityType.FIXED_EXPENSE,
+            data: response.data,
+          });
+          break;
+        case ChatIntentEnum.ADD_DEBT:
+        case ChatIntentEnum.UPDATE_DEBT:
+          setPendingAction({
+            kind: 'update',
+            messageId: assistantMsg.id,
+            payload: { intent: response.intent, data: response.data },
+          });
+          break;
+        case ChatIntentEnum.DELETE_DEBT:
+          setPendingAction({
+            kind: 'delete',
+            messageId: assistantMsg.id,
+            entityType: DeleteEntityType.DEBT,
+            data: response.data,
+          });
+          break;
+        case ChatIntentEnum.ADD_SAVINGS_GOAL:
+        case ChatIntentEnum.UPDATE_SAVINGS_GOAL:
+          setPendingAction({
+            kind: 'update',
+            messageId: assistantMsg.id,
+            payload: { intent: response.intent, data: response.data },
+          });
+          break;
+        case ChatIntentEnum.DELETE_SAVINGS_GOAL:
+          setPendingAction({
+            kind: 'delete',
+            messageId: assistantMsg.id,
+            entityType: DeleteEntityType.SAVINGS_GOAL,
+            data: response.data,
+          });
+          break;
+      }
+    }
+
+    setIsSending(false);
   };
 
   // ── Action confirmation handlers ──────────────────────────────────────────
 
   const handleExpenseConfirm = async (data: ChatExpenseData & { categoryId?: string }) => {
     if (!pendingAction) return;
-    try {
-      await createExpenseAsync({
-        amount: data.amount,
-        categoryId: data.categoryId,
-        description: data.description,
-        wasImpulse: 0,
-      });
-      await updateActionAsync({ id: pendingAction.messageId, actionStatus: ChatActionStatusEnum.COMPLETED });
-      await sendMessageAsync({
-        role: ChatRoleEnum.ASSISTANT,
-        content: `✅ Expense of ₹${data.amount.toLocaleString('en-IN')} added successfully!`,
-      });
-    } catch {
-      await sendMessageAsync({ role: ChatRoleEnum.ASSISTANT, content: "Couldn't save the expense. Please try again." });
-    } finally {
+    const createdExpense = await runMutation(
+      createExpenseAsync(
+        {
+          amount: data.amount,
+          categoryId: data.categoryId,
+          description: data.description,
+          wasImpulse: 0,
+        },
+        {
+          onError: (error) => console.error(CHAT_LOG_STRINGS.saveExpenseError, error),
+        }
+      )
+    );
+
+    if (!createdExpense) {
+      sendMessage(
+        { role: ChatRoleEnum.ASSISTANT, content: CHAT_MESSAGE_STRINGS.expenseSaveFailedReply },
+        { onError: console.error }
+      );
       setPendingAction(null);
+      return;
     }
+
+    const completedAction = await runMutation(
+      updateActionAsync(
+        { id: pendingAction.messageId, actionStatus: ChatActionStatusEnum.COMPLETED },
+        {
+          onError: (error) => console.error(CHAT_LOG_STRINGS.completeActionError, error),
+        }
+      )
+    );
+
+    if (!completedAction) {
+      sendMessage(
+        { role: ChatRoleEnum.ASSISTANT, content: CHAT_MESSAGE_STRINGS.expenseSaveFailedReply },
+        { onError: console.error }
+      );
+      setPendingAction(null);
+      return;
+    }
+
+    sendMessage(
+      {
+        role: ChatRoleEnum.ASSISTANT,
+        content: CHAT_MESSAGE_STRINGS.expenseAddedReply(data.amount),
+      },
+      { onError: console.error }
+    );
+    setPendingAction(null);
   };
 
   const handleUpdateConfirm = async (values: Record<string, string>) => {
     if (!pendingAction || pendingAction.kind !== 'update') return;
     const { payload, messageId } = pendingAction;
 
-    try {
-      switch (payload.intent) {
-        case ChatIntentEnum.UPDATE_PROFILE:
-          await upsertProfileAsync({
-            name: profile!.name,
-            salary: profile!.salary,
-            monthlySavingsTarget: profile!.monthlySavingsTarget,
-            frivolousBudget: profile!.frivolousBudget,
-            debtPayoffPreference: profile!.debtPayoffPreference ?? 'avalanche',
-            [payload.data.field]: parseFloat(values['value'] ?? '0'),
-          });
-          break;
-        case ChatIntentEnum.ADD_FIXED_EXPENSE:
-          await createFixedExpenseAsync({
-            name: values['name']!,
-            type: payload.data.type!,
-            amount: parseFloat(values['amount'] ?? '0'),
-          });
-          break;
-        case ChatIntentEnum.UPDATE_FIXED_EXPENSE: {
-          const match = fixedExpenses.find((fe) => fe.name === payload.data.existingName);
-          if (match) {
-            await updateFixedExpenseAsync({
-              id: match.id,
-              data: {
-                ...(values['name'] && { name: values['name'] }),
-                amount: parseFloat(values['amount'] ?? '0'),
+    let updateResult: unknown = null;
+    let operationAttempted = false;
+    switch (payload.intent) {
+      case ChatIntentEnum.UPDATE_PROFILE:
+        operationAttempted = true;
+        updateResult = await runMutation(
+          upsertProfileAsync(
+            {
+              name: profile!.name,
+              salary: profile!.salary,
+              monthlySavingsTarget: profile!.monthlySavingsTarget,
+              frivolousBudget: profile!.frivolousBudget,
+              debtPayoffPreference: profile!.debtPayoffPreference ?? DebtPayoffPreferenceEnum.AVALANCHE,
+              [payload.data.field]: parseFloat(values[ProfileUpdateFieldKey.VALUE] ?? '0'),
+            },
+            {
+              onError: (error) => console.error(CHAT_LOG_STRINGS.updateProfileError, error),
+            }
+          )
+        );
+        break;
+      case ChatIntentEnum.ADD_FIXED_EXPENSE:
+        operationAttempted = true;
+        updateResult = await runMutation(
+          createFixedExpenseAsync(
+            {
+              name: values[FixedExpenseFieldKey.NAME]!,
+              type: payload.data.type!,
+              amount: parseFloat(values[FixedExpenseFieldKey.AMOUNT] ?? '0'),
+            },
+            {
+              onError: (error) => console.error(CHAT_LOG_STRINGS.addFixedExpenseError, error),
+            }
+          )
+        );
+        break;
+      case ChatIntentEnum.UPDATE_FIXED_EXPENSE: {
+        const match = fixedExpenses.find((fe) => fe.name === payload.data.existingName);
+        if (match) {
+          operationAttempted = true;
+          updateResult = await runMutation(
+            updateFixedExpenseAsync(
+              {
+                id: match.id,
+                data: {
+                  ...(values[FixedExpenseFieldKey.NAME] && { name: values[FixedExpenseFieldKey.NAME] }),
+                  amount: parseFloat(values[FixedExpenseFieldKey.AMOUNT] ?? '0'),
+                },
               },
-            });
-          }
-          break;
+              {
+                onError: (error) => console.error(CHAT_LOG_STRINGS.updateFixedExpenseError, error),
+              }
+            )
+          );
         }
-        case ChatIntentEnum.ADD_DEBT:
-          await createDebtAsync({
-            name: values['name']!,
-            type: payload.data.type!,
-            principal: parseFloat(values['principal'] ?? '0'),
-            interestRate: parseFloat(values['interestRate'] ?? '0'),
-            emiAmount: parseFloat(values['emiAmount'] ?? '0'),
-            tenureMonths: parseInt(values['tenureMonths'] ?? '0', 10),
-            remaining: parseFloat(values['principal'] ?? '0'),
-            remainingMonths: parseInt(values['tenureMonths'] ?? '0', 10),
-            customType: null,
-            startDate: null,
-          });
-          break;
-        case ChatIntentEnum.UPDATE_DEBT: {
-          const match = debts.find((d) => d.name === payload.data.existingName);
-          if (match) {
-            await updateDebtAsync({
-              id: match.id,
-              data: {
-                ...(values['name'] && { name: values['name'] }),
-                ...(values['principal'] && { principal: parseFloat(values['principal']) }),
-                ...(values['interestRate'] && { interestRate: parseFloat(values['interestRate']) }),
-                ...(values['emiAmount'] && { emiAmount: parseFloat(values['emiAmount']) }),
-                ...(values['tenureMonths'] && { tenureMonths: parseInt(values['tenureMonths'], 10) }),
-              },
-            });
-          }
-          break;
-        }
-        case ChatIntentEnum.ADD_SAVINGS_GOAL:
-          await createSavingsGoalAsync({
-            name: values['name']!,
-            type: payload.data.type!,
-            targetAmount: parseFloat(values['targetAmount'] ?? '0'),
-          });
-          break;
-        case ChatIntentEnum.UPDATE_SAVINGS_GOAL: {
-          const match = savingsGoals.find((g) => g.name === payload.data.existingName);
-          if (match) {
-            await updateSavingsGoalAsync({
-              id: match.id,
-              data: {
-                ...(values['name'] && { name: values['name'] }),
-                targetAmount: parseFloat(values['targetAmount'] ?? '0'),
-              },
-            });
-          }
-          break;
-        }
+        break;
       }
-      await updateActionAsync({ id: messageId, actionStatus: ChatActionStatusEnum.COMPLETED });
-      await sendMessageAsync({ role: ChatRoleEnum.ASSISTANT, content: '✅ Done! Your data has been updated.' });
-    } catch {
-      await sendMessageAsync({ role: ChatRoleEnum.ASSISTANT, content: "Couldn't save the changes. Please try again." });
-    } finally {
-      setPendingAction(null);
+      case ChatIntentEnum.ADD_DEBT:
+        operationAttempted = true;
+        updateResult = await runMutation(
+          createDebtAsync(
+            {
+              name: values[DebtFieldKey.NAME]!,
+              type: payload.data.type!,
+              principal: parseFloat(values[DebtFieldKey.PRINCIPAL] ?? '0'),
+              interestRate: parseFloat(values[DebtFieldKey.INTEREST_RATE] ?? '0'),
+              emiAmount: parseFloat(values[DebtFieldKey.EMI_AMOUNT] ?? '0'),
+              tenureMonths: parseInt(values[DebtFieldKey.TENURE_MONTHS] ?? '0', 10),
+              remaining: parseFloat(values[DebtFieldKey.PRINCIPAL] ?? '0'),
+              remainingMonths: parseInt(values[DebtFieldKey.TENURE_MONTHS] ?? '0', 10),
+              customType: null,
+              startDate: null,
+            },
+            {
+              onError: (error) => console.error(CHAT_LOG_STRINGS.addDebtError, error),
+            }
+          )
+        );
+        break;
+      case ChatIntentEnum.UPDATE_DEBT: {
+        const match = debts.find((d) => d.name === payload.data.existingName);
+        if (match) {
+          operationAttempted = true;
+          updateResult = await runMutation(
+            updateDebtAsync(
+              {
+                id: match.id,
+                data: {
+                  ...(values[DebtFieldKey.NAME] && { name: values[DebtFieldKey.NAME] }),
+                  ...(values[DebtFieldKey.PRINCIPAL] && { principal: parseFloat(values[DebtFieldKey.PRINCIPAL]) }),
+                  ...(values[DebtFieldKey.INTEREST_RATE] && {
+                    interestRate: parseFloat(values[DebtFieldKey.INTEREST_RATE]),
+                  }),
+                  ...(values[DebtFieldKey.EMI_AMOUNT] && { emiAmount: parseFloat(values[DebtFieldKey.EMI_AMOUNT]) }),
+                  ...(values[DebtFieldKey.TENURE_MONTHS] && {
+                    tenureMonths: parseInt(values[DebtFieldKey.TENURE_MONTHS], 10),
+                  }),
+                },
+              },
+              {
+                onError: (error) => console.error(CHAT_LOG_STRINGS.updateDebtError, error),
+              }
+            )
+          );
+        }
+        break;
+      }
+      case ChatIntentEnum.ADD_SAVINGS_GOAL:
+        operationAttempted = true;
+        updateResult = await runMutation(
+          createSavingsGoalAsync(
+            {
+              name: values[SavingsGoalFieldKey.NAME]!,
+              type: payload.data.type!,
+              targetAmount: parseFloat(values[SavingsGoalFieldKey.TARGET_AMOUNT] ?? '0'),
+            },
+            {
+              onError: (error) => console.error(CHAT_LOG_STRINGS.addSavingsGoalError, error),
+            }
+          )
+        );
+        break;
+      case ChatIntentEnum.UPDATE_SAVINGS_GOAL: {
+        const match = savingsGoals.find((g) => g.name === payload.data.existingName);
+        if (match) {
+          operationAttempted = true;
+          updateResult = await runMutation(
+            updateSavingsGoalAsync(
+              {
+                id: match.id,
+                data: {
+                  ...(values[SavingsGoalFieldKey.NAME] && { name: values[SavingsGoalFieldKey.NAME] }),
+                  targetAmount: parseFloat(values[SavingsGoalFieldKey.TARGET_AMOUNT] ?? '0'),
+                },
+              },
+              {
+                onError: (error) => console.error(CHAT_LOG_STRINGS.updateSavingsGoalError, error),
+              }
+            )
+          );
+        }
+        break;
+      }
     }
+
+    if (operationAttempted && updateResult === null) {
+      sendMessage(
+        { role: ChatRoleEnum.ASSISTANT, content: CHAT_MESSAGE_STRINGS.updateSaveFailedReply },
+        { onError: console.error }
+      );
+      setPendingAction(null);
+      return;
+    }
+
+    const completedAction = await runMutation(
+      updateActionAsync(
+        { id: messageId, actionStatus: ChatActionStatusEnum.COMPLETED },
+        {
+          onError: (error) => console.error(CHAT_LOG_STRINGS.completeActionError, error),
+        }
+      )
+    );
+
+    if (!completedAction) {
+      sendMessage(
+        { role: ChatRoleEnum.ASSISTANT, content: CHAT_MESSAGE_STRINGS.updateSaveFailedReply },
+        { onError: console.error }
+      );
+      setPendingAction(null);
+      return;
+    }
+
+    sendMessage(
+      { role: ChatRoleEnum.ASSISTANT, content: CHAT_MESSAGE_STRINGS.updateSuccessReply },
+      { onError: console.error }
+    );
+    setPendingAction(null);
   };
 
   const handleDeleteConfirm = async () => {
@@ -330,57 +500,109 @@ export default function ChatScreen() {
     const { data, entityType, messageId } = pendingAction;
 
     setIsDeleting(true);
-    try {
-      switch (entityType) {
-        case DeleteEntityType.FIXED_EXPENSE: {
-          const match = fixedExpenses.find((fe) => fe.name === data.existingName);
-          if (match) await removeFixedExpenseAsync(match.id);
-          break;
+    let deleteResult: unknown = {};
+    switch (entityType) {
+      case DeleteEntityType.FIXED_EXPENSE: {
+        const match = fixedExpenses.find((fe) => fe.name === data.existingName);
+        if (match) {
+          deleteResult = await runMutation(
+            removeFixedExpenseAsync(match.id, {
+              onError: (error) => console.error(CHAT_LOG_STRINGS.deleteFixedExpenseError, error),
+            })
+          );
         }
-        case DeleteEntityType.DEBT: {
-          const match = debts.find((d) => d.name === data.existingName);
-          if (match) await removeDebtAsync(match.id);
-          break;
-        }
-        case DeleteEntityType.SAVINGS_GOAL: {
-          const match = savingsGoals.find((g) => g.name === data.existingName);
-          if (match) await removeSavingsGoalAsync(match.id);
-          break;
-        }
+        break;
       }
-      await updateActionAsync({ id: messageId, actionStatus: ChatActionStatusEnum.COMPLETED });
-      await sendMessageAsync({
-        role: ChatRoleEnum.ASSISTANT,
-        content: `✅ ${data.existingName} has been deleted.`,
-      });
-    } catch {
-      await sendMessageAsync({ role: ChatRoleEnum.ASSISTANT, content: "Couldn't delete. Please try again." });
-    } finally {
+      case DeleteEntityType.DEBT: {
+        const match = debts.find((d) => d.name === data.existingName);
+        if (match) {
+          deleteResult = await runMutation(
+            removeDebtAsync(match.id, {
+              onError: (error) => console.error(CHAT_LOG_STRINGS.deleteDebtError, error),
+            })
+          );
+        }
+        break;
+      }
+      case DeleteEntityType.SAVINGS_GOAL: {
+        const match = savingsGoals.find((g) => g.name === data.existingName);
+        if (match) {
+          deleteResult = await runMutation(
+            removeSavingsGoalAsync(match.id, {
+              onError: (error) => console.error(CHAT_LOG_STRINGS.deleteSavingsGoalError, error),
+            })
+          );
+        }
+        break;
+      }
+    }
+
+    if (deleteResult === null) {
+      sendMessage(
+        { role: ChatRoleEnum.ASSISTANT, content: CHAT_MESSAGE_STRINGS.deleteFailedReply },
+        { onError: console.error }
+      );
       setIsDeleting(false);
       setPendingAction(null);
+      return;
     }
+
+    const completedAction = await runMutation(
+      updateActionAsync(
+        { id: messageId, actionStatus: ChatActionStatusEnum.COMPLETED },
+        {
+          onError: (error) => console.error(CHAT_LOG_STRINGS.completeActionError, error),
+        }
+      )
+    );
+
+    if (!completedAction) {
+      sendMessage(
+        { role: ChatRoleEnum.ASSISTANT, content: CHAT_MESSAGE_STRINGS.deleteFailedReply },
+        { onError: console.error }
+      );
+      setIsDeleting(false);
+      setPendingAction(null);
+      return;
+    }
+
+    sendMessage(
+      {
+        role: ChatRoleEnum.ASSISTANT,
+        content: CHAT_MESSAGE_STRINGS.deleteSuccessReply(data.existingName),
+      },
+      { onError: console.error }
+    );
+    setIsDeleting(false);
+    setPendingAction(null);
   };
 
-  const handleActionCancel = async () => {
+  const handleActionCancel = () => {
     if (!pendingAction) return;
-    await updateActionAsync({ id: pendingAction.messageId, actionStatus: ChatActionStatusEnum.CANCELLED }).catch(
-      console.error
+    updateAction(
+      { id: pendingAction.messageId, actionStatus: ChatActionStatusEnum.CANCELLED },
+      {
+        onError: console.error,
+        onSuccess: () => setPendingAction(null),
+      }
     );
-    setPendingAction(null);
   };
 
   // ── Clear history ──────────────────────────────────────────────────────────
 
   const handleClearHistory = () => {
-    Alert.alert('Clear Chat History', 'This will permanently delete all messages. This cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(CHAT_ALERT_STRINGS.clearHistoryTitle, CHAT_ALERT_STRINGS.clearHistoryBody, [
+      { text: CHAT_ALERT_STRINGS.cancelButton, style: 'cancel' },
       {
-        text: 'Clear',
+        text: CHAT_ALERT_STRINGS.clearButton,
         style: 'destructive',
-        onPress: async () => {
-          await clearHistoryAsync().catch(console.error);
-          welcomeSentRef.current = false;
-        },
+        onPress: () =>
+          clearHistory(undefined, {
+            onError: console.error,
+            onSuccess: () => {
+              welcomeSentRef.current = false;
+            },
+          }),
       },
     ]);
   };

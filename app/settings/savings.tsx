@@ -1,8 +1,10 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { Alert } from 'react-native';
 
 import BListStep from '@/src/components/onboarding/listStep';
 import { BSafeAreaView, BText, BView, ScreenHeader } from '@/src/components/ui';
+import { SAVINGS_SETTINGS_STRINGS, SETTINGS_COMMON_STRINGS } from '@/src/constants/settings.strings';
 import { SavingsTypeOptions } from '@/src/constants/onboarding.config';
 import {
   common,
@@ -65,32 +67,33 @@ export default function SavingsScreen() {
   };
 
   const handleSaveChanges = async () => {
-    try {
-      const dbIds = new Set((dbGoals || []).map((goal) => goal.id));
+    const dbIds = new Set((dbGoals || []).map((goal) => goal.id));
 
-      // New items (not yet in DB)
-      const addedItems = goals.filter((item) => !dbIds.has(item.tempId));
-      // Modified items (exist in DB but content has changed)
-      const updatedItems = goals.filter((item) => {
-        if (!dbIds.has(item.tempId)) return false;
-        const original = dbGoals?.find((g) => g.id === item.tempId);
-        if (!original) return false;
-        return (
-          original.name !== item.name || original.type !== item.type || original.targetAmount !== item.targetAmount
-        );
-      });
+    const addedItems = goals.filter((item) => !dbIds.has(item.tempId));
+    const updatedItems = goals.filter((item) => {
+      if (!dbIds.has(item.tempId)) return false;
+      const original = dbGoals?.find((g) => g.id === item.tempId);
+      if (!original) return false;
+      return original.name !== item.name || original.type !== item.type || original.targetAmount !== item.targetAmount;
+    });
 
-      await Promise.all([
-        ...addedItems.map((item) =>
-          createSavingsGoalAsync({
+    const operations = [
+      ...addedItems.map((item) =>
+        createSavingsGoalAsync(
+          {
             name: item.name,
             type: item.type,
             customType: item.customType ?? null,
             targetAmount: item.targetAmount,
-          })
-        ),
-        ...updatedItems.map((item) =>
-          updateSavingsGoalAsync({
+          },
+          {
+            onError: (error) => console.error(SAVINGS_SETTINGS_STRINGS.createFailedLog, error),
+          }
+        )
+      ),
+      ...updatedItems.map((item) =>
+        updateSavingsGoalAsync(
+          {
             id: item.tempId,
             data: {
               name: item.name,
@@ -98,15 +101,28 @@ export default function SavingsScreen() {
               customType: item.customType ?? null,
               targetAmount: item.targetAmount,
             },
-          })
-        ),
-        ...removedItemIds.map((id) => removeSavingsGoalAsync(id)),
-      ]);
+          },
+          {
+            onError: (error) => console.error(SAVINGS_SETTINGS_STRINGS.updateFailedLog, error),
+          }
+        )
+      ),
+      ...removedItemIds.map((id) =>
+        removeSavingsGoalAsync(id, {
+          onError: (error) => console.error(SAVINGS_SETTINGS_STRINGS.removeFailedLog, error),
+        })
+      ),
+    ];
 
-      router.back();
-    } catch (error) {
-      console.error('Failed to save changes:', error);
+    const results = await Promise.allSettled(operations);
+    const hasError = results.some((result) => result.status === 'rejected');
+
+    if (hasError) {
+      Alert.alert(SETTINGS_COMMON_STRINGS.errorAlertTitle, SETTINGS_COMMON_STRINGS.saveChangesFailed);
+      return;
     }
+
+    router.back();
   };
 
   const getTypeLabel = (type: string) => {
@@ -119,7 +135,7 @@ export default function SavingsScreen() {
 
   return (
     <BSafeAreaView edges={['top', 'left', 'right']}>
-      <ScreenHeader title="Savings Goals" />
+      <ScreenHeader title={SAVINGS_SETTINGS_STRINGS.screenTitle} />
 
       <BView flex padding="base">
         <BListStep
@@ -143,7 +159,7 @@ export default function SavingsScreen() {
           onAddItem={addGoal}
           parseFormData={parseSavingsFormData}
           onNext={handleSaveChanges}
-          nextButtonLabel="Save Changes"
+          nextButtonLabel={SETTINGS_COMMON_STRINGS.saveChangesButton}
           customTypeModal={SAVINGS_STEP_CONFIG.customTypeModal}
         />
       </BView>

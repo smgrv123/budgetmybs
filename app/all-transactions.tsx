@@ -1,9 +1,9 @@
 import { TransactionCard } from '@/src/components/transaction';
 import {
   BButton,
+  BDateField,
   BDropdown,
   BIcon,
-  BInput,
   BLink,
   BModal,
   BSafeAreaView,
@@ -12,28 +12,26 @@ import {
   FilterChip,
   ScreenHeader,
 } from '@/src/components/ui';
+import {
+  ALL_TRANSACTIONS_STRINGS,
+  TRANSACTION_COMMON_STRINGS,
+  TRANSACTION_FILTER_TYPE_OPTIONS,
+  TRANSACTION_VALIDATION_STRINGS,
+} from '@/src/constants/transactions.strings';
 import { ButtonVariant, ModalPosition, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
 import { useAllExpenses, useCategories } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { ExpenseFilter } from '@/src/types';
-import { DEFAULT_EXPENSE_FILTER } from '@/src/types';
+import { DEFAULT_EXPENSE_FILTER, ExpenseFilterType } from '@/src/types';
 import { formatCurrency } from '@/src/utils/format';
 import { useMemo, useState } from 'react';
 import { SectionList, StyleSheet } from 'react-native';
 import { z } from 'zod';
 
-type FilterType = ExpenseFilter['type'];
-
-const TYPE_OPTIONS: { label: string; value: FilterType }[] = [
-  { label: 'All', value: 'all' },
-  { label: 'Expenses', value: 'expense' },
-  { label: 'Savings', value: 'saving' },
-];
-
 // ─── Date filter validation ─────────────────────────────────────────────────
 const dateFilterSchema = z.object({
-  startDate: z.union([z.literal(''), z.iso.date('Start date must be YYYY-MM-DD')]),
-  endDate: z.union([z.literal(''), z.iso.date('End date must be YYYY-MM-DD')]),
+  startDate: z.union([z.literal(''), z.iso.date(TRANSACTION_VALIDATION_STRINGS.startDateISO)]),
+  endDate: z.union([z.literal(''), z.iso.date(TRANSACTION_VALIDATION_STRINGS.endDateISO)]),
 });
 
 export default function AllTransactionsScreen() {
@@ -52,7 +50,7 @@ export default function AllTransactionsScreen() {
   // ─── Category dropdown options ────────────────────────────────────────────────
   const categoryOptions = useMemo(
     () => [
-      { label: 'All Categories', value: '' },
+      { label: ALL_TRANSACTIONS_STRINGS.categoryPlaceholder, value: '' },
       ...(allCategories ?? []).map((c) => ({ label: c.name, value: c.id })),
     ],
     [allCategories]
@@ -79,6 +77,11 @@ export default function AllTransactionsScreen() {
         fieldErrors[field] = issue.message;
       }
       setDateErrors(fieldErrors);
+      return;
+    }
+
+    if (draftFilter.startDate && draftFilter.endDate && draftFilter.startDate > draftFilter.endDate) {
+      setDateErrors({ endDate: TRANSACTION_VALIDATION_STRINGS.dateRange });
       return;
     }
 
@@ -132,12 +135,12 @@ export default function AllTransactionsScreen() {
     <BView flex center paddingY={SpacingValue.XL}>
       <BIcon name="receipt-outline" size="lg" color={themeColors.textMuted} />
       <BText variant={TextVariant.BODY} muted style={{ marginTop: Spacing.sm }}>
-        {hasActiveFilter ? 'No transactions match your filters' : 'No transactions yet'}
+        {hasActiveFilter ? ALL_TRANSACTIONS_STRINGS.noTransactionsFiltered : ALL_TRANSACTIONS_STRINGS.noTransactions}
       </BText>
       {hasActiveFilter && (
         <BButton variant={ButtonVariant.GHOST} onPress={clearFilter} style={{ marginTop: Spacing.xs }}>
           <BText variant={TextVariant.CAPTION} color={themeColors.primary}>
-            Clear filters
+            {ALL_TRANSACTIONS_STRINGS.clearFiltersButton}
           </BText>
         </BButton>
       )}
@@ -149,7 +152,7 @@ export default function AllTransactionsScreen() {
       {/* Header */}
       <BView row align="center" justify="space-between" paddingX={SpacingValue.LG}>
         <BView flex>
-          <ScreenHeader title="All Transactions" titleVariant="subheading" />
+          <ScreenHeader title={ALL_TRANSACTIONS_STRINGS.screenTitle} titleVariant={TextVariant.SUBHEADING} />
         </BView>
         {!isError && (
           <BButton variant={ButtonVariant.GHOST} onPress={openFilter} padding={SpacingValue.XS}>
@@ -167,10 +170,10 @@ export default function AllTransactionsScreen() {
         <BView flex center gap={SpacingValue.MD} paddingX={SpacingValue.LG}>
           <BIcon name="cloud-offline-outline" size="lg" color={themeColors.error} />
           <BText variant={TextVariant.SUBHEADING} style={{ textAlign: 'center' }}>
-            Failed to load transactions
+            {ALL_TRANSACTIONS_STRINGS.loadErrorTitle}
           </BText>
           <BText variant={TextVariant.BODY} muted style={{ textAlign: 'center' }}>
-            Something went wrong while fetching your data. Please try again.
+            {ALL_TRANSACTIONS_STRINGS.loadErrorBody}
           </BText>
           <BButton
             variant={ButtonVariant.PRIMARY}
@@ -181,7 +184,7 @@ export default function AllTransactionsScreen() {
           >
             <BIcon name="refresh-outline" size="sm" color={themeColors.white} />
             <BText variant={TextVariant.LABEL} color={themeColors.white}>
-              Retry
+              {ALL_TRANSACTIONS_STRINGS.retryButton}
             </BText>
           </BButton>
         </BView>
@@ -196,16 +199,23 @@ export default function AllTransactionsScreen() {
               paddingY={SpacingValue.XS}
               style={{ flexWrap: 'wrap' }}
             >
-              {appliedFilter.type !== 'all' && (
+              {appliedFilter.type !== ExpenseFilterType.ALL && (
                 <FilterChip
-                  label={appliedFilter.type === 'expense' ? 'Expenses only' : 'Savings only'}
-                  onRemove={() => setAppliedFilter((f) => ({ ...f, type: 'all' }))}
+                  label={
+                    appliedFilter.type === ExpenseFilterType.EXPENSE
+                      ? ALL_TRANSACTIONS_STRINGS.expensesOnlyChip
+                      : ALL_TRANSACTIONS_STRINGS.savingsOnlyChip
+                  }
+                  onRemove={() => setAppliedFilter((f) => ({ ...f, type: ExpenseFilterType.ALL }))}
                 />
               )}
               {appliedFilter.categoryId && (
                 <FilterChip
                   icon="pricetag-outline"
-                  label={allCategories?.find((c) => c.id === appliedFilter.categoryId)?.name ?? 'Category'}
+                  label={
+                    allCategories?.find((c) => c.id === appliedFilter.categoryId)?.name ??
+                    TRANSACTION_COMMON_STRINGS.categoryFallback
+                  }
                   onRemove={() => setAppliedFilter((f) => ({ ...f, categoryId: null }))}
                 />
               )}
@@ -239,45 +249,50 @@ export default function AllTransactionsScreen() {
       <BModal
         isVisible={filterModalVisible}
         onClose={() => setFilterModalVisible(false)}
-        title="Filter Transactions"
+        title={ALL_TRANSACTIONS_STRINGS.filterModalTitle}
         position={ModalPosition.BOTTOM}
       >
         <BView gap={SpacingValue.MD} paddingX={SpacingValue.LG} paddingY={SpacingValue.MD}>
           {/* Category */}
           <BDropdown
-            label="Category"
+            label={ALL_TRANSACTIONS_STRINGS.categoryLabel}
             options={categoryOptions}
             value={draftFilter.categoryId ?? ''}
             onValueChange={(v) => setDraftFilter((f) => ({ ...f, categoryId: v === '' ? null : String(v) }))}
-            placeholder="All Categories"
-            modalTitle="Select Category"
+            placeholder={ALL_TRANSACTIONS_STRINGS.categoryPlaceholder}
+            modalTitle={ALL_TRANSACTIONS_STRINGS.categoryModalTitle}
             searchable
           />
 
           {/* Date range */}
           <BView row gap={SpacingValue.SM}>
             <BView flex>
-              <BInput
-                label="From"
+              <BDateField
+                label={ALL_TRANSACTIONS_STRINGS.fromLabel}
                 value={draftFilter.startDate}
-                onChangeText={(v) => {
+                onChange={(v) => {
                   setDraftFilter((f) => ({ ...f, startDate: v }));
                   if (dateErrors.startDate) setDateErrors((e) => ({ ...e, startDate: undefined }));
+                  if (dateErrors.endDate) setDateErrors((e) => ({ ...e, endDate: undefined }));
                 }}
-                placeholder="YYYY-MM-DD"
+                placeholder={TRANSACTION_COMMON_STRINGS.datePlaceholderISO}
                 error={dateErrors.startDate}
+                maximumDate={draftFilter.endDate || undefined}
+                allowClear
               />
             </BView>
             <BView flex>
-              <BInput
-                label="To"
+              <BDateField
+                label={ALL_TRANSACTIONS_STRINGS.toLabel}
                 value={draftFilter.endDate}
-                onChangeText={(v) => {
+                onChange={(v) => {
                   setDraftFilter((f) => ({ ...f, endDate: v }));
                   if (dateErrors.endDate) setDateErrors((e) => ({ ...e, endDate: undefined }));
                 }}
-                placeholder="YYYY-MM-DD"
+                placeholder={TRANSACTION_COMMON_STRINGS.datePlaceholderISO}
                 error={dateErrors.endDate}
+                minimumDate={draftFilter.startDate || undefined}
+                allowClear
               />
             </BView>
           </BView>
@@ -285,10 +300,10 @@ export default function AllTransactionsScreen() {
           {/* Type toggle */}
           <BView>
             <BText variant={TextVariant.LABEL} style={{ marginBottom: Spacing.xs }}>
-              Type
+              {ALL_TRANSACTIONS_STRINGS.filterTypeLabel}
             </BText>
             <BView row gap={SpacingValue.SM}>
-              {TYPE_OPTIONS.map((opt) => (
+              {TRANSACTION_FILTER_TYPE_OPTIONS.map((opt) => (
                 <BButton
                   key={opt.value}
                   style={{ flex: 1 }}
@@ -316,7 +331,7 @@ export default function AllTransactionsScreen() {
               paddingY={SpacingValue.MD}
             >
               <BText variant={TextVariant.LABEL} color={themeColors.primary}>
-                Clear All
+                {ALL_TRANSACTIONS_STRINGS.clearAllButton}
               </BText>
             </BButton>
             <BButton
@@ -326,7 +341,7 @@ export default function AllTransactionsScreen() {
               paddingY={SpacingValue.MD}
             >
               <BText variant={TextVariant.LABEL} color={themeColors.white}>
-                Apply
+                {ALL_TRANSACTIONS_STRINGS.applyButton}
               </BText>
             </BButton>
           </BView>

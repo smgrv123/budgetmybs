@@ -1,9 +1,11 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { Alert } from 'react-native';
 
 import BListStep from '@/src/components/onboarding/listStep';
 import { BSafeAreaView, BText, BView, ScreenHeader } from '@/src/components/ui';
 import { DebtTypeOptions } from '@/src/constants/onboarding.config';
+import { DEBTS_SETTINGS_STRINGS, SETTINGS_COMMON_STRINGS } from '@/src/constants/settings.strings';
 import {
   common,
   createFormFieldsWithCurrency,
@@ -65,29 +67,27 @@ export default function DebtsScreen() {
   };
 
   const handleSaveChanges = async () => {
-    try {
-      const dbIds = new Set((dbDebts || []).map((debt) => debt.id));
+    const dbIds = new Set((dbDebts || []).map((debt) => debt.id));
 
-      // New items (not yet in DB)
-      const addedItems = debts.filter((item) => !dbIds.has(item.tempId));
-      // Modified items (exist in DB but content has changed)
-      const updatedItems = debts.filter((item) => {
-        if (!dbIds.has(item.tempId)) return false;
-        const original = dbDebts?.find((d) => d.id === item.tempId);
-        if (!original) return false;
-        return (
-          original.name !== item.name ||
-          original.type !== item.type ||
-          original.principal !== item.principal ||
-          original.interestRate !== item.interestRate ||
-          original.tenureMonths !== item.tenureMonths
-        );
-      });
+    const addedItems = debts.filter((item) => !dbIds.has(item.tempId));
+    const updatedItems = debts.filter((item) => {
+      if (!dbIds.has(item.tempId)) return false;
+      const original = dbDebts?.find((d) => d.id === item.tempId);
+      if (!original) return false;
+      return (
+        original.name !== item.name ||
+        original.type !== item.type ||
+        original.principal !== item.principal ||
+        original.interestRate !== item.interestRate ||
+        original.tenureMonths !== item.tenureMonths
+      );
+    });
 
-      await Promise.all([
-        ...addedItems.map((item) => {
-          const emiAmount = calculateEMI(item.principal, item.interestRate, item.tenureMonths);
-          return createDebtAsync({
+    const operations = [
+      ...addedItems.map((item) => {
+        const emiAmount = calculateEMI(item.principal, item.interestRate, item.tenureMonths);
+        return createDebtAsync(
+          {
             name: item.name,
             type: item.type,
             customType: item.customType ?? null,
@@ -99,11 +99,16 @@ export default function DebtsScreen() {
             remainingMonths: item.tenureMonths,
             startDate: null,
             dayOfMonth: item.dayOfMonth ?? 1,
-          });
-        }),
-        ...updatedItems.map((item) => {
-          const emiAmount = calculateEMI(item.principal, item.interestRate, item.tenureMonths);
-          return updateDebtAsync({
+          },
+          {
+            onError: (error) => console.error(DEBTS_SETTINGS_STRINGS.createFailedLog, error),
+          }
+        );
+      }),
+      ...updatedItems.map((item) => {
+        const emiAmount = calculateEMI(item.principal, item.interestRate, item.tenureMonths);
+        return updateDebtAsync(
+          {
             id: item.tempId,
             data: {
               name: item.name,
@@ -115,15 +120,28 @@ export default function DebtsScreen() {
               tenureMonths: item.tenureMonths,
               dayOfMonth: item.dayOfMonth ?? 1,
             },
-          });
-        }),
-        ...removedItemIds.map((id) => removeDebtAsync(id)),
-      ]);
+          },
+          {
+            onError: (error) => console.error(DEBTS_SETTINGS_STRINGS.updateFailedLog, error),
+          }
+        );
+      }),
+      ...removedItemIds.map((id) =>
+        removeDebtAsync(id, {
+          onError: (error) => console.error(DEBTS_SETTINGS_STRINGS.removeFailedLog, error),
+        })
+      ),
+    ];
 
-      router.back();
-    } catch (error) {
-      console.error('Failed to save changes:', error);
+    const results = await Promise.allSettled(operations);
+    const hasError = results.some((result) => result.status === 'rejected');
+
+    if (hasError) {
+      Alert.alert(SETTINGS_COMMON_STRINGS.errorAlertTitle, SETTINGS_COMMON_STRINGS.saveChangesFailed);
+      return;
     }
+
+    router.back();
   };
 
   const getTypeLabel = (type: string) => {
@@ -136,7 +154,7 @@ export default function DebtsScreen() {
 
   return (
     <BSafeAreaView edges={['top', 'left', 'right']}>
-      <ScreenHeader title="Debts & Loans" />
+      <ScreenHeader title={DEBTS_SETTINGS_STRINGS.screenTitle} />
 
       <BView flex padding="base">
         <BListStep
@@ -147,7 +165,7 @@ export default function DebtsScreen() {
             getSubtitle: (item) => getTypeLabel(item.type),
             getAmount: (item) => item.principal,
             getSecondaryAmount: (item) => calculateEMI(item.principal, item.interestRate, item.tenureMonths),
-            secondaryLabel: 'EMI',
+            secondaryLabel: DEBTS_SETTINGS_STRINGS.secondaryAmountLabel,
             toFormData: (item) => ({
               name: item.name,
               type: item.type,
@@ -165,7 +183,7 @@ export default function DebtsScreen() {
           onAddItem={addDebt}
           parseFormData={parseDebtFormData}
           onNext={handleSaveChanges}
-          nextButtonLabel="Save Changes"
+          nextButtonLabel={SETTINGS_COMMON_STRINGS.saveChangesButton}
           extraFormContent={(formData) => {
             const emi =
               formData.principal && formData.interestRate && formData.tenureMonths
@@ -178,7 +196,7 @@ export default function DebtsScreen() {
             return emi > 0 ? (
               <BView row gap="sm" style={{ marginTop: Spacing.sm }}>
                 <BText variant="label" muted>
-                  EMI:
+                  {DEBTS_SETTINGS_STRINGS.emiLabel}:
                 </BText>
                 <BText variant="subheading" color={themeColors.primary}>
                   {common.currency} {emi.toLocaleString('en-IN')}

@@ -16,6 +16,44 @@ export const CHAT_STRINGS = {
   DELETE_BUTTON: 'Delete',
 } as const;
 
+export const CHAT_MESSAGE_STRINGS = {
+  fallbackProfileName: 'there',
+  welcome: (name: string) =>
+    `Hey ${name}! 👋 I'm FinAI, your personal finance assistant. I can help you track expenses, update your financial details, or just answer money questions. What's on your mind?`,
+  serviceErrorReply: 'Sorry, I ran into an issue. Please try again in a moment.',
+  expenseSaveFailedReply: "Couldn't save the expense. Please try again.",
+  updateSaveFailedReply: "Couldn't save the changes. Please try again.",
+  deleteFailedReply: "Couldn't delete. Please try again.",
+  updateSuccessReply: '✅ Done! Your data has been updated.',
+  expenseAddedReply: (amount: number) => `✅ Expense of ₹${amount.toLocaleString('en-IN')} added successfully!`,
+  deleteSuccessReply: (name: string) => `✅ ${name} has been deleted.`,
+} as const;
+
+export const CHAT_ALERT_STRINGS = {
+  clearHistoryTitle: 'Clear Chat History',
+  clearHistoryBody: 'This will permanently delete all messages. This cannot be undone.',
+  cancelButton: 'Cancel',
+  clearButton: 'Clear',
+} as const;
+
+export const CHAT_LOG_STRINGS = {
+  chatServiceError: 'Chat service error:',
+  saveUserMessageError: 'Failed to save user message:',
+  saveAssistantMessageError: 'Failed to save assistant message:',
+  saveExpenseError: 'Failed to save expense:',
+  completeActionError: 'Failed to complete action:',
+  updateProfileError: 'Failed to update profile:',
+  addFixedExpenseError: 'Failed to add fixed expense:',
+  updateFixedExpenseError: 'Failed to update fixed expense:',
+  addDebtError: 'Failed to add debt:',
+  updateDebtError: 'Failed to update debt:',
+  addSavingsGoalError: 'Failed to add savings goal:',
+  updateSavingsGoalError: 'Failed to update savings goal:',
+  deleteFixedExpenseError: 'Failed to delete fixed expense:',
+  deleteDebtError: 'Failed to delete debt:',
+  deleteSavingsGoalError: 'Failed to delete savings goal:',
+} as const;
+
 export const DeleteEntityType = {
   FIXED_EXPENSE: 'Fixed Expense',
   DEBT: 'Debt',

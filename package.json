@@ -8,6 +8,7 @@
     "web": "expo start --web",
     "lint": "expo lint && eslint .",
     "lint:fix": "eslint . --fix",
+    "typecheck": "tsc --noEmit",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepare": "husky",
     "db:generate": "drizzle-kit generate"
@@ -16,6 +17,7 @@
     "@expo/vector-icons": "^15.0.3",
     "@google/generative-ai": "^0.24.1",
     "@react-native-async-storage/async-storage": "^2.2.0",
+    "@react-native-community/datetimepicker": "8.4.4",
     "@react-navigation/bottom-tabs": "^7.4.0",
     "@react-navigation/native": "^7.1.8",
     "@tanstack/react-query": "^5.90.12",

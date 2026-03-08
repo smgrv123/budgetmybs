@@ -2,6 +2,7 @@
 export { default as BAccordion } from './accordion';
 export { default as BButton } from './button';
 export { default as BCard } from './card';
+export { default as BDateField } from './date-field';
 export { default as BDropdown } from './dropdown';
 export { default as BFAB } from './fab';
 export { default as FilterChip } from './filter-chip';
@@ -20,6 +21,7 @@ export { default as BView } from './view';
 export type { BAccordionProps } from './accordion';
 export type { BButtonProps } from './button';
 export type { BCardProps, CardVariant } from './card';
+export type { BDateFieldProps } from './date-field';
 export type { BDropdownProps } from './dropdown';
 export type { BIconProps } from './icon';
 export type { BInputProps } from './input';

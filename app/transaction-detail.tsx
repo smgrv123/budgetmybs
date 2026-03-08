@@ -1,5 +1,16 @@
 import type { UpdateExpenseInput } from '@/db/schema-types';
-import { BButton, BCard, BIcon, BInput, BSafeAreaView, BText, BToast, BView, ScreenHeader } from '@/src/components/ui';
+import {
+  BButton,
+  BCard,
+  BDateField,
+  BIcon,
+  BInput,
+  BSafeAreaView,
+  BText,
+  BToast,
+  BView,
+  ScreenHeader,
+} from '@/src/components/ui';
 import type { ToastVariantType } from '@/src/constants/theme';
 import {
   ButtonVariant,
@@ -10,6 +21,11 @@ import {
   TextVariant,
   ToastVariant,
 } from '@/src/constants/theme';
+import {
+  TRANSACTION_COMMON_STRINGS,
+  TRANSACTION_DETAIL_STRINGS,
+  TRANSACTION_VALIDATION_STRINGS,
+} from '@/src/constants/transactions.strings';
 import { useCategories, useExpenseById, useExpenses } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { formatDate } from '@/src/utils/date';
@@ -24,12 +40,12 @@ const editExpenseSchema = z.object({
   amount: z
     .string()
     .trim()
-    .min(1, 'Amount is required')
+    .min(1, TRANSACTION_VALIDATION_STRINGS.amountRequired)
     .refine((v) => {
       const num = parseFloat(v.replace(/,/g, ''));
       return !isNaN(num) && num > 0;
-    }, 'Amount must be a positive number'),
-  date: z.iso.date('Date must be a valid date (YYYY-MM-DD)'),
+    }, TRANSACTION_VALIDATION_STRINGS.amountPositive),
+  date: z.iso.date(TRANSACTION_VALIDATION_STRINGS.dateValidISO),
   description: z.string().optional(),
   categoryId: z.string().nullable().optional(),
 });
@@ -39,7 +55,7 @@ export default function TransactionDetailScreen() {
   const router = useRouter();
   const themeColors = useThemeColors();
   const { allCategories } = useCategories();
-  const { updateExpenseAsync, isUpdatingExpense, removeExpenseAsync } = useExpenses();
+  const { updateExpense, isUpdatingExpense, removeExpense } = useExpenses();
   const { expense, isExpenseLoading } = useExpenseById(id);
 
   const [isEditing, setIsEditing] = useState(false);
@@ -75,7 +91,7 @@ export default function TransactionDetailScreen() {
 
   const enterEditMode = () => {
     if (isRecurring) {
-      showToast("Recurring transactions can't be edited");
+      showToast(TRANSACTION_DETAIL_STRINGS.recurringEditDisabled);
       return;
     }
     setIsEditing(true);
@@ -91,7 +107,7 @@ export default function TransactionDetailScreen() {
     setIsEditing(false);
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!expense || !id) return;
 
     const result = editExpenseSchema.safeParse({
@@ -113,32 +129,32 @@ export default function TransactionDetailScreen() {
       categoryId: result.data.categoryId ?? null,
     };
 
-    await updateExpenseAsync(
+    updateExpense(
       { id, data: updateData },
       {
         onSuccess: () => {
           setIsEditing(false);
-          showToast('Changes saved', ToastVariant.SUCCESS);
+          showToast(TRANSACTION_DETAIL_STRINGS.changesSavedToast, ToastVariant.SUCCESS);
         },
-        onError: () => showToast('Failed to save changes. Please try again.', ToastVariant.ERROR),
+        onError: () => showToast(TRANSACTION_DETAIL_STRINGS.saveChangesFailedToast, ToastVariant.ERROR),
       }
     );
   };
 
   const handleDelete = () => {
     if (isRecurring) {
-      showToast("Recurring transactions can't be deleted");
+      showToast(TRANSACTION_DETAIL_STRINGS.recurringDeleteDisabled);
       return;
     }
-    Alert.alert('Delete Transaction?', 'This will permanently remove this transaction. This action cannot be undone.', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(TRANSACTION_DETAIL_STRINGS.deleteAlertTitle, TRANSACTION_DETAIL_STRINGS.deleteAlertBody, [
+      { text: TRANSACTION_DETAIL_STRINGS.deleteAlertCancel, style: 'cancel' },
       {
-        text: 'Delete',
+        text: TRANSACTION_DETAIL_STRINGS.deleteAlertConfirm,
         style: 'destructive',
         onPress: () =>
-          removeExpenseAsync(id!, {
+          removeExpense(id!, {
             onSuccess: () => router.back(),
-            onError: () => showToast('Failed to delete transaction. Please try again.', ToastVariant.ERROR),
+            onError: () => showToast(TRANSACTION_DETAIL_STRINGS.deleteFailedToast, ToastVariant.ERROR),
           }),
       },
     ]);
@@ -150,7 +166,7 @@ export default function TransactionDetailScreen() {
         <BView flex center>
           <BIcon name="sync" size="lg" color={themeColors.primary} />
           <BText variant={TextVariant.BODY} muted style={{ marginTop: Spacing.md }}>
-            Loading transaction...
+            {TRANSACTION_DETAIL_STRINGS.loadingLabel}
           </BText>
         </BView>
       </BSafeAreaView>
@@ -160,11 +176,11 @@ export default function TransactionDetailScreen() {
   if (!expense) {
     return (
       <BSafeAreaView edges={['top', 'left', 'right']}>
-        <ScreenHeader title="Transaction Details" />
+        <ScreenHeader title={TRANSACTION_DETAIL_STRINGS.screenTitle} />
         <BView flex center>
           <BIcon name="alert-circle-outline" size="lg" color={themeColors.error} />
           <BText variant={TextVariant.BODY} muted style={{ marginTop: Spacing.md }}>
-            Transaction not found
+            {TRANSACTION_DETAIL_STRINGS.notFoundLabel}
           </BText>
         </BView>
       </BSafeAreaView>
@@ -180,7 +196,7 @@ export default function TransactionDetailScreen() {
       {/* Header */}
       <BView row align="center" justify="space-between" paddingX={SpacingValue.LG}>
         <BView flex>
-          <ScreenHeader title="Transaction Details" titleVariant="subheading" />
+          <ScreenHeader title={TRANSACTION_DETAIL_STRINGS.screenTitle} titleVariant={TextVariant.SUBHEADING} />
         </BView>
         {!isEditing && (
           <BView row gap={SpacingValue.SM}>
@@ -222,7 +238,7 @@ export default function TransactionDetailScreen() {
           >
             <BIcon name="repeat-outline" size="sm" color={themeColors.primary} />
             <BText variant={TextVariant.CAPTION} color={themeColors.primary}>
-              Auto-generated · Read-only
+              {TRANSACTION_DETAIL_STRINGS.recurringReadOnlyBadge}
             </BText>
           </BView>
         )}
@@ -230,17 +246,17 @@ export default function TransactionDetailScreen() {
         {/* Amount Card */}
         <BCard variant={CardVariant.ELEVATED} style={styles.card}>
           <BText variant={TextVariant.CAPTION} muted>
-            Amount
+            {TRANSACTION_DETAIL_STRINGS.amountLabel}
           </BText>
           {isEditing ? (
             <BInput
               value={editAmount}
               onChangeText={(text) => setEditAmount(formatIndianNumber(parseFormattedNumber(text)))}
               keyboardType="decimal-pad"
-              placeholder="0.00"
+              placeholder={TRANSACTION_COMMON_STRINGS.amountPlaceholder}
               leftIcon={
                 <BText variant={TextVariant.LABEL} muted>
-                  ₹
+                  {TRANSACTION_COMMON_STRINGS.currencySymbol}
                 </BText>
               }
               containerStyle={{ marginTop: Spacing.xs }}
@@ -261,7 +277,7 @@ export default function TransactionDetailScreen() {
               <BIcon name="pricetag-outline" size="sm" color={themeColors.textMuted} style={styles.rowIcon} />
               <BView flex>
                 <BText variant={TextVariant.CAPTION} muted>
-                  Category
+                  {TRANSACTION_DETAIL_STRINGS.categoryLabel}
                 </BText>
                 {isEditing ? (
                   <BView row style={[styles.categoryGrid, { flexWrap: 'wrap', gap: Spacing.sm }]}>
@@ -277,7 +293,7 @@ export default function TransactionDetailScreen() {
                         variant={TextVariant.CAPTION}
                         color={editCategoryId === null ? themeColors.white : themeColors.text}
                       >
-                        None
+                        {TRANSACTION_COMMON_STRINGS.noneLabel}
                       </BText>
                     </BButton>
                     {allCategories?.map((cat) => (
@@ -310,7 +326,9 @@ export default function TransactionDetailScreen() {
                       />
                     )}
                     <BText variant={TextVariant.LABEL}>
-                      {expense.category?.name ?? (isSaving ? expense.savingsType : 'Uncategorized') ?? 'Uncategorized'}
+                      {expense.category?.name ??
+                        (isSaving ? expense.savingsType : TRANSACTION_COMMON_STRINGS.uncategorizedFallback) ??
+                        TRANSACTION_COMMON_STRINGS.uncategorizedFallback}
                     </BText>
                   </BView>
                 )}
@@ -325,15 +343,17 @@ export default function TransactionDetailScreen() {
               <BIcon name="calendar-outline" size="sm" color={themeColors.textMuted} style={styles.rowIcon} />
               <BView flex>
                 <BText variant={TextVariant.CAPTION} muted>
-                  Date
+                  {TRANSACTION_DETAIL_STRINGS.dateLabel}
                 </BText>
                 {isEditing ? (
-                  <BInput
-                    value={editDate}
-                    onChangeText={setEditDate}
-                    placeholder="YYYY-MM-DD"
-                    containerStyle={{ marginTop: Spacing.xs }}
-                  />
+                  <BView style={{ marginTop: Spacing.xs }}>
+                    <BDateField
+                      value={editDate}
+                      onChange={setEditDate}
+                      placeholder={TRANSACTION_COMMON_STRINGS.datePlaceholderISO}
+                      error={!editDate ? TRANSACTION_VALIDATION_STRINGS.dateRequired : undefined}
+                    />
+                  </BView>
                 ) : (
                   <BText variant={TextVariant.LABEL} style={{ marginTop: Spacing.xs }}>
                     {formatDate(expense.date)}
@@ -350,20 +370,20 @@ export default function TransactionDetailScreen() {
               <BIcon name="document-text-outline" size="sm" color={themeColors.textMuted} style={styles.rowIcon} />
               <BView flex>
                 <BText variant={TextVariant.CAPTION} muted>
-                  Description
+                  {TRANSACTION_DETAIL_STRINGS.descriptionLabel}
                 </BText>
                 {isEditing ? (
                   <BInput
                     value={editDescription}
                     onChangeText={setEditDescription}
-                    placeholder="Optional note..."
+                    placeholder={TRANSACTION_DETAIL_STRINGS.descriptionPlaceholder}
                     multiline
                     numberOfLines={2}
                     containerStyle={{ marginTop: Spacing.xs }}
                   />
                 ) : (
                   <BText variant={TextVariant.BODY} style={{ marginTop: Spacing.xs }}>
-                    {expense.description || '—'}
+                    {expense.description || TRANSACTION_COMMON_STRINGS.noDescriptionFallback}
                   </BText>
                 )}
               </BView>
@@ -388,7 +408,7 @@ export default function TransactionDetailScreen() {
                 >
                   <BIcon name="alert-circle-outline" size="sm" color={themeColors.warning} />
                   <BText variant={TextVariant.CAPTION} color={themeColors.warning}>
-                    Impulse Purchase
+                    {TRANSACTION_DETAIL_STRINGS.impulseBadge}
                   </BText>
                 </BView>
               </>
@@ -407,7 +427,7 @@ export default function TransactionDetailScreen() {
               paddingY={SpacingValue.MD}
             >
               <BText variant={TextVariant.LABEL} color={themeColors.white}>
-                Save Changes
+                {TRANSACTION_DETAIL_STRINGS.saveChangesButton}
               </BText>
             </BButton>
             <BButton
@@ -417,7 +437,7 @@ export default function TransactionDetailScreen() {
               paddingY={SpacingValue.MD}
             >
               <BText variant={TextVariant.LABEL} color={themeColors.primary}>
-                Cancel
+                {TRANSACTION_DETAIL_STRINGS.cancelButton}
               </BText>
             </BButton>
           </BView>

@@ -3,27 +3,30 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { z } from 'zod';
 
+import { BButton, BDropdown, BIcon, BInput, BModal, BText, BView } from '@/src/components/ui';
 import { ButtonVariant, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
+import { ADD_TRANSACTION_STRINGS, TRANSACTION_VALIDATION_STRINGS } from '@/src/constants/transactions.strings';
 import { TRANSACTION_TAB_CONFIGS } from '@/src/constants/transactionForm.config';
 import { TRANSACTION_MODAL_TEXT, TransactionTab } from '@/src/constants/transactionModal';
-import { BButton, BDropdown, BIcon, BInput, BModal, BText, BView } from '@/src/components/ui';
 import { useCategories, useExpenses } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
+import { TransactionFieldKey, TransactionFieldType, type TransactionFieldKeyValue } from '@/src/types/transaction';
+import { formatLocalDateToISO } from '@/src/utils/date';
 import { createTransactionFields } from './transactionForm';
 
 // Validation schemas
 const expenseSchema = z.object({
-  amount: z.number().positive('Amount must be greater than 0'),
-  category: z.string().min(1, 'Please select a category'),
+  amount: z.number().positive(TRANSACTION_VALIDATION_STRINGS.amountGreaterThanZero),
+  category: z.string().min(1, TRANSACTION_VALIDATION_STRINGS.categoryRequired),
   description: z.string().optional(),
-  date: z.string().min(1, 'Date is required'),
+  date: z.string().min(1, TRANSACTION_VALIDATION_STRINGS.dateRequired),
 });
 
 const savingSchema = z.object({
-  amount: z.number().positive('Amount must be greater than 0'),
-  savingsType: z.string().min(1, 'Please select a savings type'),
+  amount: z.number().positive(TRANSACTION_VALIDATION_STRINGS.amountGreaterThanZero),
+  savingsType: z.string().min(1, TRANSACTION_VALIDATION_STRINGS.savingsTypeRequired),
   description: z.string().optional(),
-  date: z.string().min(1, 'Date is required'),
+  date: z.string().min(1, TRANSACTION_VALIDATION_STRINGS.dateRequired),
 });
 
 type AddTransactionModalProps = {
@@ -41,83 +44,85 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose })
   const [category, setCategory] = useState('');
   const [savingsType, setSavingsType] = useState('');
   const [description, setDescription] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [date, setDate] = useState(formatLocalDateToISO(new Date()));
 
   const { allCategories } = useCategories();
 
-  const { createExpenseAsync, createOneOffSavingAsync, isCreatingExpense, isCreatingOneOffSaving } = useExpenses();
+  const { createExpense, createOneOffSaving, isCreatingExpense, isCreatingOneOffSaving } = useExpenses();
 
-  const handleChange = (key: string, value: string) => {
+  const handleChange = (key: TransactionFieldKeyValue, value: string) => {
     switch (key) {
-      case 'amount':
+      case TransactionFieldKey.AMOUNT:
         setAmount(value);
         break;
-      case 'category':
+      case TransactionFieldKey.CATEGORY:
         setCategory(value);
         break;
-      case 'savingsType':
+      case TransactionFieldKey.SAVINGS_TYPE:
         setSavingsType(value);
         break;
-      case 'description':
+      case TransactionFieldKey.DESCRIPTION:
         setDescription(value);
         break;
-      case 'date':
+      case TransactionFieldKey.DATE:
         setDate(value);
         break;
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     const amountNum = parseFloat(amount);
+    if (activeTab === TransactionTab.EXPENSE) {
+      const validationResult = expenseSchema.safeParse({
+        amount: amountNum,
+        category,
+        description: description || undefined,
+        date,
+      });
+      if (!validationResult.success) return;
 
-    // Validate based on active tab
-    try {
-      if (activeTab === TransactionTab.EXPENSE) {
-        const data = expenseSchema.parse({
-          amount: amountNum,
-          category,
-          description: description || undefined,
-          date,
-        });
-
-        await createExpenseAsync({
-          amount: data.amount,
-          categoryId: data.category,
-          description: data.description,
-          date: data.date,
-        });
-      } else {
-        const data = savingSchema.parse({
-          amount: amountNum,
-          savingsType,
-          description: description || undefined,
-          date,
-        });
-
-        await createOneOffSavingAsync({
-          amount: data.amount,
-          savingsType: data.savingsType as any,
-          description: data.description,
-          date: data.date,
-        });
-      }
-
-      setValidationErrors({});
-      handleClose();
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const errors: Record<string, string> = {};
-        error.issues.forEach((issue) => {
-          if (issue.path[0]) {
-            errors[issue.path[0] as string] = issue.message;
-          }
-        });
-        setValidationErrors(errors);
-      } else {
-        console.error('Failed to create transaction:', error);
-      }
+      createExpense(
+        {
+          amount: validationResult.data.amount,
+          categoryId: validationResult.data.category,
+          description: validationResult.data.description,
+          date: validationResult.data.date,
+        },
+        {
+          onSuccess: () => {
+            handleClose();
+          },
+          onError: (error) => {
+            console.error(ADD_TRANSACTION_STRINGS.createFailedLog, error);
+          },
+        }
+      );
     }
+
+    const validationResult = savingSchema.safeParse({
+      amount: amountNum,
+      savingsType,
+      description: description || undefined,
+      date,
+    });
+    if (!validationResult.success) return;
+
+    createOneOffSaving(
+      {
+        amount: validationResult.data.amount,
+        savingsType: validationResult.data.savingsType as any,
+        description: validationResult.data.description,
+        date: validationResult.data.date,
+      },
+      {
+        onSuccess: () => {
+          handleClose();
+        },
+        onError: (error) => {
+          console.error(ADD_TRANSACTION_STRINGS.createFailedLog, error);
+        },
+      }
+    );
   };
 
   const handleClose = () => {
@@ -126,7 +131,7 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose })
     setCategory('');
     setSavingsType('');
     setDescription('');
-    setDate(new Date().toISOString().split('T')[0]);
+    setDate(formatLocalDateToISO(new Date()));
     onClose();
   };
 
@@ -178,7 +183,7 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose })
           <BView key={item.key} gap={SpacingValue.XS} marginY={SpacingValue.SM}>
             <BText variant={TextVariant.LABEL}>{item.label}</BText>
 
-            {item.type === 'input' && (
+            {item.type === TransactionFieldType.INPUT && (
               <BInput
                 placeholder={item.placeholder}
                 value={item.value}
@@ -190,7 +195,7 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose })
               />
             )}
 
-            {item.type === 'categoryGrid' && (
+            {item.type === TransactionFieldType.CATEGORY_GRID && (
               <BView row gap={SpacingValue.SM} style={styles.categoryGrid}>
                 {allCategories.map((cat) => (
                   <BButton
@@ -219,7 +224,7 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose })
               </BView>
             )}
 
-            {item.type === 'dropdown' && item.options && (
+            {item.type === TransactionFieldType.DROPDOWN && item.options && (
               <BDropdown
                 options={item.options}
                 value={item.value}

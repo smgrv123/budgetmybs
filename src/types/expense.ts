@@ -1,4 +1,4 @@
-import type { TransactionTypeValue } from '@/src/constants/theme';
+import { TransactionType, type TransactionTypeValue } from '@/src/constants/theme';
 
 // ─── Unified expense/saving row returned from getAllExpensesWithCategory ───────
 export type AllExpense = {
@@ -36,12 +36,19 @@ export type ExpenseFilter = {
   categoryId: string | null;
   startDate: string;
   endDate: string;
-  type: 'all' | TransactionTypeValue;
+  type: ExpenseFilterTypeValue;
 };
+
+export const ExpenseFilterType = {
+  ALL: 'all',
+  EXPENSE: TransactionType.EXPENSE,
+  SAVING: TransactionType.SAVING,
+} as const;
+export type ExpenseFilterTypeValue = (typeof ExpenseFilterType)[keyof typeof ExpenseFilterType];
 
 export const DEFAULT_EXPENSE_FILTER: ExpenseFilter = {
   categoryId: null,
   startDate: '',
   endDate: '',
-  type: 'all',
+  type: ExpenseFilterType.ALL,
 };

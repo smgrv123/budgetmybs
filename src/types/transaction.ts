@@ -1,14 +1,35 @@
 import type { DropdownOption } from '@/src/types';
 import type { ReactNode } from 'react';
 
-export type TransactionFieldType = 'input' | 'categoryGrid' | 'dropdown' | 'date';
+export const TransactionFieldType = {
+  INPUT: 'input',
+  CATEGORY_GRID: 'categoryGrid',
+  DROPDOWN: 'dropdown',
+  DATE: 'date',
+} as const;
+export type TransactionFieldTypeValue = (typeof TransactionFieldType)[keyof typeof TransactionFieldType];
+
+export const TransactionFieldKey = {
+  AMOUNT: 'amount',
+  CATEGORY: 'category',
+  SAVINGS_TYPE: 'savingsType',
+  DESCRIPTION: 'description',
+  DATE: 'date',
+} as const;
+export type TransactionFieldKeyValue = (typeof TransactionFieldKey)[keyof typeof TransactionFieldKey];
+
+export const TransactionKeyboardType = {
+  DEFAULT: 'default',
+  DECIMAL_PAD: 'decimal-pad',
+} as const;
+export type TransactionKeyboardTypeValue = (typeof TransactionKeyboardType)[keyof typeof TransactionKeyboardType];
 
 export type TransactionFieldConfig = {
-  key: string;
-  type: TransactionFieldType;
+  key: TransactionFieldKeyValue;
+  type: TransactionFieldTypeValue;
   label: string;
   placeholder?: string;
-  keyboardType?: 'default' | 'decimal-pad';
+  keyboardType?: TransactionKeyboardTypeValue;
   multiline?: boolean;
   numberOfLines?: number;
   hasCurrencyIcon?: boolean;
@@ -16,13 +37,13 @@ export type TransactionFieldConfig = {
 };
 
 export type TransactionField = {
-  key: string;
-  type: TransactionFieldType;
+  key: TransactionFieldKeyValue;
+  type: TransactionFieldTypeValue;
   label: string;
   placeholder?: string;
   value: string;
   onValueChange: (value: string | number) => void;
-  keyboardType?: 'default' | 'decimal-pad';
+  keyboardType?: TransactionKeyboardTypeValue;
   multiline?: boolean;
   numberOfLines?: number;
   leftIcon?: ReactNode;

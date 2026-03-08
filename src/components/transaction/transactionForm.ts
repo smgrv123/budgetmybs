@@ -1,7 +1,7 @@
 import { createElement } from 'react';
 
 import { TRANSACTION_MODAL_TEXT } from '@/src/constants/transactionModal';
-import type { TransactionField, TransactionFieldConfig } from '@/src/types/transaction';
+import type { TransactionField, TransactionFieldConfig, TransactionFieldKeyValue } from '@/src/types/transaction';
 import { BText } from '../ui';
 
 type CreateTransactionFieldsParams = {
@@ -13,7 +13,7 @@ type CreateTransactionFieldsParams = {
     description: string;
     date: string;
   };
-  handleChange: (key: string, value: string) => void;
+  handleChange: (key: TransactionFieldKeyValue, value: string) => void;
 };
 
 export const createTransactionFields = ({

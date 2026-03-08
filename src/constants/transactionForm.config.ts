@@ -1,32 +1,37 @@
 import { TRANSACTION_MODAL_TEXT, TransactionTab } from '@/src/constants/transactionModal';
 import { SavingsLabels, SavingsTypeEnum } from '@/db/types';
-import type { TransactionFieldConfig } from '@/src/types/transaction';
+import {
+  TransactionFieldKey,
+  TransactionFieldType,
+  TransactionKeyboardType,
+  type TransactionFieldConfig,
+} from '@/src/types/transaction';
 
 export const EXPENSE_FIELD_CONFIGS: TransactionFieldConfig[] = [
   {
-    key: 'amount',
-    type: 'input',
+    key: TransactionFieldKey.AMOUNT,
+    type: TransactionFieldType.INPUT,
     label: TRANSACTION_MODAL_TEXT.expense.amountLabel,
     placeholder: TRANSACTION_MODAL_TEXT.common.amountPlaceholder,
-    keyboardType: 'decimal-pad',
+    keyboardType: TransactionKeyboardType.DECIMAL_PAD,
     hasCurrencyIcon: true,
   },
   {
-    key: 'category',
-    type: 'categoryGrid',
+    key: TransactionFieldKey.CATEGORY,
+    type: TransactionFieldType.CATEGORY_GRID,
     label: TRANSACTION_MODAL_TEXT.expense.categoryLabel,
   },
   {
-    key: 'description',
-    type: 'input',
+    key: TransactionFieldKey.DESCRIPTION,
+    type: TransactionFieldType.INPUT,
     label: TRANSACTION_MODAL_TEXT.common.descriptionLabel,
     placeholder: TRANSACTION_MODAL_TEXT.expense.descriptionPlaceholder,
     multiline: true,
     numberOfLines: 2,
   },
   {
-    key: 'date',
-    type: 'input',
+    key: TransactionFieldKey.DATE,
+    type: TransactionFieldType.INPUT,
     label: TRANSACTION_MODAL_TEXT.common.dateLabel,
     placeholder: TRANSACTION_MODAL_TEXT.common.datePlaceholder,
   },
@@ -34,16 +39,16 @@ export const EXPENSE_FIELD_CONFIGS: TransactionFieldConfig[] = [
 
 export const SAVING_FIELD_CONFIGS: TransactionFieldConfig[] = [
   {
-    key: 'amount',
-    type: 'input',
+    key: TransactionFieldKey.AMOUNT,
+    type: TransactionFieldType.INPUT,
     label: TRANSACTION_MODAL_TEXT.saving.amountLabel,
     placeholder: TRANSACTION_MODAL_TEXT.common.amountPlaceholder,
-    keyboardType: 'decimal-pad',
+    keyboardType: TransactionKeyboardType.DECIMAL_PAD,
     hasCurrencyIcon: true,
   },
   {
-    key: 'savingsType',
-    type: 'dropdown',
+    key: TransactionFieldKey.SAVINGS_TYPE,
+    type: TransactionFieldType.DROPDOWN,
     label: TRANSACTION_MODAL_TEXT.saving.savingsTypeLabel,
     placeholder: TRANSACTION_MODAL_TEXT.saving.savingsTypePlaceholder,
     options: Object.values(SavingsTypeEnum).map((type) => ({
@@ -52,16 +57,16 @@ export const SAVING_FIELD_CONFIGS: TransactionFieldConfig[] = [
     })),
   },
   {
-    key: 'description',
-    type: 'input',
+    key: TransactionFieldKey.DESCRIPTION,
+    type: TransactionFieldType.INPUT,
     label: TRANSACTION_MODAL_TEXT.common.descriptionLabel,
     placeholder: TRANSACTION_MODAL_TEXT.saving.descriptionPlaceholder,
     multiline: true,
     numberOfLines: 2,
   },
   {
-    key: 'date',
-    type: 'input',
+    key: TransactionFieldKey.DATE,
+    type: TransactionFieldType.INPUT,
     label: TRANSACTION_MODAL_TEXT.common.dateLabel,
     placeholder: TRANSACTION_MODAL_TEXT.common.datePlaceholder,
   },

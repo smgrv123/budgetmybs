@@ -1,8 +1,10 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { Alert } from 'react-native';
 
 import BListStep from '@/src/components/onboarding/listStep';
 import { BSafeAreaView, BText, BView, ScreenHeader } from '@/src/components/ui';
+import { FIXED_EXPENSES_SETTINGS_STRINGS, SETTINGS_COMMON_STRINGS } from '@/src/constants/settings.strings';
 import { FixedExpenseTypeOptions } from '@/src/constants/onboarding.config';
 import {
   common,
@@ -66,36 +68,39 @@ export default function FixedExpensesScreen() {
   };
 
   const handleSaveChanges = async () => {
-    try {
-      const dbIds = new Set((dbExpenses || []).map((exp) => exp.id));
+    const dbIds = new Set((dbExpenses || []).map((exp) => exp.id));
 
-      // New items (not yet in DB)
-      const addedItems = expenses.filter((item) => !dbIds.has(item.tempId));
-      // Modified items (exist in DB but content has changed)
-      const updatedItems = expenses.filter((item) => {
-        if (!dbIds.has(item.tempId)) return false;
-        const original = dbExpenses?.find((e) => e.id === item.tempId);
-        if (!original) return false;
-        return (
-          original.name !== item.name ||
-          original.type !== item.type ||
-          original.amount !== item.amount ||
-          original.dayOfMonth !== item.dayOfMonth
-        );
-      });
+    const addedItems = expenses.filter((item) => !dbIds.has(item.tempId));
+    const updatedItems = expenses.filter((item) => {
+      if (!dbIds.has(item.tempId)) return false;
+      const original = dbExpenses?.find((e) => e.id === item.tempId);
+      if (!original) return false;
+      return (
+        original.name !== item.name ||
+        original.type !== item.type ||
+        original.amount !== item.amount ||
+        original.dayOfMonth !== item.dayOfMonth
+      );
+    });
 
-      await Promise.all([
-        ...addedItems.map((item) =>
-          createFixedExpenseAsync({
+    const operations = [
+      ...addedItems.map((item) =>
+        createFixedExpenseAsync(
+          {
             name: item.name,
             type: item.type,
             customType: item.customType ?? null,
             amount: item.amount,
             dayOfMonth: item.dayOfMonth ?? 1,
-          })
-        ),
-        ...updatedItems.map((item) =>
-          updateFixedExpenseAsync({
+          },
+          {
+            onError: (error) => console.error(FIXED_EXPENSES_SETTINGS_STRINGS.createFailedLog, error),
+          }
+        )
+      ),
+      ...updatedItems.map((item) =>
+        updateFixedExpenseAsync(
+          {
             id: item.tempId,
             data: {
               name: item.name,
@@ -104,15 +109,28 @@ export default function FixedExpensesScreen() {
               amount: item.amount,
               dayOfMonth: item.dayOfMonth ?? 1,
             },
-          })
-        ),
-        ...removedItemIds.map((id) => removeFixedExpenseAsync(id)),
-      ]);
+          },
+          {
+            onError: (error) => console.error(FIXED_EXPENSES_SETTINGS_STRINGS.updateFailedLog, error),
+          }
+        )
+      ),
+      ...removedItemIds.map((id) =>
+        removeFixedExpenseAsync(id, {
+          onError: (error) => console.error(FIXED_EXPENSES_SETTINGS_STRINGS.removeFailedLog, error),
+        })
+      ),
+    ];
 
-      router.back();
-    } catch (error) {
-      console.error('Failed to save changes:', error);
+    const results = await Promise.allSettled(operations);
+    const hasError = results.some((result) => result.status === 'rejected');
+
+    if (hasError) {
+      Alert.alert(SETTINGS_COMMON_STRINGS.errorAlertTitle, SETTINGS_COMMON_STRINGS.saveChangesFailed);
+      return;
     }
+
+    router.back();
   };
 
   const getTypeLabel = (type: string) => {
@@ -125,7 +143,7 @@ export default function FixedExpensesScreen() {
 
   return (
     <BSafeAreaView edges={['top', 'left', 'right']}>
-      <ScreenHeader title="Fixed Expenses" />
+      <ScreenHeader title={FIXED_EXPENSES_SETTINGS_STRINGS.screenTitle} />
 
       <BView flex padding="base">
         <BListStep
@@ -150,7 +168,7 @@ export default function FixedExpensesScreen() {
           onAddItem={addExpense}
           parseFormData={parseFixedExpenseFormData}
           onNext={handleSaveChanges}
-          nextButtonLabel="Save Changes"
+          nextButtonLabel={SETTINGS_COMMON_STRINGS.saveChangesButton}
           customTypeModal={FIXED_EXPENSE_STEP_CONFIG.customTypeModal}
         />
       </BView>
