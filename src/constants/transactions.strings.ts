@@ -5,7 +5,6 @@ export const TRANSACTION_COMMON_STRINGS = {
   datePlaceholderISO: 'YYYY-MM-DD',
   amountPlaceholder: '0.00',
   uncategorizedFallback: 'Uncategorized',
-  noneLabel: 'None',
   categoryFallback: 'Category',
   noDescriptionFallback: '—',
 } as const;

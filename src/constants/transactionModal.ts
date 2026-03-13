@@ -10,7 +10,8 @@ export const TRANSACTION_MODAL_TEXT = {
     amountLabel: 'How much did you spend?',
     descriptionPlaceholder: 'What did you buy?',
     submitLabel: 'Add Expense',
-    categoryLabel: 'Select Category',
+    categoryLabel: 'Category',
+    categoryPlaceholder: 'Select category',
   },
   saving: {
     title: 'Add Saving',

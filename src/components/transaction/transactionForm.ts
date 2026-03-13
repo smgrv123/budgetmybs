@@ -1,6 +1,7 @@
 import { createElement } from 'react';
 
 import { TRANSACTION_MODAL_TEXT } from '@/src/constants/transactionModal';
+import type { DropdownOption } from '@/src/types';
 import type { TransactionField, TransactionFieldConfig, TransactionFieldKeyValue } from '@/src/types/transaction';
 import { BText } from '../ui';
 
@@ -14,12 +15,14 @@ type CreateTransactionFieldsParams = {
     date: string;
   };
   handleChange: (key: TransactionFieldKeyValue, value: string) => void;
+  optionsByKey?: Partial<Record<TransactionFieldKeyValue, DropdownOption[]>>;
 };
 
 export const createTransactionFields = ({
   configs,
   values,
   handleChange,
+  optionsByKey,
 }: CreateTransactionFieldsParams): TransactionField[] => {
   const currencyIcon = createElement(BText, { muted: true }, TRANSACTION_MODAL_TEXT.common.currency);
 
@@ -34,6 +37,6 @@ export const createTransactionFields = ({
     multiline: config.multiline,
     numberOfLines: config.numberOfLines,
     leftIcon: config.hasCurrencyIcon ? currencyIcon : undefined,
-    options: config.options,
+    options: config.options ?? optionsByKey?.[config.key],
   }));
 };

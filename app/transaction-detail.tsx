@@ -3,6 +3,7 @@ import {
   BButton,
   BCard,
   BDateField,
+  BDropdown,
   BIcon,
   BInput,
   BSafeAreaView,
@@ -31,7 +32,7 @@ import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { formatDate } from '@/src/utils/date';
 import { formatCurrency, formatIndianNumber, parseFormattedNumber } from '@/src/utils/format';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, ScrollView, StyleSheet } from 'react-native';
 import { z } from 'zod';
 
@@ -86,6 +87,8 @@ export default function TransactionDetailScreen() {
       setEditCategoryId(expense.categoryId ?? null);
     }
   }, [expense]);
+
+  const categoryOptions = useMemo(() => allCategories.map((c) => ({ label: c.name, value: c.id })), [allCategories]);
 
   const isRecurring = Boolean(expense?.sourceType);
 
@@ -280,41 +283,14 @@ export default function TransactionDetailScreen() {
                   {TRANSACTION_DETAIL_STRINGS.categoryLabel}
                 </BText>
                 {isEditing ? (
-                  <BView row style={[styles.categoryGrid, { flexWrap: 'wrap', gap: Spacing.sm }]}>
-                    {/* No category option */}
-                    <BButton
-                      variant={editCategoryId === null ? ButtonVariant.PRIMARY : ButtonVariant.OUTLINE}
-                      onPress={() => setEditCategoryId(null)}
-                      style={styles.categoryChip}
-                      paddingX={SpacingValue.SM}
-                      paddingY={SpacingValue.XS}
-                    >
-                      <BText
-                        variant={TextVariant.CAPTION}
-                        color={editCategoryId === null ? themeColors.white : themeColors.text}
-                      >
-                        {TRANSACTION_COMMON_STRINGS.noneLabel}
-                      </BText>
-                    </BButton>
-                    {allCategories?.map((cat) => (
-                      <BButton
-                        key={cat.id}
-                        variant={editCategoryId === cat.id ? ButtonVariant.PRIMARY : ButtonVariant.OUTLINE}
-                        onPress={() => setEditCategoryId(cat.id)}
-                        style={styles.categoryChip}
-                        paddingX={SpacingValue.SM}
-                        paddingY={SpacingValue.XS}
-                        gap={SpacingValue.XS}
-                      >
-                        <BText
-                          variant={TextVariant.CAPTION}
-                          color={editCategoryId === cat.id ? themeColors.white : themeColors.text}
-                          numberOfLines={1}
-                        >
-                          {cat.name}
-                        </BText>
-                      </BButton>
-                    ))}
+                  <BView style={{ marginTop: Spacing.xs }}>
+                    <BDropdown
+                      options={categoryOptions}
+                      value={editCategoryId ?? ''}
+                      onValueChange={(v) => setEditCategoryId(String(v) === '' ? null : String(v))}
+                      searchable
+                      modalTitle="Select Category"
+                    />
                   </BView>
                 ) : (
                   <BView row align="center" gap={SpacingValue.XS} style={{ marginTop: Spacing.xs }}>
@@ -467,14 +443,6 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: StyleSheet.hairlineWidth,
-  },
-  categoryGrid: {
-    marginTop: Spacing.sm,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  categoryChip: {
-    marginBottom: Spacing.xs,
   },
   fullWidthButton: {
     width: '100%',

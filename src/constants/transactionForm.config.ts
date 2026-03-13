@@ -18,8 +18,9 @@ export const EXPENSE_FIELD_CONFIGS: TransactionFieldConfig[] = [
   },
   {
     key: TransactionFieldKey.CATEGORY,
-    type: TransactionFieldType.CATEGORY_GRID,
+    type: TransactionFieldType.DROPDOWN,
     label: TRANSACTION_MODAL_TEXT.expense.categoryLabel,
+    placeholder: TRANSACTION_MODAL_TEXT.expense.categoryPlaceholder,
   },
   {
     key: TransactionFieldKey.DESCRIPTION,

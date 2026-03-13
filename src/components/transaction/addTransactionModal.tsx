@@ -1,13 +1,13 @@
 import type { FC } from 'react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { z } from 'zod';
 
-import { BButton, BDropdown, BIcon, BInput, BModal, BText, BView } from '@/src/components/ui';
+import { BButton, BDropdown, BInput, BModal, BText, BView } from '@/src/components/ui';
 import { ButtonVariant, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
-import { ADD_TRANSACTION_STRINGS, TRANSACTION_VALIDATION_STRINGS } from '@/src/constants/transactions.strings';
 import { TRANSACTION_TAB_CONFIGS } from '@/src/constants/transactionForm.config';
 import { TRANSACTION_MODAL_TEXT, TransactionTab } from '@/src/constants/transactionModal';
+import { ADD_TRANSACTION_STRINGS, TRANSACTION_VALIDATION_STRINGS } from '@/src/constants/transactions.strings';
 import { useCategories, useExpenses } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { TransactionFieldKey, TransactionFieldType, type TransactionFieldKeyValue } from '@/src/types/transaction';
@@ -49,6 +49,11 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose })
   const { allCategories } = useCategories();
 
   const { createExpense, createOneOffSaving, isCreatingExpense, isCreatingOneOffSaving } = useExpenses();
+
+  const categoryOptions = useMemo(
+    () => allCategories.map((cat) => ({ label: cat.name, value: cat.id })),
+    [allCategories]
+  );
 
   const handleChange = (key: TransactionFieldKeyValue, value: string) => {
     switch (key) {
@@ -143,6 +148,9 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose })
     configs: currentConfig.fields,
     values: { amount, category, savingsType, description, date },
     handleChange,
+    optionsByKey: {
+      [TransactionFieldKey.CATEGORY]: categoryOptions,
+    },
   });
 
   const headerButtonGroup = [
@@ -195,41 +203,14 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose })
               />
             )}
 
-            {item.type === TransactionFieldType.CATEGORY_GRID && (
-              <BView row gap={SpacingValue.SM} style={styles.categoryGrid}>
-                {allCategories.map((cat) => (
-                  <BButton
-                    key={cat.id}
-                    variant={category === cat.id ? ButtonVariant.PRIMARY : ButtonVariant.OUTLINE}
-                    onPress={() => item.onValueChange(cat.id)}
-                    gap={SpacingValue.XS}
-                    style={styles.categoryItem}
-                  >
-                    {cat.icon && (
-                      <BIcon
-                        name={cat.icon as any}
-                        size="md"
-                        color={category === cat.id ? themeColors.white : cat.color || themeColors.primary}
-                      />
-                    )}
-                    <BText
-                      variant={TextVariant.CAPTION}
-                      numberOfLines={1}
-                      color={category === cat.id ? themeColors.white : themeColors.text}
-                    >
-                      {cat.name}
-                    </BText>
-                  </BButton>
-                ))}
-              </BView>
-            )}
-
             {item.type === TransactionFieldType.DROPDOWN && item.options && (
               <BDropdown
                 options={item.options}
                 value={item.value}
                 onValueChange={item.onValueChange}
                 placeholder={item.placeholder}
+                searchable={true}
+                modalTitle={item.key === TransactionFieldKey.CATEGORY ? 'Select Category' : undefined}
               />
             )}
           </BView>
@@ -260,12 +241,6 @@ const styles = StyleSheet.create({
   },
   fieldsContainer: {
     maxHeight: 400,
-  },
-  categoryGrid: {
-    flexWrap: 'wrap',
-  },
-  categoryItem: {
-    width: '47%',
   },
   submitContainer: {
     marginTop: Spacing.md,
