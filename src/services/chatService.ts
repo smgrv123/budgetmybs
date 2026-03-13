@@ -4,6 +4,7 @@ import { DEBT_TYPES, FIXED_EXPENSE_TYPES, SAVINGS_TYPES } from '@/db/types';
 import { generateJSON } from '@/src/services/gemini';
 import type { ChatResponse } from '@/src/types/chat';
 import type { ProfileData } from '@/src/types/onboarding';
+import { ensureNetworkAvailable } from '@/src/utils/network';
 
 // ============================================
 // CONTEXT TYPES
@@ -178,6 +179,8 @@ const formatHistory = (messages: ChatMessage[]): string => {
  * Returns a structured ChatResponse ready to be saved to DB.
  */
 export const sendChatMessage = async (userMessage: string, context: ChatContext): Promise<ChatResponse> => {
+  await ensureNetworkAvailable();
+
   // Fetch the last 15 messages for context (already in chronological order)
   const history = await getRecentChatMessages(15);
   // Exclude any non-user/assistant DB rows that might sneak in
@@ -195,5 +198,12 @@ ${userMessage}
 
 Respond with ONLY valid JSON matching the format above.`;
 
-  return generateJSON<ChatResponse>(fullPrompt);
+  try {
+    return await generateJSON<ChatResponse>(fullPrompt);
+  } catch (error) {
+    // If the request failed due to the network dropping mid-call,
+    // re-check connectivity so callers can show a specific offline error.
+    await ensureNetworkAvailable();
+    throw error;
+  }
 };

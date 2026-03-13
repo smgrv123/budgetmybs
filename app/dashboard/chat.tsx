@@ -9,9 +9,10 @@ import {
   InlineProfileUpdate,
 } from '@/src/components/chat';
 import type { UpdatableIntent } from '@/src/components/chat/inlineProfileUpdate';
-import { BSafeAreaView } from '@/src/components/ui';
+import { BButton, BIcon, BSafeAreaView, BText, BView } from '@/src/components/ui';
 import type { DeleteEntityTypeValue } from '@/src/constants/chat';
 import {
+  CHAT_STRINGS,
   CHAT_ALERT_STRINGS,
   DebtFieldKey,
   FixedExpenseFieldKey,
@@ -21,7 +22,7 @@ import {
   ProfileUpdateFieldKey,
   SavingsGoalFieldKey,
 } from '@/src/constants/chat';
-import { Spacing } from '@/src/constants/theme';
+import { ButtonVariant, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
 import {
   useCategories,
   useChat,
@@ -33,7 +34,9 @@ import {
 } from '@/src/hooks';
 import { sendChatMessage } from '@/src/services/chatService';
 import type { ChatDeleteData, ChatExpenseData } from '@/src/types/chat';
-import { useEffect, useRef, useState } from 'react';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
+import { checkNetworkConnection, NetworkError } from '@/src/utils/network';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, FlatList, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -47,6 +50,27 @@ type PendingAction =
 
 export default function ChatScreen() {
   const flatListRef = useRef<FlatList>(null);
+  const themeColors = useThemeColors();
+
+  const [isNetworkAvailable, setIsNetworkAvailable] = useState(true);
+  const [isCheckingNetwork, setIsCheckingNetwork] = useState(false);
+
+  const verifyNetwork = useCallback(async (): Promise<void> => {
+    setIsCheckingNetwork(true);
+    try {
+      const isConnected = await checkNetworkConnection();
+      setIsNetworkAvailable(isConnected);
+    } catch (error) {
+      console.error(CHAT_LOG_STRINGS.networkUnavailable, error);
+      setIsNetworkAvailable(false);
+    } finally {
+      setIsCheckingNetwork(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    verifyNetwork();
+  }, [verifyNetwork]);
 
   // ── Data (each hook called exactly once) ──────────────────────────────────
 
@@ -119,6 +143,16 @@ export default function ChatScreen() {
   const handleSend = async (text: string) => {
     if (!profile) return;
 
+    const hasNetwork = await checkNetworkConnection().catch((error) => {
+      console.error(CHAT_LOG_STRINGS.networkUnavailable, error);
+      return false;
+    });
+
+    if (!hasNetwork) {
+      setIsNetworkAvailable(false);
+      return;
+    }
+
     setIsSending(true);
     setQuotedMessage(null);
 
@@ -159,10 +193,18 @@ export default function ChatScreen() {
       response = await sendChatMessage(text, context);
     } catch (err) {
       console.error(CHAT_LOG_STRINGS.chatServiceError, err);
+
+      if (err instanceof NetworkError) {
+        setIsNetworkAvailable(false);
+        setIsSending(false);
+        return;
+      }
+
+      const reply = CHAT_MESSAGE_STRINGS.serviceErrorReply;
       sendMessage(
         {
           role: ChatRoleEnum.ASSISTANT,
-          content: CHAT_MESSAGE_STRINGS.serviceErrorReply,
+          content: reply,
         },
         {
           onError: console.error,
@@ -613,6 +655,35 @@ export default function ChatScreen() {
     const quoted = item.quotedMessageId ? (messages.find((m) => m.id === item.quotedMessageId) ?? null) : null;
     return <ChatBubble message={item} quotedMessage={quoted} onQuote={setQuotedMessage} />;
   };
+
+  if (!isNetworkAvailable) {
+    return (
+      <BSafeAreaView edges={['top']}>
+        <BView flex center gap={SpacingValue.MD} paddingX={SpacingValue.LG}>
+          <BIcon name="cloud-offline-outline" size="lg" color={themeColors.error} />
+          <BText variant={TextVariant.SUBHEADING} style={{ textAlign: 'center' }}>
+            {CHAT_STRINGS.NETWORK_ERROR_TITLE}
+          </BText>
+          <BText variant={TextVariant.BODY} muted style={{ textAlign: 'center' }}>
+            {CHAT_STRINGS.NETWORK_ERROR_BODY}
+          </BText>
+          <BButton
+            variant={ButtonVariant.PRIMARY}
+            onPress={verifyNetwork}
+            loading={isCheckingNetwork}
+            paddingX={SpacingValue.XL}
+            paddingY={SpacingValue.SM}
+            gap={SpacingValue.SM}
+          >
+            <BIcon name="refresh-outline" size="sm" color={themeColors.white} />
+            <BText variant={TextVariant.LABEL} color={themeColors.white}>
+              {CHAT_STRINGS.NETWORK_ERROR_RETRY}
+            </BText>
+          </BButton>
+        </BView>
+      </BSafeAreaView>
+    );
+  }
 
   return (
     <BSafeAreaView edges={['top']}>

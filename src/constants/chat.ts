@@ -5,6 +5,9 @@ export const CHAT_STRINGS = {
   INPUT_PLACEHOLDER: 'Type a message...',
   SEND_BUTTON_ACCESSIBLE: 'Send message',
   CLEAR_HISTORY_ACCESSIBLE: 'Clear chat history',
+  NETWORK_ERROR_TITLE: 'No Internet Connection',
+  NETWORK_ERROR_BODY: 'Network not available. Please check your connection and try again.',
+  NETWORK_ERROR_RETRY: 'Try Again',
   FORM_EXPENSE_TITLE: 'Confirm Expense',
   FORM_EXPENSE_SUBMIT: 'Add Expense',
   FORM_SUBMITTING: 'Adding...',
@@ -21,6 +24,7 @@ export const CHAT_MESSAGE_STRINGS = {
   welcome: (name: string) =>
     `Hey ${name}! 👋 I'm FinAI, your personal finance assistant. I can help you track expenses, update your financial details, or just answer money questions. What's on your mind?`,
   serviceErrorReply: 'Sorry, I ran into an issue. Please try again in a moment.',
+  networkErrorReply: 'Network not available. Please check your connection and try again.',
   expenseSaveFailedReply: "Couldn't save the expense. Please try again.",
   updateSaveFailedReply: "Couldn't save the changes. Please try again.",
   deleteFailedReply: "Couldn't delete. Please try again.",
@@ -38,6 +42,7 @@ export const CHAT_ALERT_STRINGS = {
 
 export const CHAT_LOG_STRINGS = {
   chatServiceError: 'Chat service error:',
+  networkUnavailable: 'Network unavailable:',
   saveUserMessageError: 'Failed to save user message:',
   saveAssistantMessageError: 'Failed to save assistant message:',
   saveExpenseError: 'Failed to save expense:',
