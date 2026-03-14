@@ -93,7 +93,7 @@ export type CreateFinancialPlanInput = {
 };
 
 // Monthly Snapshots
-export type CreateMonthlySnapshotInput = Pick<MonthlySnapshot, 'month' | 'frivolousBudget'> &
+export type CreateMonthlySnapshotInput = Pick<MonthlySnapshot, 'month' | 'frivolousBudget' | 'salary'> &
   Partial<Pick<MonthlySnapshot, 'rolloverFromPrevious'>>;
 
 // ============================================

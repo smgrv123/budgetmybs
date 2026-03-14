@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 
 import { RecurringSourceTypeEnum } from '@/db/types';
 import {
@@ -18,12 +18,21 @@ import {
 import { TransactionCard } from '@/src/components/transaction';
 import { createQuickStats, createStatCards, QuickStatType } from '@/src/constants/dashboardData';
 import { BorderRadius, ButtonVariant, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
-import { useDebts, useExpenses, useFixedExpenses, useProfile, useRecurringStatus, useSavingsGoals } from '@/src/hooks';
+import {
+  useDebts,
+  useExpenses,
+  useFixedExpenses,
+  useMonthlyBudget,
+  useProfile,
+  useRecurringStatus,
+  useSavingsGoals,
+} from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { QuickStatTypeValue } from '@/src/types/dashboard';
 import { calculateTotalEMI, calculateTotalFixedExpenses } from '@/src/utils/budget';
 import { mapDebtToSheet, mapFixedExpenseToSheet, mapSavingsGoalToSheet } from '@/src/utils/dashboard';
 import { formatDate } from '@/src/utils/date';
+import { formatCurrency } from '@/src/utils/format';
 
 export default function DashboardScreen() {
   const themeColors = useThemeColors();
@@ -34,6 +43,7 @@ export default function DashboardScreen() {
     useSavingsGoals();
   const { expenses, totalSpent, totalSaved: totalOneOffSavings, oneOffSavings } = useExpenses();
   const { isItemProcessed } = useRecurringStatus();
+  const { rollover, resetRollover, isResettingRollover } = useMonthlyBudget();
 
   // Gradient colors (theme-aware)
   const HEADER_GRADIENT: [string, string, string] = [
@@ -61,8 +71,9 @@ export default function DashboardScreen() {
 
   // Calculate budget remaining
   const totalCommitments = savedThisMonth + spentThisMonth;
-  const budgetRemaining = monthlyIncome - totalCommitments;
-  const budgetUsedPercent = monthlyIncome > 0 ? Math.round((totalCommitments / monthlyIncome) * 100) : 0;
+  const effectiveBudget = monthlyIncome + rollover;
+  const budgetRemaining = effectiveBudget - totalCommitments;
+  const budgetUsedPercent = effectiveBudget > 0 ? Math.round((totalCommitments / effectiveBudget) * 100) : 0;
 
   // Create stat cards and quick stats using helper functions
   const statCards = createStatCards(spentThisMonth, savedThisMonth, themeColors);
@@ -96,6 +107,13 @@ export default function DashboardScreen() {
   const handleQuickStatPress = (statId: QuickStatTypeValue) => {
     setSelectedQuickStat(statId);
     setQuickStatSheetVisible(true);
+  };
+
+  const handleResetRollover = () => {
+    Alert.alert('Reset Rollover', 'This will remove the carried-over budget from last month. Continue?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Reset', style: 'destructive', onPress: () => resetRollover() },
+    ]);
   };
 
   if (isLoading) {
@@ -161,8 +179,23 @@ export default function DashboardScreen() {
             <BText variant={TextVariant.CAPTION} muted style={{ marginBottom: Spacing.xs }}>
               Monthly Budget Remaining
             </BText>
+            {rollover > 0 && (
+              <BView row align="center" style={{ marginBottom: Spacing.xxs }}>
+                <BText variant={TextVariant.CAPTION} style={{ color: themeColors.success }}>
+                  +{formatCurrency(rollover)} from last month
+                </BText>
+                <BButton
+                  variant={ButtonVariant.GHOST}
+                  onPress={handleResetRollover}
+                  loading={isResettingRollover}
+                  style={{ marginLeft: Spacing.xs, padding: Spacing.xxs }}
+                >
+                  <BIcon name="close-circle-outline" color={themeColors.textMuted} size="sm" />
+                </BButton>
+              </BView>
+            )}
             <BText variant={TextVariant.HEADING} style={{ marginBottom: Spacing.md }}>
-              ₹{budgetRemaining.toLocaleString('en-IN')}
+              {formatCurrency(budgetRemaining)}
             </BText>
             {/* Progress Bar */}
             <View style={[styles.progressBarBg, { backgroundColor: themeColors.muted }]}>

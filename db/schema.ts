@@ -222,6 +222,7 @@ export const monthlySnapshotsTable = sqliteTable('monthly_snapshots', {
     .$default(() => generateUUID()),
   month: text('month').notNull().unique(), // YYYY-MM
   frivolousBudget: real('frivolous_budget').notNull(),
+  salary: real('salary').notNull().default(0),
   rolloverFromPrevious: real('rollover_from_previous').notNull().default(0),
   isClosed: integer('is_closed').notNull().default(0),
   createdAt: text('created_at')

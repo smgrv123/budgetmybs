@@ -2,9 +2,9 @@ import { Redirect } from 'expo-router';
 import { useEffect } from 'react';
 import { Alert, StyleSheet } from 'react-native';
 
-import { Spacing, TextVariant } from '@/src/constants/theme';
-import { processRecurringTransactions } from '@/db/queries';
+import { initializeCurrentMonth, processRecurringTransactions } from '@/db/queries';
 import { BIcon, BSafeAreaView, BText, BView } from '@/src/components';
+import { Spacing, TextVariant } from '@/src/constants/theme';
 import { useCategories, useProfile } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 
@@ -45,6 +45,27 @@ export default function RootScreen() {
     processOnAppLoad();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const processOnAppLoad = async () => {
+      // Initialize monthly snapshot with rollover from previous month
+      if (!isProfileLoading && profile?.salary) {
+        const initialized = await initializeCurrentMonth(profile.salary);
+        if (!initialized) {
+          Alert.alert('Missed Monthly Snapshots', 'You have more than 6 months of missed snapshots. Create them now?', [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Process',
+              style: 'default',
+              onPress: () => initializeCurrentMonth(profile.salary, { allowExtendedCatchup: true }),
+            },
+          ]);
+        }
+      }
+    };
+
+    processOnAppLoad();
+  }, [isProfileLoading, profile]);
 
   // Show loading state while checking profile
   if (isProfileLoading) {

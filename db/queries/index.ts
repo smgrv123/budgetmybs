@@ -87,6 +87,7 @@ export {
   getPieChartData,
   getRemainingFrivolousBudget,
   initializeCurrentMonth,
+  resetRollover,
   updateMonthlySnapshotBudget,
 } from './monthly';
 

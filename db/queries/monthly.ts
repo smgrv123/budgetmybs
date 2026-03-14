@@ -1,12 +1,14 @@
-import { eq, like, sql } from 'drizzle-orm';
+import { desc, eq, like, sql } from 'drizzle-orm';
 import { db } from '../client';
 import { categoriesTable, expensesTable, monthlySnapshotsTable } from '../schema';
 import type { CreateMonthlySnapshotInput } from '../schema-types';
-import { getCurrentMonth, getPreviousMonth } from '../utils';
+import { getCurrentMonth, getNextMonth } from '../utils';
 import { getTotalMonthlyEmi } from './debts';
-import { getTotalSpentByMonth } from './expenses';
+import { getTotalSavedByMonth, getTotalSpentByMonth } from './expenses';
 import { getTotalFixedExpenses } from './fixed-expenses';
 import { getTotalMonthlySavingsTarget } from './savings';
+
+const MAX_AUTO_BACKFILL_MONTHS = 6;
 
 // ============================================
 // GET MONTHLY SNAPSHOT
@@ -41,10 +43,39 @@ export const createMonthlySnapshot = async (data: CreateMonthlySnapshotInput) =>
 };
 
 // ============================================
+// GET LATEST MONTHLY SNAPSHOT
+// ============================================
+
+const getLatestMonthlySnapshot = async () => {
+  const result = await db.select().from(monthlySnapshotsTable).orderBy(desc(monthlySnapshotsTable.month)).limit(1);
+
+  return result[0] ?? null;
+};
+
+const getMonthsToBackfill = (startMonth: string, endMonth: string): string[] => {
+  if (startMonth >= endMonth) return [];
+
+  const months: string[] = [];
+  let iterMonth = getNextMonth(startMonth);
+
+  // Safety: cap at 24 months to prevent runaway loops
+  let safetyCounter = 0;
+  while (iterMonth <= endMonth && safetyCounter < 24) {
+    months.push(iterMonth);
+    const nextIter = getNextMonth(iterMonth);
+    if (nextIter <= iterMonth) break;
+    iterMonth = nextIter;
+    safetyCounter++;
+  }
+
+  return months;
+};
+
+// ============================================
 // INITIALIZE CURRENT MONTH (if not exists)
 // ============================================
 
-export const initializeCurrentMonth = async (frivolousBudget: number) => {
+export const initializeCurrentMonth = async (salary: number, options?: { allowExtendedCatchup?: boolean }) => {
   const currentMonth = getCurrentMonth();
   const existing = await getMonthlySnapshot(currentMonth);
 
@@ -52,22 +83,49 @@ export const initializeCurrentMonth = async (frivolousBudget: number) => {
     return existing;
   }
 
-  const prevMonth = getPreviousMonth(currentMonth);
-  const previousSnapshot = await getMonthlySnapshot(prevMonth);
-  let rollover = 0;
-
-  if (previousSnapshot && !previousSnapshot.isClosed) {
-    const prevSpent = await getTotalSpentByMonth(prevMonth);
-    const totalBudget = previousSnapshot.frivolousBudget + previousSnapshot.rolloverFromPrevious;
-    rollover = Math.max(0, totalBudget - prevSpent);
-    await closeMonth(prevMonth);
+  const lastSnapshot = await getLatestMonthlySnapshot();
+  if (!lastSnapshot) {
+    return createMonthlySnapshot({
+      month: currentMonth,
+      salary,
+      frivolousBudget: salary,
+      rolloverFromPrevious: 0,
+    });
   }
 
-  return createMonthlySnapshot({
-    month: currentMonth,
-    frivolousBudget,
-    rolloverFromPrevious: rollover,
-  });
+  const monthsToBackfill = getMonthsToBackfill(lastSnapshot.month, currentMonth);
+  if (!options?.allowExtendedCatchup && monthsToBackfill.length > MAX_AUTO_BACKFILL_MONTHS) {
+    console.warn(
+      `[Monthly] ${monthsToBackfill.length} months pending (>${MAX_AUTO_BACKFILL_MONTHS}). ` +
+        `Requires user confirmation. Months: ${monthsToBackfill.join(', ')}`
+    );
+    return null;
+  }
+
+  let previousSnapshot = lastSnapshot;
+
+  for (const month of monthsToBackfill) {
+    const [prevSpent, prevSaved] = await Promise.all([
+      getTotalSpentByMonth(previousSnapshot.month),
+      getTotalSavedByMonth(previousSnapshot.month),
+    ]);
+    const prevBudgetBase = previousSnapshot.salary > 0 ? previousSnapshot.salary : previousSnapshot.frivolousBudget;
+    const prevBudget = prevBudgetBase + previousSnapshot.rolloverFromPrevious;
+    const rollover = Math.max(0, prevBudget - prevSpent - prevSaved);
+
+    await closeMonth(previousSnapshot.month);
+
+    const created = await createMonthlySnapshot({
+      month,
+      salary,
+      frivolousBudget: salary,
+      rolloverFromPrevious: rollover,
+    });
+
+    previousSnapshot = created;
+  }
+
+  return previousSnapshot;
 };
 
 // ============================================
@@ -209,4 +267,20 @@ export const updateMonthlySnapshotBudget = async (month: string, frivolousBudget
       updatedAt: sql`CURRENT_TIMESTAMP`,
     })
     .where(eq(monthlySnapshotsTable.month, month));
+};
+
+// ============================================
+// RESET ROLLOVER FOR CURRENT MONTH
+// ============================================
+
+export const resetRollover = async (month?: string) => {
+  const targetMonth = month ?? getCurrentMonth();
+
+  await db
+    .update(monthlySnapshotsTable)
+    .set({
+      rolloverFromPrevious: 0,
+      updatedAt: sql`CURRENT_TIMESTAMP`,
+    })
+    .where(eq(monthlySnapshotsTable.month, targetMonth));
 };
