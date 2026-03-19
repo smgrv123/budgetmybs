@@ -3,6 +3,8 @@ import { syncSplitwiseExpenses } from '@/src/services/splitwiseSync';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ALL_EXPENSES_QUERY_KEY } from './useAllExpenses';
 import { EXPENSES_QUERY_KEY, TOTAL_SPENT_QUERY_KEY } from './useExpenses';
+import { SPLITWISE_BALANCES_QUERY_KEY } from './useSplitwiseBalances';
+import { SPLITWISE_RECEIVABLES_QUERY_KEY } from './useSplitwiseReceivables';
 
 export const useSplitwiseSync = () => {
   const queryClient = useQueryClient();
@@ -19,6 +21,8 @@ export const useSplitwiseSync = () => {
       queryClient.invalidateQueries({ queryKey: EXPENSES_QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: ALL_EXPENSES_QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: TOTAL_SPENT_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: SPLITWISE_BALANCES_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: SPLITWISE_RECEIVABLES_QUERY_KEY });
     },
   });
 

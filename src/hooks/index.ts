@@ -17,6 +17,8 @@ export { FIXED_EXPENSES_QUERY_KEY, TOTAL_FIXED_EXPENSES_QUERY_KEY, useFixedExpen
 export { MONTHLY_BUDGET_QUERY_KEY, useMonthlyBudget } from './useMonthlyBudget';
 export { PROFILE_QUERY_KEY, useProfile } from './useProfile';
 export { SPLITWISE_CONNECTION_QUERY_KEY, useSplitwise } from './useSplitwise';
+export { SPLITWISE_BALANCES_QUERY_KEY, useSplitwiseBalances } from './useSplitwiseBalances';
+export { SPLITWISE_RECEIVABLES_QUERY_KEY, useSplitwiseReceivables } from './useSplitwiseReceivables';
 export { useSplitwiseSync } from './useSplitwiseSync';
 export { useRecurringStatus } from './useRecurringStatus';
 export {
