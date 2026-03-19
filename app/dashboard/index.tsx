@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 
 import { RecurringSourceTypeEnum } from '@/db/types';
@@ -26,6 +26,7 @@ import {
   useProfile,
   useRecurringStatus,
   useSavingsGoals,
+  useSplitwiseSync,
 } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { QuickStatTypeValue } from '@/src/types/dashboard';
@@ -44,6 +45,12 @@ export default function DashboardScreen() {
   const { expenses, totalSpent, totalSaved: totalOneOffSavings, oneOffSavings } = useExpenses();
   const { isItemProcessed } = useRecurringStatus();
   const { rollover, resetRollover, isResettingRollover } = useMonthlyBudget();
+  const { sync: syncSplitwise } = useSplitwiseSync();
+
+  // Sync Splitwise expenses on every app open
+  useEffect(() => {
+    syncSplitwise();
+  }, []);
 
   // Gradient colors (theme-aware)
   const HEADER_GRADIENT: [string, string, string] = [
@@ -298,6 +305,7 @@ export default function DashboardScreen() {
                     savingsType={'savingsType' in item ? item.savingsType : null}
                     isSaving={'isSaving' in item ? Boolean(item.isSaving) : false}
                     isRecurring={'sourceType' in item ? Boolean(item.sourceType) : false}
+                    isSplitwiseSynced={'sourceType' in item ? item.sourceType === 'splitwise' : false}
                   />
                 </BLink>
               </BView>

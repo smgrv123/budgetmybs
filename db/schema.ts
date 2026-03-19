@@ -125,6 +125,9 @@ export const expensesTable = sqliteTable('expenses', {
   isSaving: integer('is_saving').notNull().default(0), // 1 = one-off saving, 0 = expense
   savingsType: text('savings_type').$type<SavingsType>(), // Only if isSaving = 1
   customSavingsType: text('custom_savings_type'), // Only if savingsType = "other"
+  // Splitwise split fields — populated when sourceType = 'splitwise'
+  receivableAmount: real('receivable_amount'), // Amount owed back when user is the payer
+  receivableSettled: integer('receivable_settled').notNull().default(0), // 1 = friend has settled
   createdAt: text('created_at')
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),

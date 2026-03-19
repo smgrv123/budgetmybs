@@ -79,6 +79,7 @@ export const getExpensesWithCategory = async (month?: string) => {
       description: expensesTable.description,
       date: expensesTable.date,
       wasImpulse: expensesTable.wasImpulse,
+      sourceType: expensesTable.sourceType,
       createdAt: expensesTable.createdAt,
       category: {
         id: categoriesTable.id,
@@ -340,6 +341,63 @@ export const createOneOffSaving = async (data: CreateOneOffSavingInput) => {
     .returning();
 
   return result[0];
+};
+
+// ============================================
+// SPLITWISE UPSERT
+// ============================================
+
+export type UpsertSplitwiseExpenseInput = {
+  splitwiseId: string; // Splitwise expense ID (stored as sourceId)
+  amount: number; // User's owed share
+  categoryId: string | null;
+  description: string | null;
+  date: string; // YYYY-MM-DD
+  receivableAmount: number | null; // paid_share - owed_share if payer, else null
+};
+
+/**
+ * Insert or update a Splitwise-synced expense.
+ * Matches on sourceType='splitwise' + sourceId (Splitwise expense ID).
+ */
+export const upsertSplitwiseExpense = async (data: UpsertSplitwiseExpenseInput): Promise<void> => {
+  const sourceMonth = getMonthFromDate(data.date);
+
+  const existing = await db
+    .select({ id: expensesTable.id })
+    .from(expensesTable)
+    .where(
+      and(eq(expensesTable.sourceType, RecurringSourceTypeEnum.SPLITWISE), eq(expensesTable.sourceId, data.splitwiseId))
+    )
+    .limit(1);
+
+  if (existing.length > 0) {
+    await db
+      .update(expensesTable)
+      .set({
+        amount: data.amount,
+        categoryId: data.categoryId,
+        description: data.description,
+        date: data.date,
+        sourceMonth,
+        receivableAmount: data.receivableAmount,
+      })
+      .where(eq(expensesTable.id, existing[0]!.id));
+  } else {
+    await db.insert(expensesTable).values({
+      amount: data.amount,
+      categoryId: data.categoryId,
+      description: data.description,
+      date: data.date,
+      sourceType: RecurringSourceTypeEnum.SPLITWISE,
+      sourceId: data.splitwiseId,
+      sourceMonth,
+      receivableAmount: data.receivableAmount,
+      receivableSettled: 0,
+      wasImpulse: 0,
+      isSaving: 0,
+    });
+  }
 };
 
 // ============================================

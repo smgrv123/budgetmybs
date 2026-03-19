@@ -19,13 +19,13 @@ import {
   TRANSACTION_VALIDATION_STRINGS,
 } from '@/src/constants/transactions.strings';
 import { ButtonVariant, ModalPosition, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
-import { useAllExpenses, useCategories } from '@/src/hooks';
+import { useAllExpenses, useCategories, useSplitwiseSync } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { ExpenseFilter } from '@/src/types';
 import { DEFAULT_EXPENSE_FILTER, ExpenseFilterType } from '@/src/types';
 import { formatCurrency } from '@/src/utils/format';
 import { useMemo, useState } from 'react';
-import { SectionList, StyleSheet } from 'react-native';
+import { RefreshControl, SectionList, StyleSheet } from 'react-native';
 import { z } from 'zod';
 
 // ─── Date filter validation ─────────────────────────────────────────────────
@@ -46,6 +46,11 @@ export default function AllTransactionsScreen() {
 
   // ─── Data ─────────────────────────────────────────────────────────────────────
   const { sections, hasActiveFilter, isLoading, isError, refetch } = useAllExpenses(appliedFilter);
+  const { sync: syncSplitwise, isSyncing } = useSplitwiseSync();
+
+  const handleRefresh = () => {
+    syncSplitwise(undefined, { onSuccess: () => refetch() });
+  };
 
   // ─── Category dropdown options ────────────────────────────────────────────────
   const categoryOptions = useMemo(
@@ -127,6 +132,7 @@ export default function AllTransactionsScreen() {
         savingsType={item.savingsType}
         isSaving={item.isSaving === 1}
         isRecurring={Boolean(item.sourceType)}
+        isSplitwiseSynced={item.sourceType === 'splitwise'}
       />
     </BLink>
   );
@@ -239,8 +245,7 @@ export default function AllTransactionsScreen() {
             stickySectionHeadersEnabled
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
-            onRefresh={refetch}
-            refreshing={isLoading}
+            refreshControl={<RefreshControl refreshing={isLoading || isSyncing} onRefresh={handleRefresh} />}
           />
         </>
       )}

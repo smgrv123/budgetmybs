@@ -103,6 +103,7 @@ export const SAVINGS_TYPES = Object.values(SavingsTypeEnum);
 export const RecurringSourceTypeEnum = {
   FIXED_EXPENSE: 'fixed_expense',
   DEBT_EMI: 'debt_emi',
+  SPLITWISE: 'splitwise',
 } as const;
 
 export type RecurringSourceType = (typeof RecurringSourceTypeEnum)[keyof typeof RecurringSourceTypeEnum];
