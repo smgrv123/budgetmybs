@@ -1,9 +1,11 @@
 import { Fragment, ReactNode, useEffect, useRef, useState } from 'react';
 import { ScrollView } from 'react-native';
 
-import { isOtherType } from '@/src/constants/onboarding.config';
+import { isOtherType, OnboardingStepId, OnboardingStepIdType } from '@/src/constants/onboarding.config';
+import { Spacing, TextVariant } from '@/src/constants/theme';
 import type { CustomTypeModalConfig, FormField, ItemCardConfig, ListStepStrings } from '@/src/types';
 import { formatIndianNumber, parseFormattedNumber } from '@/src/utils/format';
+import { CreditCardPreviewCard, type CreditCardPreviewCardProps } from '../credit-cards';
 import { BModal, BText, BView } from '../ui';
 import BAddItemButton from './addItemButton';
 import BItemForm from './addItemForm';
@@ -12,6 +14,8 @@ import BCustomTypeModal from './modals/customType';
 import BSkipStepButton from './skipStepButton';
 
 export type ListStepProps<T extends { tempId: string }> = {
+  // onboardingStep
+  stepId: OnboardingStepIdType;
   // Content
   strings: ListStepStrings;
 
@@ -33,14 +37,16 @@ export type ListStepProps<T extends { tempId: string }> = {
 
   // Optional
   extraFormContent?: (formData: Record<string, string>) => ReactNode;
+  creditCardPreviewProps?: (item: T) => CreditCardPreviewCardProps;
   customTypeModal?: CustomTypeModalConfig;
   nextButtonLabel?: string; // Custom label for settings reuse
   footerContent?: ReactNode; // Additional content above skip/continue button
 };
 
-const CURRENCY_FIELDS = ['amount', 'principal', 'targetAmount'];
+const CURRENCY_FIELDS = ['amount', 'principal', 'targetAmount', 'creditLimit'];
 
 function ListStep<T extends { tempId: string }>({
+  stepId,
   strings,
   items,
   itemCardConfig,
@@ -53,6 +59,7 @@ function ListStep<T extends { tempId: string }>({
   parseFormData,
   onNext,
   extraFormContent,
+  creditCardPreviewProps,
   customTypeModal,
   nextButtonLabel,
   footerContent,
@@ -187,11 +194,43 @@ function ListStep<T extends { tempId: string }>({
 
   // ── Render ───────────────────────────────────────────────────────────────
 
+  const renderStepCard = (stepId: OnboardingStepIdType, item: T, isEditing: boolean, canEdit: boolean) => {
+    switch (stepId) {
+      case OnboardingStepId.CREDIT_CARDS: {
+        // ! not the preferred way to manage this, will look at this after initial implementation
+        const previewProps = creditCardPreviewProps?.(item);
+        return (
+          <BView style={{ marginBottom: Spacing.md }}>
+            <CreditCardPreviewCard
+              {...previewProps}
+              onDelete={isEditing ? undefined : () => onRemoveItem(item.tempId)}
+              onEdit={canEdit && !isEditing ? () => handleStartEdit(item) : undefined}
+              isEditing={isEditing}
+            />
+          </BView>
+        );
+      }
+      default:
+        return (
+          <BItemCard
+            title={itemCardConfig.getTitle(item)}
+            subtitle={itemCardConfig.getSubtitle?.(item)}
+            amount={itemCardConfig.getAmount(item)}
+            secondaryAmount={itemCardConfig.getSecondaryAmount?.(item)}
+            secondaryLabel={itemCardConfig.secondaryLabel}
+            onDelete={isEditing ? undefined : () => onRemoveItem(item.tempId)}
+            onEdit={canEdit && !isEditing ? () => handleStartEdit(item) : undefined}
+            isEditing={isEditing}
+          />
+        );
+    }
+  };
+
   return (
     <BView flex gap="xl">
       <BView>
-        <BText variant="heading">{strings.heading}</BText>
-        <BText variant="body" muted>
+        <BText variant={TextVariant.LABEL}>{strings.heading}</BText>
+        <BText variant={TextVariant.BODY} muted>
           {strings.subheading}
         </BText>
       </BView>
@@ -221,16 +260,7 @@ function ListStep<T extends { tempId: string }>({
                   cancelLabel={strings.form.cancelEditButton}
                 />
               ) : (
-                <BItemCard
-                  title={itemCardConfig.getTitle(item)}
-                  subtitle={itemCardConfig.getSubtitle?.(item)}
-                  amount={itemCardConfig.getAmount(item)}
-                  secondaryAmount={itemCardConfig.getSecondaryAmount?.(item)}
-                  secondaryLabel={itemCardConfig.secondaryLabel}
-                  onDelete={isEditing ? undefined : () => onRemoveItem(item.tempId)}
-                  onEdit={canEdit && !isEditing ? () => handleStartEdit(item) : undefined}
-                  isEditing={isEditing}
-                />
+                renderStepCard(stepId, item, isEditing, canEdit)
               )}
             </Fragment>
           );

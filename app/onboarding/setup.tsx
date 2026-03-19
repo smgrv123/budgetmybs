@@ -1,27 +1,31 @@
-import { OnboardingStepId } from '@/src/constants/onboarding.config';
-import { OnboardingStrings } from '@/src/constants/onboarding.strings';
+import { router } from 'expo-router';
+import { useCallback, useState } from 'react';
+
 import {
+  BCreditCardsStep,
   BDebtsStep,
   BFixedExpensesStep,
   BOnboardingLayout,
   BProfileStep,
   BSavingsStep,
 } from '@/src/components/onboarding';
+import { OnboardingStepId, OnboardingStepIdType } from '@/src/constants/onboarding.config';
+import { OnboardingStrings } from '@/src/constants/onboarding.strings';
+import { CREDIT_CARDS_SETTINGS_STRINGS } from '@/src/constants/settings.strings';
 import { useOnboardingStore } from '@/src/store';
-import { router } from 'expo-router';
-import { useCallback, useState } from 'react';
 
-const STEPS: OnboardingStepId[] = [
+const STEPS: OnboardingStepIdType[] = [
   OnboardingStepId.PROFILE,
   OnboardingStepId.FIXED_EXPENSES,
   OnboardingStepId.DEBTS,
   OnboardingStepId.SAVINGS,
+  OnboardingStepId.CREDIT_CARDS,
 ];
 
 const { profile: profileStrings, fixedExpenses, debts, savings } = OnboardingStrings;
 
 export default function SetupScreen() {
-  const [currentStep, setCurrentStep] = useState<OnboardingStepId>(OnboardingStepId.PROFILE);
+  const [currentStep, setCurrentStep] = useState<OnboardingStepIdType>(OnboardingStepId.PROFILE);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { profile, updateProfileField } = useOnboardingStore();
 
@@ -59,10 +63,12 @@ export default function SetupScreen() {
         return debts.screenTitle;
       case OnboardingStepId.SAVINGS:
         return savings.screenTitle;
+      case OnboardingStepId.CREDIT_CARDS:
+        return CREDIT_CARDS_SETTINGS_STRINGS.screenTitle;
     }
   };
 
-  const renderStep = () => {
+  const RenderStep = () => {
     switch (currentStep) {
       case OnboardingStepId.PROFILE:
         return (
@@ -80,12 +86,14 @@ export default function SetupScreen() {
         return <BDebtsStep onNext={handleNext} />;
       case OnboardingStepId.SAVINGS:
         return <BSavingsStep onNext={handleNext} />;
+      case OnboardingStepId.CREDIT_CARDS:
+        return <BCreditCardsStep onNext={handleNext} />;
     }
   };
 
   return (
     <BOnboardingLayout title={getScreenTitle()} currentStep={stepIndex} showBack={true} onBack={handleBack}>
-      {renderStep()}
+      <RenderStep />
     </BOnboardingLayout>
   );
 }

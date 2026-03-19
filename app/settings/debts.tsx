@@ -4,7 +4,7 @@ import { Alert } from 'react-native';
 
 import BListStep from '@/src/components/onboarding/listStep';
 import { BSafeAreaView, BText, BView, ScreenHeader } from '@/src/components/ui';
-import { DebtTypeOptions } from '@/src/constants/onboarding.config';
+import { DebtTypeOptions, OnboardingStepId as SettingId } from '@/src/constants/onboarding.config';
 import { DEBTS_SETTINGS_STRINGS, SETTINGS_COMMON_STRINGS } from '@/src/constants/settings.strings';
 import {
   common,
@@ -158,6 +158,7 @@ export default function DebtsScreen() {
 
       <BView flex padding="base">
         <BListStep
+          stepId={SettingId.DEBTS}
           strings={DEBT_STEP_CONFIG.strings}
           items={debts}
           itemCardConfig={{

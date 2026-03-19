@@ -5,6 +5,8 @@ import type {
   ChatActionStatus,
   ChatActionType,
   ChatRole,
+  CreditCardProvider,
+  CreditCardTxnType,
   DebtPayoffPreference,
   DebtType,
   FixedExpenseType,
@@ -85,6 +87,64 @@ export const debtsTable = sqliteTable('debts', {
 });
 
 // ============================================
+// CREDIT CARDS TABLE
+// ============================================
+
+export const creditCardsTable = sqliteTable('credit_cards', {
+  id: text('id')
+    .primaryKey()
+    .$default(() => generateUUID()),
+  nickname: text('nickname').notNull(),
+  provider: text('provider').$type<CreditCardProvider>().notNull(),
+  bank: text('bank').notNull(),
+  last4: text('last4').notNull(),
+  creditLimit: real('credit_limit').notNull(),
+  statementDayOfMonth: integer('statement_day_of_month').notNull(),
+  paymentBufferDays: integer('payment_buffer_days').notNull(),
+  usedAmount: real('used_amount').notNull().default(0),
+  isActive: integer('is_active').notNull().default(1),
+  createdAt: text('created_at')
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text('updated_at')
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
+// ============================================
+// CREDIT CARD EXPENSES TABLE
+// ============================================
+
+export const creditCardExpensesTable = sqliteTable('credit_card_expenses', {
+  id: text('id')
+    .primaryKey()
+    .$default(() => generateUUID()),
+  creditCardId: text('credit_card_id').notNull(),
+  expenseId: text('expense_id').notNull().unique(),
+  statementMonth: text('statement_month').notNull(), // YYYY-MM
+  statementEndDate: text('statement_end_date').notNull(), // YYYY-MM-DD
+  dueDate: text('due_date').notNull(), // YYYY-MM-DD
+  createdAt: text('created_at')
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
+// ============================================
+// CREDIT CARD PAYMENTS TABLE
+// ============================================
+
+export const creditCardPaymentsTable = sqliteTable('credit_card_payments', {
+  id: text('id')
+    .primaryKey()
+    .$default(() => generateUUID()),
+  creditCardId: text('credit_card_id').notNull(),
+  expenseId: text('expense_id').notNull().unique(),
+  createdAt: text('created_at')
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
+// ============================================
 // CATEGORIES TABLE
 // ============================================
 
@@ -118,6 +178,9 @@ export const expensesTable = sqliteTable('expenses', {
   sourceType: text('source_type').$type<RecurringSourceType | null>().default(null), // fixed_expense | debt_emi | null
   sourceId: text('source_id'), // origin row id
   sourceMonth: text('source_month'), // YYYY-MM
+  creditCardId: text('credit_card_id'),
+  creditCardTxnType: text('credit_card_txn_type').$type<CreditCardTxnType | null>().default(null), // purchase | payment | null
+  excludeFromSpending: integer('exclude_from_spending').notNull().default(0), // 1 = excluded from spend totals
   date: text('date')
     .notNull()
     .default(sql`(date('now'))`), // YYYY-MM-DD
@@ -261,10 +324,42 @@ export const expensesRelations = relations(expensesTable, ({ one }) => ({
     fields: [expensesTable.categoryId],
     references: [categoriesTable.id],
   }),
+  creditCard: one(creditCardsTable, {
+    fields: [expensesTable.creditCardId],
+    references: [creditCardsTable.id],
+  }),
 }));
 
 export const categoriesRelations = relations(categoriesTable, ({ many }) => ({
   expenses: many(expensesTable),
+}));
+
+export const creditCardsRelations = relations(creditCardsTable, ({ many }) => ({
+  expenses: many(expensesTable),
+  cardExpenses: many(creditCardExpensesTable),
+  cardPayments: many(creditCardPaymentsTable),
+}));
+
+export const creditCardExpensesRelations = relations(creditCardExpensesTable, ({ one }) => ({
+  creditCard: one(creditCardsTable, {
+    fields: [creditCardExpensesTable.creditCardId],
+    references: [creditCardsTable.id],
+  }),
+  expense: one(expensesTable, {
+    fields: [creditCardExpensesTable.expenseId],
+    references: [expensesTable.id],
+  }),
+}));
+
+export const creditCardPaymentsRelations = relations(creditCardPaymentsTable, ({ one }) => ({
+  creditCard: one(creditCardsTable, {
+    fields: [creditCardPaymentsTable.creditCardId],
+    references: [creditCardsTable.id],
+  }),
+  expense: one(expensesTable, {
+    fields: [creditCardPaymentsTable.expenseId],
+    references: [expensesTable.id],
+  }),
 }));
 
 export const chatMessagesRelations = relations(chatMessagesTable, ({ one }) => ({

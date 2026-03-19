@@ -1,3 +1,4 @@
+import type { CreditCardProvider, CreditCardTxnType } from '@/db/types';
 import { TransactionType, type TransactionTypeValue } from '@/src/constants/theme';
 
 // ─── Unified expense/saving row returned from getAllExpensesWithCategory ───────
@@ -12,6 +13,7 @@ export type AllExpense = {
   categoryId: string | null;
   sourceType: string | null;
   sourceId: string | null;
+  creditCardTxnType: CreditCardTxnType | null;
   createdAt: string | null;
   category: {
     id: string;
@@ -19,6 +21,11 @@ export type AllExpense = {
     type: string;
     icon: string | null;
     color: string | null;
+  } | null;
+  creditCard: {
+    nickname: string;
+    last4: string;
+    provider: CreditCardProvider;
   } | null;
   transactionType: TransactionTypeValue;
 };

@@ -1,3 +1,10 @@
+import { CREDIT_CARD_ICON_NAMES } from '@/src/constants/credit-cards.config';
+import {
+  CREDIT_CARDS_SETTINGS_STRINGS,
+  DEBTS_SETTINGS_STRINGS,
+  FIXED_EXPENSES_SETTINGS_STRINGS,
+  SAVINGS_SETTINGS_STRINGS,
+} from '@/src/constants/settings.strings';
 import type { ThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import {
   BudgetValueKey,
@@ -9,7 +16,7 @@ import {
 export const createFinancialDataItems = (themeColors: ThemeColors): FinancialDataItem[] => [
   {
     key: FinancialDataKey.FIXED_EXPENSES,
-    label: 'Fixed Expenses',
+    label: FIXED_EXPENSES_SETTINGS_STRINGS.screenTitle,
     icon: 'document-text-outline',
     iconBgColor: themeColors.recommendationBg,
     iconColor: themeColors.primary,
@@ -17,7 +24,7 @@ export const createFinancialDataItems = (themeColors: ThemeColors): FinancialDat
   },
   {
     key: FinancialDataKey.DEBTS,
-    label: 'Debts & Loans',
+    label: DEBTS_SETTINGS_STRINGS.screenTitle,
     icon: 'card-outline',
     iconBgColor: themeColors.warningBackground,
     iconColor: themeColors.warning,
@@ -25,11 +32,20 @@ export const createFinancialDataItems = (themeColors: ThemeColors): FinancialDat
   },
   {
     key: FinancialDataKey.SAVINGS,
-    label: 'Savings Goals',
+    label: SAVINGS_SETTINGS_STRINGS.screenTitle,
     icon: 'wallet-outline',
     iconBgColor: themeColors.successBackground,
     iconColor: themeColors.success,
     route: '/settings/savings',
+  },
+  {
+    key: FinancialDataKey.CREDIT_CARDS,
+    label: CREDIT_CARDS_SETTINGS_STRINGS.manageCardsLabel,
+    countSuffix: CREDIT_CARDS_SETTINGS_STRINGS.cardsLinkedSuffix,
+    icon: CREDIT_CARD_ICON_NAMES.card,
+    iconBgColor: themeColors.primaryFaded,
+    iconColor: themeColors.primary,
+    route: '/settings/credit-cards',
   },
 ];
 

@@ -4,14 +4,17 @@ import { ScrollView, StyleSheet } from 'react-native';
 import { z } from 'zod';
 
 import { BButton, BDropdown, BInput, BModal, BText, BView } from '@/src/components/ui';
+import { CREDIT_CARD_PROVIDER_OPTIONS } from '@/src/constants/credit-cards.config';
+import { CREDIT_CARDS_SETTINGS_STRINGS } from '@/src/constants/settings.strings';
 import { ButtonVariant, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
 import { TRANSACTION_TAB_CONFIGS } from '@/src/constants/transactionForm.config';
 import { TRANSACTION_MODAL_TEXT, TransactionTab } from '@/src/constants/transactionModal';
 import { ADD_TRANSACTION_STRINGS, TRANSACTION_VALIDATION_STRINGS } from '@/src/constants/transactions.strings';
-import { useCategories, useExpenses } from '@/src/hooks';
+import { useCategories, useCreditCards, useExpenses } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { TransactionFieldKey, TransactionFieldType, type TransactionFieldKeyValue } from '@/src/types/transaction';
 import { formatLocalDateToISO } from '@/src/utils/date';
+import { CreditCardTxnTypeEnum } from '@/db/types';
 import { createTransactionFields } from './transactionForm';
 
 // Validation schemas
@@ -20,6 +23,7 @@ const expenseSchema = z.object({
   category: z.string().min(1, TRANSACTION_VALIDATION_STRINGS.categoryRequired),
   description: z.string().optional(),
   date: z.string().min(1, TRANSACTION_VALIDATION_STRINGS.dateRequired),
+  creditCardId: z.string().optional(),
 });
 
 const savingSchema = z.object({
@@ -42,11 +46,13 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose })
   const [activeTab, setActiveTab] = useState<TransactionTab>(TransactionTab.EXPENSE);
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('');
+  const [creditCardId, setCreditCardId] = useState('');
   const [savingsType, setSavingsType] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState(formatLocalDateToISO(new Date()));
 
   const { allCategories } = useCategories();
+  const { creditCards } = useCreditCards();
 
   const { createExpense, createOneOffSaving, isCreatingExpense, isCreatingOneOffSaving } = useExpenses();
 
@@ -55,6 +61,23 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose })
     [allCategories]
   );
 
+  const providerLabels = useMemo(() => {
+    return new Map(CREDIT_CARD_PROVIDER_OPTIONS.map((option) => [option.value, option.label]));
+  }, []);
+
+  const creditCardOptions = useMemo(() => {
+    return creditCards.map((card) => {
+      const providerLabel = providerLabels.get(card.provider) ?? CREDIT_CARDS_SETTINGS_STRINGS.preview.providerFallback;
+      const last4Label = `${CREDIT_CARDS_SETTINGS_STRINGS.preview.mask} ${card.last4}`;
+      const labelParts = [providerLabel, card.nickname, last4Label].filter(Boolean);
+
+      return {
+        label: labelParts.join(CREDIT_CARDS_SETTINGS_STRINGS.listItem.separator),
+        value: card.id,
+      };
+    });
+  }, [creditCards, providerLabels]);
+
   const handleChange = (key: TransactionFieldKeyValue, value: string) => {
     switch (key) {
       case TransactionFieldKey.AMOUNT:
@@ -62,6 +85,9 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose })
         break;
       case TransactionFieldKey.CATEGORY:
         setCategory(value);
+        break;
+      case TransactionFieldKey.CREDIT_CARD:
+        setCreditCardId(value);
         break;
       case TransactionFieldKey.SAVINGS_TYPE:
         setSavingsType(value);
@@ -78,11 +104,13 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose })
   const handleSubmit = () => {
     const amountNum = parseFloat(amount);
     if (activeTab === TransactionTab.EXPENSE) {
+      const normalizedCreditCardId = creditCardId.trim() || undefined;
       const validationResult = expenseSchema.safeParse({
         amount: amountNum,
         category,
         description: description || undefined,
         date,
+        creditCardId: normalizedCreditCardId,
       });
       if (!validationResult.success) return;
 
@@ -92,6 +120,8 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose })
           categoryId: validationResult.data.category,
           description: validationResult.data.description,
           date: validationResult.data.date,
+          creditCardId: validationResult.data.creditCardId,
+          creditCardTxnType: validationResult.data.creditCardId ? CreditCardTxnTypeEnum.PURCHASE : null,
         },
         {
           onSuccess: () => {
@@ -134,6 +164,7 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose })
     // Reset form
     setAmount('');
     setCategory('');
+    setCreditCardId('');
     setSavingsType('');
     setDescription('');
     setDate(formatLocalDateToISO(new Date()));
@@ -146,10 +177,11 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose })
   const currentConfig = TRANSACTION_TAB_CONFIGS[activeTab];
   const transactionFields = createTransactionFields({
     configs: currentConfig.fields,
-    values: { amount, category, savingsType, description, date },
+    values: { amount, category, creditCard: creditCardId, savingsType, description, date },
     handleChange,
     optionsByKey: {
       [TransactionFieldKey.CATEGORY]: categoryOptions,
+      [TransactionFieldKey.CREDIT_CARD]: creditCardOptions,
     },
   });
 
@@ -210,7 +242,7 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose })
                 onValueChange={item.onValueChange}
                 placeholder={item.placeholder}
                 searchable={true}
-                modalTitle={item.key === TransactionFieldKey.CATEGORY ? 'Select Category' : undefined}
+                modalTitle={item.modalTitle}
               />
             )}
           </BView>

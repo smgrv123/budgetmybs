@@ -10,6 +10,7 @@ type CreateTransactionFieldsParams = {
   values: {
     amount: string;
     category: string;
+    creditCard: string;
     savingsType: string;
     description: string;
     date: string;
@@ -31,6 +32,7 @@ export const createTransactionFields = ({
     type: config.type,
     label: config.label,
     placeholder: config.placeholder,
+    modalTitle: config.modalTitle,
     value: values[config.key as keyof typeof values] || '',
     onValueChange: (value: string | number) => handleChange(config.key, String(value)),
     keyboardType: config.keyboardType,

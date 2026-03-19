@@ -1,13 +1,20 @@
 import { ReactNode } from 'react';
 import type { ZodType } from 'zod';
 
+import { CREDIT_CARD_PROVIDER_OPTIONS } from '@/src/constants/credit-cards.config';
 import { DebtTypeOptions, FixedExpenseTypeOptions, SavingsTypeOptions } from '@/src/constants/onboarding.config';
 import { OnboardingStrings } from '@/src/constants/onboarding.strings';
+import { CREDIT_CARDS_SETTINGS_STRINGS } from '@/src/constants/settings.strings';
 import type { FormField } from '@/src/types';
 import { parseFormattedNumber } from '@/src/utils/format';
+import { creditCardSchema } from '@/src/validation/credit-cards';
 import { debtSchema, fixedExpenseSchema, profileSchema, savingsGoalSchema } from '@/src/validation/onboarding';
 
 const { profile: profileStrings, fixedExpenses, debts, savings, common } = OnboardingStrings;
+const creditCardProviderFieldOptions = CREDIT_CARD_PROVIDER_OPTIONS.map((option) => ({
+  value: String(option.value),
+  label: option.label,
+}));
 
 export type ProfileFieldConfig = {
   key: string;
@@ -143,6 +150,56 @@ export const SAVINGS_FIELD_CONFIGS: Omit<FormField, 'leftIcon'>[] = [
   },
 ];
 
+export const CREDIT_CARD_FIELD_CONFIGS: Omit<FormField, 'leftIcon'>[] = [
+  {
+    key: 'nickname',
+    type: 'input',
+    label: CREDIT_CARDS_SETTINGS_STRINGS.form.labels.nickname,
+    placeholder: CREDIT_CARDS_SETTINGS_STRINGS.form.placeholders.nickname,
+  },
+  {
+    key: 'provider',
+    type: 'dropdown',
+    label: CREDIT_CARDS_SETTINGS_STRINGS.form.labels.provider,
+    placeholder: CREDIT_CARDS_SETTINGS_STRINGS.form.placeholders.provider,
+    options: creditCardProviderFieldOptions,
+  },
+  {
+    key: 'bank',
+    type: 'input',
+    label: CREDIT_CARDS_SETTINGS_STRINGS.form.labels.bank,
+    placeholder: CREDIT_CARDS_SETTINGS_STRINGS.form.placeholders.bank,
+  },
+  {
+    key: 'last4',
+    type: 'input',
+    label: CREDIT_CARDS_SETTINGS_STRINGS.form.labels.last4,
+    placeholder: CREDIT_CARDS_SETTINGS_STRINGS.form.placeholders.last4,
+    keyboardType: 'numeric',
+  },
+  {
+    key: 'creditLimit',
+    type: 'input',
+    label: CREDIT_CARDS_SETTINGS_STRINGS.form.labels.creditLimit,
+    placeholder: CREDIT_CARDS_SETTINGS_STRINGS.form.placeholders.creditLimit,
+    keyboardType: 'numeric',
+  },
+  {
+    key: 'statementDayOfMonth',
+    type: 'input',
+    label: CREDIT_CARDS_SETTINGS_STRINGS.form.labels.statementDay,
+    placeholder: CREDIT_CARDS_SETTINGS_STRINGS.form.placeholders.statementDay,
+    keyboardType: 'numeric',
+  },
+  {
+    key: 'paymentBufferDays',
+    type: 'input',
+    label: CREDIT_CARDS_SETTINGS_STRINGS.form.labels.paymentBufferDays,
+    placeholder: CREDIT_CARDS_SETTINGS_STRINGS.form.placeholders.paymentBufferDays,
+    keyboardType: 'numeric',
+  },
+];
+
 export const FIXED_EXPENSE_STEP_CONFIG: StepConfig = {
   strings: {
     heading: fixedExpenses.heading,
@@ -215,6 +272,32 @@ export const SAVINGS_STEP_CONFIG: StepConfig = {
   },
 };
 
+export const CREDIT_CARD_STEP_CONFIG: StepConfig = {
+  strings: {
+    heading: CREDIT_CARDS_SETTINGS_STRINGS.listStep.heading,
+    subheading: CREDIT_CARDS_SETTINGS_STRINGS.listStep.subheading,
+    addButton: CREDIT_CARDS_SETTINGS_STRINGS.listStep.addButton,
+    continueButton: CREDIT_CARDS_SETTINGS_STRINGS.listStep.continueButton,
+    skipButton: CREDIT_CARDS_SETTINGS_STRINGS.listStep.skipButton,
+    form: {
+      addButton: CREDIT_CARDS_SETTINGS_STRINGS.listStep.form.addButton,
+      cancelButton: CREDIT_CARDS_SETTINGS_STRINGS.listStep.form.cancelButton,
+      saveButton: CREDIT_CARDS_SETTINGS_STRINGS.listStep.form.saveButton,
+      cancelEditButton: CREDIT_CARDS_SETTINGS_STRINGS.listStep.form.cancelEditButton,
+    },
+  },
+  initialFormData: {
+    nickname: '',
+    provider: '',
+    bank: '',
+    last4: '',
+    creditLimit: '',
+    statementDayOfMonth: '',
+    paymentBufferDays: '',
+  },
+  validationSchema: creditCardSchema,
+};
+
 export const parseFixedExpenseFormData = (data: Record<string, string>) => ({
   name: data.name,
   type: data.type,
@@ -237,13 +320,23 @@ export const parseSavingsFormData = (data: Record<string, string>) => ({
   targetAmount: parseFormattedNumber(data.targetAmount),
 });
 
+export const parseCreditCardFormData = (data: Record<string, string>) => ({
+  nickname: data.nickname.trim(),
+  provider: data.provider,
+  bank: data.bank.trim(),
+  last4: data.last4.trim(),
+  creditLimit: parseFormattedNumber(data.creditLimit),
+  statementDayOfMonth: data.statementDayOfMonth ? parseInt(data.statementDayOfMonth, 10) || 0 : 0,
+  paymentBufferDays: data.paymentBufferDays ? parseInt(data.paymentBufferDays, 10) || -1 : -1,
+});
+
 /**
  * Create form fields with currency icon for amount fields
  */
 export function createFormFieldsWithCurrency(
   configs: Omit<FormField, 'leftIcon'>[],
   currencyIcon: ReactNode,
-  currencyFieldKeys: string[] = ['amount', 'principal', 'targetAmount']
+  currencyFieldKeys: string[] = ['amount', 'principal', 'targetAmount', 'creditLimit']
 ): FormField[] {
   return configs.map((config) => ({
     ...config,

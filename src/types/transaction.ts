@@ -12,6 +12,7 @@ export type TransactionFieldTypeValue = (typeof TransactionFieldType)[keyof type
 export const TransactionFieldKey = {
   AMOUNT: 'amount',
   CATEGORY: 'category',
+  CREDIT_CARD: 'creditCard',
   SAVINGS_TYPE: 'savingsType',
   DESCRIPTION: 'description',
   DATE: 'date',
@@ -29,6 +30,7 @@ export type TransactionFieldConfig = {
   type: TransactionFieldTypeValue;
   label: string;
   placeholder?: string;
+  modalTitle?: string;
   keyboardType?: TransactionKeyboardTypeValue;
   multiline?: boolean;
   numberOfLines?: number;
@@ -41,6 +43,7 @@ export type TransactionField = {
   type: TransactionFieldTypeValue;
   label: string;
   placeholder?: string;
+  modalTitle?: string;
   value: string;
   onValueChange: (value: string | number) => void;
   keyboardType?: TransactionKeyboardTypeValue;

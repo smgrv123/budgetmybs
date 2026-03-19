@@ -109,6 +109,35 @@ export type RecurringSourceType = (typeof RecurringSourceTypeEnum)[keyof typeof 
 
 export const RECURRING_SOURCE_TYPES = Object.values(RecurringSourceTypeEnum);
 
+/**
+ * Credit card provider types
+ */
+export const CreditCardProviderEnum = {
+  VISA: 'visa',
+  MASTERCARD: 'mastercard',
+  AMEX: 'amex',
+  RUPAY: 'rupay',
+  DINERS: 'diners',
+  DISCOVER: 'discover',
+  OTHER: 'other',
+} as const;
+
+export type CreditCardProvider = (typeof CreditCardProviderEnum)[keyof typeof CreditCardProviderEnum];
+
+export const CREDIT_CARD_PROVIDERS = Object.values(CreditCardProviderEnum);
+
+/**
+ * Credit card transaction types
+ */
+export const CreditCardTxnTypeEnum = {
+  PURCHASE: 'purchase',
+  PAYMENT: 'payment',
+} as const;
+
+export type CreditCardTxnType = (typeof CreditCardTxnTypeEnum)[keyof typeof CreditCardTxnTypeEnum];
+
+export const CREDIT_CARD_TXN_TYPES = Object.values(CreditCardTxnTypeEnum);
+
 // ============================================
 // DISPLAY LABELS (for UI)
 // ============================================

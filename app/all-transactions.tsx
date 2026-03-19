@@ -12,12 +12,14 @@ import {
   FilterChip,
   ScreenHeader,
 } from '@/src/components/ui';
+import { CREDIT_CARD_PROVIDER_COLORS } from '@/src/constants/credit-cards.config';
 import {
   ALL_TRANSACTIONS_STRINGS,
   TRANSACTION_COMMON_STRINGS,
   TRANSACTION_FILTER_TYPE_OPTIONS,
   TRANSACTION_VALIDATION_STRINGS,
 } from '@/src/constants/transactions.strings';
+import { CreditCardTxnTypeEnum } from '@/db/types';
 import { ButtonVariant, ModalPosition, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
 import { useAllExpenses, useCategories } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
@@ -114,22 +116,30 @@ export default function AllTransactionsScreen() {
     </BView>
   );
 
-  const renderItem = ({ item }: { item: (typeof sections)[0]['data'][0] }) => (
-    <BLink href={`/transaction-detail?id=${item.id}`} fullWidth style={{ paddingVertical: 0 }}>
-      <TransactionCard
-        id={item.id}
-        description={item.description}
-        amount={item.amount}
-        date={item.date}
-        categoryName={item.category?.name ?? null}
-        categoryIcon={item.category?.icon ?? null}
-        categoryColor={item.category?.color ?? null}
-        savingsType={item.savingsType}
-        isSaving={item.isSaving === 1}
-        isRecurring={Boolean(item.sourceType)}
-      />
-    </BLink>
-  );
+  const renderItem = ({ item }: { item: (typeof sections)[0]['data'][0] }) => {
+    const creditCardColor = item.creditCard ? CREDIT_CARD_PROVIDER_COLORS[item.creditCard.provider] : undefined;
+
+    return (
+      <BLink href={`/transaction-detail?id=${item.id}`} fullWidth style={{ paddingVertical: 0 }}>
+        <TransactionCard
+          id={item.id}
+          description={item.description}
+          amount={item.amount}
+          date={item.date}
+          categoryName={item.category?.name ?? null}
+          categoryIcon={item.category?.icon ?? null}
+          categoryColor={item.category?.color ?? null}
+          savingsType={item.savingsType}
+          isSaving={item.isSaving === 1}
+          isRecurring={Boolean(item.sourceType)}
+          creditCardNickname={item.creditCard?.nickname ?? null}
+          creditCardLast4={item.creditCard?.last4 ?? null}
+          creditCardColor={creditCardColor ?? null}
+          isBillPay={item.creditCardTxnType === CreditCardTxnTypeEnum.PAYMENT}
+        />
+      </BLink>
+    );
+  };
 
   const renderEmpty = () => (
     <BView flex center paddingY={SpacingValue.XL}>

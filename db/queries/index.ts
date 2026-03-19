@@ -62,6 +62,15 @@ export {
   updateExpense,
 } from './expenses';
 
+// Credit cards queries
+export {
+  createCreditCard,
+  deleteCreditCard,
+  getCreditCardSummaries,
+  getCreditCards,
+  updateCreditCard,
+} from './credit-cards';
+
 // Recurring transaction queries
 export { getMonthsToProcess, processRecurringTransactions } from './recurring';
 

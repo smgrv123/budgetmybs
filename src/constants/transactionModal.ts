@@ -12,6 +12,10 @@ export const TRANSACTION_MODAL_TEXT = {
     submitLabel: 'Add Expense',
     categoryLabel: 'Category',
     categoryPlaceholder: 'Select category',
+    categoryModalTitle: 'Select Category',
+    creditCardLabel: 'Credit Card',
+    creditCardPlaceholder: 'Select credit card',
+    creditCardModalTitle: 'Select Credit Card',
   },
   saving: {
     title: 'Add Saving',
@@ -20,6 +24,7 @@ export const TRANSACTION_MODAL_TEXT = {
     submitLabel: 'Add Saving',
     savingsTypeLabel: 'Savings Type',
     savingsTypePlaceholder: 'Select savings type',
+    savingsTypeModalTitle: 'Select Savings Type',
   },
   common: {
     amountPlaceholder: '0',

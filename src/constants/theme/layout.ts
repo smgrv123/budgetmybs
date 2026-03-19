@@ -1,5 +1,5 @@
-import { normalize } from '@/src/utils/normalize';
 import { SpacingValue, type SpacingValueType } from '@/src/constants/theme/variants';
+import { normalize } from '@/src/utils/normalize';
 
 export const Spacing: Record<SpacingValueType, number> = {
   [SpacingValue.NONE]: 0,

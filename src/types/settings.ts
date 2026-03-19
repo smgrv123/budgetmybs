@@ -4,6 +4,7 @@ export const FinancialDataKey = {
   FIXED_EXPENSES: 'fixedExpenses',
   DEBTS: 'debts',
   SAVINGS: 'savings',
+  CREDIT_CARDS: 'creditCards',
 } as const;
 export type FinancialDataKeyType = (typeof FinancialDataKey)[keyof typeof FinancialDataKey];
 
@@ -17,6 +18,7 @@ export type BudgetValueKeyType = (typeof BudgetValueKey)[keyof typeof BudgetValu
 export type FinancialDataItem = {
   key: FinancialDataKeyType;
   label: string;
+  countSuffix?: string;
   icon: string;
   iconBgColor: string;
   iconColor: string;

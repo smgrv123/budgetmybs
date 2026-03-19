@@ -76,3 +76,9 @@ export const TRANSACTION_DETAIL_STRINGS = {
 export const ADD_TRANSACTION_STRINGS = {
   createFailedLog: 'Failed to create transaction:',
 } as const;
+
+export const TRANSACTION_CARD_STRINGS = {
+  billPayBadge: 'Bill Pay',
+  cardMask: '••',
+  cardSeparator: ' · ',
+} as const;

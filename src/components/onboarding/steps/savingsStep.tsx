@@ -1,6 +1,6 @@
 import BListStep from '@/src/components/onboarding/listStep';
 import { BText } from '@/src/components/ui';
-import { SavingsTypeOptions } from '@/src/constants/onboarding.config';
+import { OnboardingStepId, SavingsTypeOptions } from '@/src/constants/onboarding.config';
 import {
   common,
   createFormFieldsWithCurrency,
@@ -28,6 +28,7 @@ function SavingsStep({ onNext }: SavingsStepProps) {
 
   return (
     <BListStep
+      stepId={OnboardingStepId.SAVINGS}
       strings={SAVINGS_STEP_CONFIG.strings}
       items={savingsGoals}
       itemCardConfig={{

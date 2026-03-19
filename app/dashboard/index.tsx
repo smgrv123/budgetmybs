@@ -1,8 +1,8 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { Alert, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 
-import { RecurringSourceTypeEnum } from '@/db/types';
+import { CreditCardTxnTypeEnum, RecurringSourceTypeEnum } from '@/db/types';
 import {
   AddTransactionModal,
   BButton,
@@ -15,10 +15,20 @@ import {
   BView,
   QuickStatSheet,
 } from '@/src/components';
+import { CreditCardPreviewCard } from '@/src/components/credit-cards';
+import DashboardHeroCard from '@/src/components/dashboard/heroCard';
 import { TransactionCard } from '@/src/components/transaction';
+import {
+  CREDIT_CARD_DATE_FORMATS,
+  CREDIT_CARD_PROVIDER_COLORS,
+  CREDIT_CARD_PROVIDER_ICONS,
+  CREDIT_CARD_PROVIDER_OPTIONS,
+} from '@/src/constants/credit-cards.config';
 import { createQuickStats, createStatCards, QuickStatType } from '@/src/constants/dashboardData';
+import { CREDIT_CARDS_SETTINGS_STRINGS } from '@/src/constants/settings.strings';
 import { BorderRadius, ButtonVariant, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
 import {
+  useCreditCards,
   useDebts,
   useExpenses,
   useFixedExpenses,
@@ -32,16 +42,19 @@ import type { QuickStatTypeValue } from '@/src/types/dashboard';
 import { calculateTotalEMI, calculateTotalFixedExpenses } from '@/src/utils/budget';
 import { mapDebtToSheet, mapFixedExpenseToSheet, mapSavingsGoalToSheet } from '@/src/utils/dashboard';
 import { formatDate } from '@/src/utils/date';
-import { formatCurrency } from '@/src/utils/format';
+import { useRouter } from 'expo-router';
 
 export default function DashboardScreen() {
   const themeColors = useThemeColors();
+  const router = useRouter();
+  const { width: screenWidth } = useWindowDimensions();
   const { profile, isProfileLoading, isProfileError, refetchProfile } = useProfile();
   const { fixedExpenses, isFixedExpensesLoading } = useFixedExpenses();
   const { debts, isDebtsLoading } = useDebts();
   const { savingsGoals, completedGoals, incompleteGoals, isSavingsGoalsLoading, markGoalAsCompleted } =
     useSavingsGoals();
   const { expenses, totalSpent, totalSaved: totalOneOffSavings, oneOffSavings } = useExpenses();
+  const { creditCards, creditCardSummaries } = useCreditCards();
   const { isItemProcessed } = useRecurringStatus();
   const { rollover, resetRollover, isResettingRollover } = useMonthlyBudget();
 
@@ -56,6 +69,7 @@ export default function DashboardScreen() {
   const [isAddTransactionModalVisible, setIsAddTransactionModalVisible] = useState(false);
   const [quickStatSheetVisible, setQuickStatSheetVisible] = useState(false);
   const [selectedQuickStat, setSelectedQuickStat] = useState<QuickStatTypeValue | null>(null);
+  const [activeCardIndex, setActiveCardIndex] = useState(0);
 
   const isLoading = isProfileLoading || isFixedExpensesLoading || isDebtsLoading || isSavingsGoalsLoading;
 
@@ -66,7 +80,7 @@ export default function DashboardScreen() {
   const totalMonthlySavings = completedGoals.reduce((sum, s) => sum + s.targetAmount, 0);
 
   // Real spending data from DB
-  const spentThisMonth = totalSpent + totalFixedExpenses + totalEMI;
+  const spentThisMonth = totalSpent;
   const savedThisMonth = totalOneOffSavings + totalMonthlySavings;
 
   // Calculate budget remaining
@@ -74,6 +88,9 @@ export default function DashboardScreen() {
   const effectiveBudget = monthlyIncome + rollover;
   const budgetRemaining = effectiveBudget - totalCommitments;
   const budgetUsedPercent = effectiveBudget > 0 ? Math.round((totalCommitments / effectiveBudget) * 100) : 0;
+  const carouselCardWidth = Math.max(0, screenWidth - Spacing.lg * 2);
+  const carouselSnapInterval = carouselCardWidth + Spacing.md;
+  const carouselItemCount = 1 + creditCards.length;
 
   // Create stat cards and quick stats using helper functions
   const statCards = createStatCards(spentThisMonth, savedThisMonth, themeColors);
@@ -116,6 +133,20 @@ export default function DashboardScreen() {
     ]);
   };
 
+  const summaryById = useMemo(() => {
+    return new Map(creditCardSummaries.map((summary) => [summary.cardId, summary]));
+  }, [creditCardSummaries]);
+
+  const providerLabels = useMemo(() => {
+    return new Map(CREDIT_CARD_PROVIDER_OPTIONS.map((option) => [option.value, option.label]));
+  }, []);
+
+  const handleCardScroll = (event: { nativeEvent: { contentOffset: { x: number } } }) => {
+    if (!carouselSnapInterval) return;
+    const nextIndex = Math.round(event.nativeEvent.contentOffset.x / carouselSnapInterval);
+    setActiveCardIndex(nextIndex);
+  };
+
   if (isLoading) {
     return (
       <BSafeAreaView edges={['top']}>
@@ -151,7 +182,7 @@ export default function DashboardScreen() {
       </BSafeAreaView>
     );
   }
-
+  // ! this should be removed. single query should be triggered for this. again to be picked in a revamp. let go for now
   const combinedTransactions = [...expenses, ...oneOffSavings];
 
   return (
@@ -169,47 +200,74 @@ export default function DashboardScreen() {
           </BView>
         </LinearGradient>
 
-        {/* Budget Card - Overlaps Header */}
-        <BView paddingX={SpacingValue.LG} style={styles.budgetCardWrapper}>
-          <BView
-            padding={SpacingValue.LG}
-            bg={themeColors.background}
-            style={[styles.budgetCard, { shadowColor: themeColors.text }]}
+        {/* Budget + Credit Card Carousel */}
+        <BView style={styles.budgetCardWrapper}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            snapToInterval={carouselSnapInterval}
+            decelerationRate="fast"
+            onScroll={handleCardScroll}
+            scrollEventThrottle={16}
+            contentContainerStyle={{ paddingHorizontal: Spacing.lg }}
           >
-            <BText variant={TextVariant.CAPTION} muted style={{ marginBottom: Spacing.xs }}>
-              Monthly Budget Remaining
-            </BText>
-            {rollover > 0 && (
-              <BView row align="center" style={{ marginBottom: Spacing.xxs }}>
-                <BText variant={TextVariant.CAPTION} style={{ color: themeColors.success }}>
-                  +{formatCurrency(rollover)} from last month
-                </BText>
+            <DashboardHeroCard
+              carouselCardWidth={carouselCardWidth}
+              rollover={rollover}
+              handleResetRollover={handleResetRollover}
+              isResettingRollover={isResettingRollover}
+              budgetRemaining={budgetRemaining}
+              budgetUsedPercent={budgetUsedPercent}
+              carouselLength={Boolean(creditCards.length)}
+            />
+
+            {creditCards.map((card, index) => {
+              const summary = summaryById.get(card.id);
+              const providerLabel =
+                providerLabels.get(card.provider) ?? CREDIT_CARDS_SETTINGS_STRINGS.preview.providerFallback;
+              const dueDateLabel = summary?.dueDate
+                ? formatDate(summary.dueDate, CREDIT_CARD_DATE_FORMATS.dueDate)
+                : CREDIT_CARDS_SETTINGS_STRINGS.preview.dueFallback;
+
+              return (
                 <BButton
+                  key={card.id}
                   variant={ButtonVariant.GHOST}
-                  onPress={handleResetRollover}
-                  loading={isResettingRollover}
-                  style={{ marginLeft: Spacing.xs, padding: Spacing.xxs }}
+                  padding={SpacingValue.NONE}
+                  onPress={() => router.push(`/credit-cards/${card.id}`)}
+                  style={{
+                    width: carouselCardWidth,
+                    marginRight: index === creditCards.length - 1 ? 0 : Spacing.md,
+                  }}
                 >
-                  <BIcon name="close-circle-outline" color={themeColors.textMuted} size="sm" />
+                  <CreditCardPreviewCard
+                    nickname={card.nickname}
+                    bank={card.bank}
+                    providerLabel={providerLabel}
+                    providerIcon={CREDIT_CARD_PROVIDER_ICONS[card.provider]}
+                    last4={card.last4}
+                    usedAmount={summary?.usedAmount ?? 0}
+                    creditLimit={summary?.creditLimit ?? card.creditLimit}
+                    dueDateLabel={dueDateLabel}
+                  />
                 </BButton>
-              </BView>
-            )}
-            <BText variant={TextVariant.HEADING} style={{ marginBottom: Spacing.md }}>
-              {formatCurrency(budgetRemaining)}
-            </BText>
-            {/* Progress Bar */}
-            <View style={[styles.progressBarBg, { backgroundColor: themeColors.muted }]}>
-              <View
-                style={[
-                  styles.progressBarFill,
-                  { width: `${Math.min(budgetUsedPercent, 100)}%`, backgroundColor: themeColors.primary },
-                ]}
-              />
-            </View>
-            <BText variant={TextVariant.CAPTION} muted style={{ marginTop: Spacing.xs }}>
-              {budgetUsedPercent}% used
-            </BText>
-          </BView>
+              );
+            })}
+          </ScrollView>
+
+          {carouselItemCount > 1 && (
+            <BView row center gap={SpacingValue.XS} style={{ marginTop: Spacing.sm }}>
+              {Array.from({ length: carouselItemCount }).map((_, index) => (
+                <View
+                  key={`carousel-dot-${index}`}
+                  style={[
+                    styles.carouselDot,
+                    { backgroundColor: index === activeCardIndex ? themeColors.primary : themeColors.border },
+                  ]}
+                />
+              ))}
+            </BView>
+          )}
         </BView>
 
         {/* Spent/Saved Cards */}
@@ -283,25 +341,38 @@ export default function DashboardScreen() {
               </BText>
             </BView>
           ) : (
-            combinedTransactions.map((item, index) => (
-              <BView key={item.id}>
-                {index > 0 && <BView style={{ height: Spacing.xxs }} />}
-                <BLink href={`/transaction-detail?id=${item.id}`} fullWidth style={{ paddingVertical: 0 }}>
-                  <TransactionCard
-                    id={item.id}
-                    description={item.description}
-                    amount={item.amount}
-                    date={item.date}
-                    categoryName={'category' in item ? item.category?.name : null}
-                    categoryIcon={'category' in item ? item.category?.icon : null}
-                    categoryColor={'category' in item ? item.category?.color : null}
-                    savingsType={'savingsType' in item ? item.savingsType : null}
-                    isSaving={'isSaving' in item ? Boolean(item.isSaving) : false}
-                    isRecurring={'sourceType' in item ? Boolean(item.sourceType) : false}
-                  />
-                </BLink>
-              </BView>
-            ))
+            combinedTransactions.map((item, index) => {
+              // ! accept for now, should be picked up in the revamp
+              const creditCardColor =
+                'creditCard' in item && item.creditCard
+                  ? CREDIT_CARD_PROVIDER_COLORS[item.creditCard.provider]
+                  : undefined;
+              return (
+                <BView key={item.id}>
+                  {index > 0 && <BView style={{ height: Spacing.xxs }} />}
+                  <BLink href={`/transaction-detail?id=${item.id}`} fullWidth style={{ paddingVertical: 0 }}>
+                    <TransactionCard
+                      id={item.id}
+                      description={item.description}
+                      amount={item.amount}
+                      date={item.date}
+                      categoryName={'category' in item ? item.category?.name : null}
+                      categoryIcon={'category' in item ? item.category?.icon : null}
+                      categoryColor={'category' in item ? item.category?.color : null}
+                      savingsType={'savingsType' in item ? item.savingsType : null}
+                      isSaving={'isSaving' in item ? Boolean(item.isSaving) : false}
+                      isRecurring={'sourceType' in item ? Boolean(item.sourceType) : false}
+                      creditCardNickname={'creditCard' in item ? (item.creditCard?.nickname ?? null) : null}
+                      creditCardLast4={'creditCard' in item ? (item.creditCard?.last4 ?? null) : null}
+                      creditCardColor={creditCardColor ?? null}
+                      isBillPay={
+                        'creditCardTxnType' in item ? item.creditCardTxnType === CreditCardTxnTypeEnum.PAYMENT : false
+                      }
+                    />
+                  </BLink>
+                </BView>
+              );
+            })
           )}
         </BView>
       </ScrollView>
@@ -344,22 +415,7 @@ const styles = StyleSheet.create({
   budgetCardWrapper: {
     marginTop: -Spacing['2xl'],
   },
-  budgetCard: {
-    borderRadius: BorderRadius.xl,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  progressBarBg: {
-    height: Spacing.xs,
-    borderRadius: BorderRadius.xs,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: '100%',
-    borderRadius: BorderRadius.xs,
-  },
+
   statsCards: {
     width: '48%',
     shadowOffset: { width: 0, height: 4 },
@@ -369,5 +425,10 @@ const styles = StyleSheet.create({
   },
   quickStatCardDisabled: {
     opacity: 0.5,
+  },
+  carouselDot: {
+    width: Spacing.xs,
+    height: Spacing.xs,
+    borderRadius: BorderRadius.full,
   },
 });

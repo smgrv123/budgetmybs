@@ -115,6 +115,67 @@ export const getShortMonthName = (month: string): string => {
   return dayjs(month).format('MMM YYYY');
 };
 
+// ============================================
+// CREDIT CARD DATE HELPERS
+// ============================================
+
+export const computeStatementMonthForPurchase = (purchaseDateISO: string, statementDayOfMonth: number): string => {
+  if (statementDayOfMonth < 1 || statementDayOfMonth > 31) {
+    throw new Error('statementDayOfMonth must be between 1 and 31');
+  }
+
+  const purchaseDate = dayjs(purchaseDateISO);
+  if (!purchaseDate.isValid()) {
+    throw new Error(`Invalid purchase date: ${purchaseDateISO}`);
+  }
+
+  const purchaseDay = purchaseDate.date();
+  const statementMonth = purchaseDay <= statementDayOfMonth ? purchaseDate : purchaseDate.add(1, 'month');
+
+  return statementMonth.format('YYYY-MM');
+};
+
+export const computeStatementEndDate = (statementMonth: string, statementDayOfMonth: number): string => {
+  if (statementDayOfMonth < 1 || statementDayOfMonth > 31) {
+    throw new Error('statementDayOfMonth must be between 1 and 31');
+  }
+
+  const monthDate = dayjs(statementMonth);
+  if (!monthDate.isValid()) {
+    throw new Error(`Invalid statement month: ${statementMonth}`);
+  }
+
+  const lastDay = monthDate.endOf('month').date();
+  const clampedDay = Math.min(statementDayOfMonth, lastDay);
+
+  return monthDate.date(clampedDay).format('YYYY-MM-DD');
+};
+
+export const computeDueDate = (statementEndDateISO: string, paymentBufferDays: number): string => {
+  if (paymentBufferDays < 0) {
+    throw new Error('paymentBufferDays must be >= 0');
+  }
+
+  const statementEndDate = dayjs(statementEndDateISO);
+  if (!statementEndDate.isValid()) {
+    throw new Error(`Invalid statement end date: ${statementEndDateISO}`);
+  }
+
+  return statementEndDate.add(paymentBufferDays, 'day').format('YYYY-MM-DD');
+};
+
+export const computeStatementFieldsForPurchase = (
+  purchaseDateISO: string,
+  statementDayOfMonth: number,
+  paymentBufferDays: number
+) => {
+  const statementMonth = computeStatementMonthForPurchase(purchaseDateISO, statementDayOfMonth);
+  const statementEndDate = computeStatementEndDate(statementMonth, statementDayOfMonth);
+  const dueDate = computeDueDate(statementEndDate, paymentBufferDays);
+
+  return { statementMonth, statementEndDate, dueDate };
+};
+
 export const generateUUID = (): string => {
   // Preferred path (modern browsers + Node 16.17+)
   try {

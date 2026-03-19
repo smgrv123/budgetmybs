@@ -21,6 +21,14 @@ export const EXPENSE_FIELD_CONFIGS: TransactionFieldConfig[] = [
     type: TransactionFieldType.DROPDOWN,
     label: TRANSACTION_MODAL_TEXT.expense.categoryLabel,
     placeholder: TRANSACTION_MODAL_TEXT.expense.categoryPlaceholder,
+    modalTitle: TRANSACTION_MODAL_TEXT.expense.categoryModalTitle,
+  },
+  {
+    key: TransactionFieldKey.CREDIT_CARD,
+    type: TransactionFieldType.DROPDOWN,
+    label: TRANSACTION_MODAL_TEXT.expense.creditCardLabel,
+    placeholder: TRANSACTION_MODAL_TEXT.expense.creditCardPlaceholder,
+    modalTitle: TRANSACTION_MODAL_TEXT.expense.creditCardModalTitle,
   },
   {
     key: TransactionFieldKey.DESCRIPTION,
@@ -52,6 +60,7 @@ export const SAVING_FIELD_CONFIGS: TransactionFieldConfig[] = [
     type: TransactionFieldType.DROPDOWN,
     label: TRANSACTION_MODAL_TEXT.saving.savingsTypeLabel,
     placeholder: TRANSACTION_MODAL_TEXT.saving.savingsTypePlaceholder,
+    modalTitle: TRANSACTION_MODAL_TEXT.saving.savingsTypeModalTitle,
     options: Object.values(SavingsTypeEnum).map((type) => ({
       value: type,
       label: SavingsLabels[type],

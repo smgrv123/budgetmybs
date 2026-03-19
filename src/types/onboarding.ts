@@ -1,4 +1,4 @@
-import type { DebtPayoffPreference, DebtType, FixedExpenseType, SavingsType } from '@/db/types';
+import type { CreditCardProvider, DebtPayoffPreference, DebtType, FixedExpenseType, SavingsType } from '@/db/types';
 import type { ReactNode } from 'react';
 
 // From store/onboardingStore.ts
@@ -36,6 +36,17 @@ export type SavingsGoalData = {
   type: SavingsType;
   customType?: string;
   targetAmount: number;
+};
+
+export type CreditCardData = {
+  tempId: string;
+  nickname: string;
+  provider: CreditCardProvider;
+  bank: string;
+  last4: string;
+  creditLimit: number;
+  statementDayOfMonth: number;
+  paymentBufferDays: number;
 };
 
 // From components/onboarding/steps/profileStep.tsx

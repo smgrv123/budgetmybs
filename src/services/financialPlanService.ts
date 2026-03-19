@@ -1,4 +1,4 @@
-import type { DebtData, FixedExpenseData, ProfileData, SavingsGoalData } from '@/src/types';
+import type { CreditCardData, DebtData, FixedExpenseData, ProfileData, SavingsGoalData } from '@/src/types';
 import type { FinancialPlan } from '@/src/types/financialPlan';
 import { calculateEMI, calculateTotalEMI, calculateTotalFixedExpenses } from '@/src/utils/budget';
 
@@ -9,6 +9,7 @@ type OnboardingData = {
   fixedExpenses: FixedExpenseData[];
   debts: DebtData[];
   savingsGoals: SavingsGoalData[];
+  creditCards: CreditCardData[];
 };
 
 /**
@@ -91,7 +92,7 @@ const FINANCIAL_PLAN_JSON_SCHEMA = {
  * Build comprehensive financial analysis prompt for Gemini
  */
 const buildFinancialPlanPrompt = (data: OnboardingData): string => {
-  const { profile, fixedExpenses, debts, savingsGoals } = data;
+  const { profile, fixedExpenses, debts, savingsGoals, creditCards } = data;
 
   // Calculate totals using existing utility functions
   const totalFixedExpenses = calculateTotalFixedExpenses(fixedExpenses);
@@ -111,6 +112,12 @@ const buildFinancialPlanPrompt = (data: OnboardingData): string => {
     .join('\n');
 
   const savingsGoalsList = savingsGoals.map((g) => `  - ${g.name} (${g.type}): ₹${g.targetAmount}/month`).join('\n');
+
+  const creditCardsList = creditCards
+    .map(
+      (c) => `  - ${c.nickname} (${c.provider}): ₹${c.creditLimit}, ${c.statementDayOfMonth}, ${c.paymentBufferDays}`
+    )
+    .join('\n');
 
   return `You are an expert personal finance advisor specializing in Indian household budgeting. Your role is to analyze a user's complete financial profile and provide actionable, personalized recommendations.
 
@@ -132,6 +139,9 @@ ${debtsList || '  - None'}
 
 ### Monthly Savings Goals (₹${totalSavingsTarget} total)
 ${savingsGoalsList || '  - None'}
+
+### Credit Cards
+${creditCardsList || '  - None'}
 
 ---
 

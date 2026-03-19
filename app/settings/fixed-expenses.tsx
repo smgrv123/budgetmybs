@@ -4,8 +4,8 @@ import { Alert } from 'react-native';
 
 import BListStep from '@/src/components/onboarding/listStep';
 import { BSafeAreaView, BText, BView, ScreenHeader } from '@/src/components/ui';
+import { FixedExpenseTypeOptions, OnboardingStepId as SettingId } from '@/src/constants/onboarding.config';
 import { FIXED_EXPENSES_SETTINGS_STRINGS, SETTINGS_COMMON_STRINGS } from '@/src/constants/settings.strings';
-import { FixedExpenseTypeOptions } from '@/src/constants/onboarding.config';
 import {
   common,
   createFormFieldsWithCurrency,
@@ -147,6 +147,7 @@ export default function FixedExpensesScreen() {
 
       <BView flex padding="base">
         <BListStep
+          stepId={SettingId.FIXED_EXPENSES}
           strings={FIXED_EXPENSE_STEP_CONFIG.strings}
           items={expenses}
           itemCardConfig={{
