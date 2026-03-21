@@ -35,6 +35,9 @@ export const ALL_TRANSACTIONS_STRINGS = {
   categoryLabel: 'Category',
   categoryPlaceholder: 'All Categories',
   categoryModalTitle: 'Select Category',
+  cardLabel: 'Credit Card',
+  cardPlaceholder: 'All Cards',
+  cardModalTitle: 'Select Card',
   fromLabel: 'From',
   toLabel: 'To',
   clearAllButton: 'Clear All',
@@ -71,8 +74,15 @@ export const TRANSACTION_DETAIL_STRINGS = {
   deleteAlertBody: 'This will permanently remove this transaction. This action cannot be undone.',
   deleteAlertCancel: 'Cancel',
   deleteAlertConfirm: 'Delete',
+  creditCardLabel: 'Credit Card',
 } as const;
 
 export const ADD_TRANSACTION_STRINGS = {
   createFailedLog: 'Failed to create transaction:',
+} as const;
+
+export const TRANSACTION_CARD_STRINGS = {
+  billPayBadge: 'Bill Pay',
+  cardMask: '••',
+  cardSeparator: ' · ',
 } as const;

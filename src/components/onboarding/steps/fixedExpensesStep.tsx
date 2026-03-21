@@ -1,6 +1,6 @@
 import BListStep from '@/src/components/onboarding/listStep';
 import { BText } from '@/src/components/ui';
-import { FixedExpenseTypeOptions } from '@/src/constants/onboarding.config';
+import { FixedExpenseTypeOptions, OnboardingStepId } from '@/src/constants/onboarding.config';
 import {
   common,
   createFormFieldsWithCurrency,
@@ -28,6 +28,7 @@ function FixedExpensesStep({ onNext }: FixedExpensesStepProps) {
 
   return (
     <BListStep
+      stepId={OnboardingStepId.FIXED_EXPENSES}
       strings={FIXED_EXPENSE_STEP_CONFIG.strings}
       items={expenses}
       itemCardConfig={{

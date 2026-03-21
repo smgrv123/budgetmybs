@@ -1,27 +1,33 @@
-import { BudgetOverviewRow, FinancialDataRow, ThemeSelector } from '@/src/components/settings';
-import { BButton, BCard, BIcon, BSafeAreaView, BText, BView } from '@/src/components/ui';
-import { BUDGET_OVERVIEW_ITEMS, createFinancialDataItems } from '@/src/constants/settings.config';
+import { ScrollView } from 'react-native';
+
+import SettingsAppearanceSection from '@/src/components/settings/appearance';
+import SettingsBudgetSection from '@/src/components/settings/budget';
+import SettingsFinancialSection from '@/src/components/settings/financial';
+import SettingsProfileSection from '@/src/components/settings/profile';
+import { BSafeAreaView, BText, BView } from '@/src/components/ui';
+import { createFinancialDataItems } from '@/src/constants/settings.config';
+import { SETTINGS_SCREEN_STRINGS } from '@/src/constants/settings.strings';
 import { Spacing } from '@/src/constants/theme';
-import { useDebts, useFixedExpenses, useProfile, useSavingsGoals } from '@/src/hooks';
+import { useCreditCards, useDebts, useFixedExpenses, useProfile, useSavingsGoals } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { BudgetValueKey, FinancialDataKey } from '@/src/types/settings';
 import { calculateEMI } from '@/src/utils/budget';
-import { useRouter } from 'expo-router';
-import { ScrollView } from 'react-native';
 
 export default function SettingsScreen() {
-  const router = useRouter();
   const themeColors = useThemeColors();
   const { profile } = useProfile();
+
   const { fixedExpenses } = useFixedExpenses();
   const { debts } = useDebts();
   const { savingsGoals } = useSavingsGoals();
+  const { creditCards } = useCreditCards();
 
   // Calculate counts for financial data sections
   const counts = {
     [FinancialDataKey.FIXED_EXPENSES]: fixedExpenses?.length ?? 0,
     [FinancialDataKey.DEBTS]: debts?.length ?? 0,
     [FinancialDataKey.SAVINGS]: savingsGoals?.length ?? 0,
+    [FinancialDataKey.CREDIT_CARDS]: creditCards?.length ?? 0,
   };
 
   // Create financial data items with theme colors
@@ -41,68 +47,46 @@ export default function SettingsScreen() {
     [BudgetValueKey.DEBT_PAYMENTS]: totalDebtPayments,
   };
 
+  const settingsScreenSections = [
+    {
+      key: 'profile',
+      component: <SettingsProfileSection profile={profile} />,
+      rank: 0,
+      enabled: true,
+    },
+    {
+      key: 'appearance',
+      component: <SettingsAppearanceSection />,
+      rank: 1,
+      enabled: true,
+    },
+    {
+      key: 'financial',
+      component: <SettingsFinancialSection financialDataItems={financialDataItems} counts={counts} />,
+      rank: 2,
+      enabled: true,
+    },
+    {
+      key: 'budget',
+      component: <SettingsBudgetSection values={values} />,
+      rank: 3,
+      enabled: true,
+    },
+  ];
+
   return (
     <BSafeAreaView edges={['top', 'left', 'right']}>
       <BView paddingX="base" paddingY="md">
-        <BText variant="heading">Settings</BText>
+        <BText variant="heading">{SETTINGS_SCREEN_STRINGS.title}</BText>
       </BView>
 
       <ScrollView contentContainerStyle={{ padding: Spacing.base, gap: Spacing.lg }}>
-        {/* Profile Section */}
-        <BCard variant="elevated">
-          <BView gap="md">
-            <BView row align="center" gap="md">
-              <BView center rounded="full" bg={themeColors.primary} style={{ width: 60, height: 60 }}>
-                <BText variant="heading" color={themeColors.white}>
-                  {profile?.name.charAt(0).toUpperCase() ?? 'U'}
-                </BText>
-              </BView>
-              <BView flex>
-                <BText variant="subheading">{profile?.name ?? 'User'}</BText>
-                <BText variant="body" muted>
-                  ₹{profile?.salary.toLocaleString('en-IN') ?? 0}/month
-                </BText>
-              </BView>
-            </BView>
-
-            <BButton variant="outline" onPress={() => router.push('/settings/edit-profile')} paddingY="sm">
-              <BView row align="center" justify="center" gap="xs">
-                <BIcon name="create-outline" size="sm" color={themeColors.primary} />
-                <BText variant="label" color={themeColors.primary}>
-                  Edit Profile
-                </BText>
-              </BView>
-            </BButton>
-          </BView>
-        </BCard>
-
-        {/* Appearance Section */}
-        <BView gap="sm">
-          <BText variant="subheading">Appearance</BText>
-          <BCard variant="elevated">
-            <ThemeSelector />
-          </BCard>
-        </BView>
-
-        {/* Financial Data Section */}
-        <BView gap="sm">
-          <BText variant="subheading">Financial Data</BText>
-          <BCard variant="elevated">
-            {financialDataItems.map(({ key, ...item }) => (
-              <FinancialDataRow key={key} {...item} count={counts[key]} />
-            ))}
-          </BCard>
-        </BView>
-
-        {/* Budget Overview Section */}
-        <BView gap="sm">
-          <BText variant="subheading">Budget Overview</BText>
-          <BCard variant="elevated">
-            {BUDGET_OVERVIEW_ITEMS.map(({ key, ...item }) => (
-              <BudgetOverviewRow key={key} {...item} value={values[item.valueKey]} />
-            ))}
-          </BCard>
-        </BView>
+        {settingsScreenSections
+          .filter((s) => s.enabled)
+          .sort((a, b) => a.rank - b.rank)
+          .map(({ key, component }) => (
+            <BView key={key}>{component}</BView>
+          ))}
       </ScrollView>
     </BSafeAreaView>
   );

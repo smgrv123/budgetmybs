@@ -23,6 +23,7 @@ export type ChatExpenseData = {
   amount: number;
   category?: CategoryName; // must be an exact category name from CategoryLabels
   description?: string;
+  creditCard?: string | null; // matched card nickname; null when AI couldn't identify a card
 };
 
 export type ChatProfileUpdateData = {

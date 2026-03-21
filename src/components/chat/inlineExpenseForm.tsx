@@ -1,7 +1,7 @@
 import { BButton, BDropdown, BInput, BText, BView } from '@/src/components/ui';
 import { CHAT_STRINGS } from '@/src/constants/chat';
 import { ButtonVariant, SpacingValue, TextVariant } from '@/src/constants/theme';
-import { useCategories } from '@/src/hooks';
+import { useCategories, useCreditCards } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { DropdownOption } from '@/src/types';
 import type { ChatExpenseData } from '@/src/types/chat';
@@ -10,7 +10,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 interface InlineExpenseFormProps {
   initialData: ChatExpenseData;
-  onSubmit: (data: ChatExpenseData & { categoryId?: string }) => void;
+  onSubmit: (data: ChatExpenseData & { categoryId?: string; creditCardId?: string }) => void;
   onCancel: () => void;
   isSubmitting?: boolean;
 }
@@ -18,6 +18,7 @@ interface InlineExpenseFormProps {
 const InlineExpenseForm: FC<InlineExpenseFormProps> = ({ initialData, onSubmit, onCancel, isSubmitting }) => {
   const themeColors = useThemeColors();
   const { allCategories } = useCategories();
+  const { creditCards } = useCreditCards();
   const [amount, setAmount] = useState(String(initialData.amount));
   const [description, setDescription] = useState(initialData.description ?? '');
 
@@ -27,19 +28,37 @@ const InlineExpenseForm: FC<InlineExpenseFormProps> = ({ initialData, onSubmit, 
     [allCategories]
   );
 
+  // Options use card ID as value
+  const creditCardOptions = useMemo<DropdownOption[]>(
+    () => creditCards.map((c) => ({ label: `${c.nickname} ••${c.last4}`, value: c.id })),
+    [creditCards]
+  );
+
   // Resolve the LLM-returned category name to its DB id
-  const resolvedInitialId = useMemo(() => {
+  const resolvedInitialCategoryId = useMemo(() => {
     if (!initialData.category) return '';
     const match = allCategories.find((c) => c.name.toLowerCase() === initialData.category!.toLowerCase());
     return match?.id ?? '';
   }, [allCategories, initialData.category]);
 
-  const [categoryId, setCategoryId] = useState<string>(resolvedInitialId);
+  // Resolve the LLM-returned card nickname to its DB id
+  const resolvedInitialCardId = useMemo(() => {
+    if (!initialData.creditCard) return '';
+    const match = creditCards.find((c) => c.nickname.toLowerCase() === initialData.creditCard!.toLowerCase());
+    return match?.id ?? '';
+  }, [creditCards, initialData.creditCard]);
 
-  // Re-resolve when categories load asynchronously (may be empty on first render)
+  const [categoryId, setCategoryId] = useState<string>(resolvedInitialCategoryId);
+  const [creditCardId, setCreditCardId] = useState<string>(resolvedInitialCardId);
+
+  // Re-resolve when data loads asynchronously (may be empty on first render)
   useEffect(() => {
-    if (!categoryId && resolvedInitialId) setCategoryId(resolvedInitialId);
-  }, [resolvedInitialId]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!categoryId && resolvedInitialCategoryId) setCategoryId(resolvedInitialCategoryId);
+  }, [resolvedInitialCategoryId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!creditCardId && resolvedInitialCardId) setCreditCardId(resolvedInitialCardId);
+  }, [resolvedInitialCardId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [error, setError] = useState<string | null>(null);
 
@@ -59,6 +78,7 @@ const InlineExpenseForm: FC<InlineExpenseFormProps> = ({ initialData, onSubmit, 
       category: initialData.category,
       description: description || undefined,
       categoryId: categoryId || undefined,
+      creditCardId: creditCardId || undefined,
     });
   };
 
@@ -75,6 +95,16 @@ const InlineExpenseForm: FC<InlineExpenseFormProps> = ({ initialData, onSubmit, 
         onValueChange={(v) => setCategoryId(String(v))}
         searchable
         modalTitle="Select Category"
+      />
+
+      <BDropdown
+        label={CHAT_STRINGS.FORM_CREDIT_CARD_LABEL}
+        options={creditCardOptions}
+        value={creditCardId}
+        onValueChange={(v) => setCreditCardId(String(v))}
+        searchable
+        modalTitle={CHAT_STRINGS.FORM_CREDIT_CARD_MODAL_TITLE}
+        placeholder="None (cash)"
       />
 
       <BInput

@@ -13,7 +13,10 @@ import {
 } from '@/db';
 import type { UpdateExpenseInput } from '@/db/schema-types';
 import { getCurrentMonth } from '@/db/utils';
+import { CREDIT_CARDS_SETTINGS_STRINGS } from '@/src/constants/settings.strings';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Alert } from 'react-native';
+import { CREDIT_CARDS_QUERY_KEY, CREDIT_CARD_SUMMARIES_QUERY_KEY } from './useCreditCards';
 
 export const EXPENSES_QUERY_KEY = ['expenses'] as const;
 export const EXPENSE_BY_ID_QUERY_KEY = ['expenses', 'byId'] as const;
@@ -88,24 +91,42 @@ export const useExpenses = (month: string = getCurrentMonth()) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: EXPENSES_QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: TOTAL_SPENT_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: CREDIT_CARDS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: CREDIT_CARD_SUMMARIES_QUERY_KEY });
     },
   });
 
   const updateExpenseMutation = useMutation({
     mutationFn: ({ id: expenseId, data }: { id: string; data: UpdateExpenseInput }) => updateExpense(expenseId, data),
-    onSuccess: () => {
+    onSuccess: ({ newUsedAmount }) => {
       queryClient.invalidateQueries({ queryKey: EXPENSES_QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: EXPENSE_BY_ID_QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: TOTAL_SPENT_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: CREDIT_CARDS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: CREDIT_CARD_SUMMARIES_QUERY_KEY });
+      if (newUsedAmount !== null && newUsedAmount < 0) {
+        Alert.alert(
+          CREDIT_CARDS_SETTINGS_STRINGS.alerts.negativeBalanceTitle,
+          CREDIT_CARDS_SETTINGS_STRINGS.alerts.negativeBalanceBody
+        );
+      }
     },
   });
 
   const deleteExpenseMutation = useMutation({
     mutationFn: deleteExpense,
-    onSuccess: () => {
+    onSuccess: ({ newUsedAmount }) => {
       queryClient.invalidateQueries({ queryKey: EXPENSES_QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: EXPENSE_BY_ID_QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: TOTAL_SPENT_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: CREDIT_CARDS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: CREDIT_CARD_SUMMARIES_QUERY_KEY });
+      if (newUsedAmount !== null && newUsedAmount < 0) {
+        Alert.alert(
+          CREDIT_CARDS_SETTINGS_STRINGS.alerts.negativeBalanceTitle,
+          CREDIT_CARDS_SETTINGS_STRINGS.alerts.negativeBalanceBody
+        );
+      }
     },
   });
 

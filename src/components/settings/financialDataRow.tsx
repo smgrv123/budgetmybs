@@ -1,4 +1,5 @@
 import { BIcon, BLink, BText, BView } from '@/src/components/ui';
+import { SETTINGS_COMMON_STRINGS } from '@/src/constants/settings.strings';
 import { SpacingValue } from '@/src/constants/theme';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { FinancialDataItem } from '@/src/types/settings';
@@ -7,8 +8,17 @@ interface FinancialDataRowProps extends FinancialDataItem {
   count: number;
 }
 
-export default function FinancialDataRow({ label, icon, iconBgColor, iconColor, route, count }: FinancialDataRowProps) {
+export default function FinancialDataRow({
+  label,
+  icon,
+  iconBgColor,
+  iconColor,
+  route,
+  count,
+  countSuffix,
+}: FinancialDataRowProps) {
   const themeColors = useThemeColors();
+  const suffix = countSuffix ?? SETTINGS_COMMON_STRINGS.itemsSuffix;
 
   return (
     <BLink fullWidth href={route}>
@@ -20,7 +30,7 @@ export default function FinancialDataRow({ label, icon, iconBgColor, iconColor, 
           <BView>
             <BText variant="label">{label}</BText>
             <BText variant="caption" muted>
-              {count} items
+              {count} {suffix}
             </BText>
           </BView>
         </BView>

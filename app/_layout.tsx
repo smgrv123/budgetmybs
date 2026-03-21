@@ -27,6 +27,7 @@ export default function RootLayout() {
               <Stack.Screen name="onboarding" options={{ headerShown: false }} />
               <Stack.Screen name="dashboard" options={{ headerShown: false }} />
               <Stack.Screen name="settings" options={{ headerShown: false }} />
+              <Stack.Screen name="credit-cards/[id]" options={{ headerShown: false }} />
               <Stack.Screen name="transaction-detail" options={{ headerShown: false }} />
               <Stack.Screen name="all-transactions" options={{ headerShown: false }} />
             </Stack>

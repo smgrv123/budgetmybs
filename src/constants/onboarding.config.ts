@@ -9,15 +9,18 @@ export const isOtherType = (type: string) => type === OTHER_TYPE_VALUE;
 // STEP DEFINITIONS
 // ============================================
 
-export enum OnboardingStepId {
-  PROFILE = 'profile',
-  FIXED_EXPENSES = 'fixed-expenses',
-  DEBTS = 'debts',
-  SAVINGS = 'savings',
-}
+export const OnboardingStepId = {
+  PROFILE: 'profile',
+  FIXED_EXPENSES: 'fixed-expenses',
+  DEBTS: 'debts',
+  SAVINGS: 'savings',
+  CREDIT_CARDS: 'credit-cards',
+} as const;
+
+export type OnboardingStepIdType = (typeof OnboardingStepId)[keyof typeof OnboardingStepId];
 
 export interface OnboardingStepConfig {
-  id: OnboardingStepId;
+  id: OnboardingStepIdType;
   enabled: boolean;
   required: boolean; // If true, user cannot skip
   order: number;
@@ -28,6 +31,7 @@ export const OnboardingSteps: OnboardingStepConfig[] = [
   { id: OnboardingStepId.FIXED_EXPENSES, enabled: true, required: false, order: 2 },
   { id: OnboardingStepId.DEBTS, enabled: true, required: false, order: 3 },
   { id: OnboardingStepId.SAVINGS, enabled: true, required: false, order: 4 },
+  { id: OnboardingStepId.CREDIT_CARDS, enabled: true, required: false, order: 5 },
 ];
 
 export const getEnabledSteps = () => OnboardingSteps.filter((step) => step.enabled).sort((a, b) => a.order - b.order);

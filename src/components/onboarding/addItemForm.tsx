@@ -55,10 +55,12 @@ const BItemForm = ({
     if (field.type === 'dropdown') {
       return (
         <BDropdown
+          label={field.label}
           placeholder={field.placeholder}
           options={field.options || []}
           value={formData[field.key]}
           onValueChange={(value) => onDropdownChange(field.key, value)}
+          error={getFieldError(formErrors, field.key)}
         />
       );
     }

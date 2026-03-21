@@ -1,5 +1,11 @@
 import type { ChatMessage } from '@/db/schema-types';
-import { ChatActionStatusEnum, ChatIntentEnum, ChatRoleEnum, DebtPayoffPreferenceEnum } from '@/db/types';
+import {
+  ChatActionStatusEnum,
+  ChatIntentEnum,
+  ChatRoleEnum,
+  CreditCardTxnTypeEnum,
+  DebtPayoffPreferenceEnum,
+} from '@/db/types';
 import {
   ChatBubble,
   ChatHeader,
@@ -26,6 +32,7 @@ import { ButtonVariant, Spacing, SpacingValue, TextVariant } from '@/src/constan
 import {
   useCategories,
   useChat,
+  useCreditCards,
   useDebts,
   useExpenses,
   useFixedExpenses,
@@ -77,6 +84,7 @@ export default function ChatScreen() {
   const { profile, upsertProfileAsync } = useProfile();
 
   const { allCategories } = useCategories();
+  const { creditCards } = useCreditCards();
   const { createExpenseAsync } = useExpenses();
 
   const { fixedExpenses, createFixedExpenseAsync, updateFixedExpenseAsync, removeFixedExpenseAsync } =
@@ -186,6 +194,12 @@ export default function ChatScreen() {
       debts,
       savingsGoals,
       categoryNames: allCategories.map((c) => c.name),
+      creditCards: creditCards.map((c) => ({
+        nickname: c.nickname,
+        bank: c.bank,
+        provider: c.provider,
+        last4: c.last4,
+      })),
     };
 
     let response: Awaited<ReturnType<typeof sendChatMessage>> | null = null;
@@ -301,7 +315,7 @@ export default function ChatScreen() {
 
   // ── Action confirmation handlers ──────────────────────────────────────────
 
-  const handleExpenseConfirm = async (data: ChatExpenseData & { categoryId?: string }) => {
+  const handleExpenseConfirm = async (data: ChatExpenseData & { categoryId?: string; creditCardId?: string }) => {
     if (!pendingAction) return;
     const createdExpense = await runMutation(
       createExpenseAsync(
@@ -310,6 +324,9 @@ export default function ChatScreen() {
           categoryId: data.categoryId,
           description: data.description,
           wasImpulse: 0,
+          ...(data.creditCardId
+            ? { creditCardId: data.creditCardId, creditCardTxnType: CreditCardTxnTypeEnum.PURCHASE }
+            : {}),
         },
         {
           onError: (error) => console.error(CHAT_LOG_STRINGS.saveExpenseError, error),

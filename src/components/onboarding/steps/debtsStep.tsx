@@ -4,7 +4,7 @@ import type { DebtPayoffPreference } from '@/db/types';
 import BListStep from '@/src/components/onboarding/listStep';
 import DebtPayoffStrategyModal from '@/src/components/onboarding/modals/debtPayoffStrategyModal';
 import { BButton, BIcon, BText, BView } from '@/src/components/ui';
-import { DEBT_PAYOFF_STRATEGY_CONFIGS, DebtTypeOptions } from '@/src/constants/onboarding.config';
+import { DEBT_PAYOFF_STRATEGY_CONFIGS, DebtTypeOptions, OnboardingStepId } from '@/src/constants/onboarding.config';
 import {
   common,
   createFormFieldsWithCurrency,
@@ -48,6 +48,7 @@ function DebtsStep({ onNext }: DebtsStepProps) {
   return (
     <>
       <BListStep
+        stepId={OnboardingStepId.DEBTS}
         strings={DEBT_STEP_CONFIG.strings}
         items={debtsList}
         itemCardConfig={{

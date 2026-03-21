@@ -1,10 +1,22 @@
 import { and, between, desc, eq, inArray, isNotNull, like, sql } from 'drizzle-orm';
 import { db } from '../client';
-import { categoriesTable, expensesTable } from '../schema';
-import type { CreateExpenseInput, CreateOneOffSavingInput, UpdateExpenseInput } from '../schema-types';
+import {
+  categoriesTable,
+  creditCardExpensesTable,
+  creditCardPaymentsTable,
+  creditCardsTable,
+  expensesTable,
+} from '../schema';
+import type { CreateExpenseInput, CreateOneOffSavingInput, Expense, UpdateExpenseInput } from '../schema-types';
 import type { RecurringSourceType } from '../types';
-import { RecurringSourceTypeEnum } from '../types';
-import { getCurrentDate, getCurrentMonth, getMonthFromDate, makeRecurringKey } from '../utils';
+import { CreditCardTxnTypeEnum, RecurringSourceTypeEnum } from '../types';
+import {
+  computeStatementFieldsForPurchase,
+  getCurrentDate,
+  getCurrentMonth,
+  getMonthFromDate,
+  makeRecurringKey,
+} from '../utils';
 
 // ============================================
 // GET ALL EXPENSES
@@ -79,6 +91,8 @@ export const getExpensesWithCategory = async (month?: string) => {
       description: expensesTable.description,
       date: expensesTable.date,
       wasImpulse: expensesTable.wasImpulse,
+      creditCardId: expensesTable.creditCardId,
+      creditCardTxnType: expensesTable.creditCardTxnType,
       createdAt: expensesTable.createdAt,
       category: {
         id: categoriesTable.id,
@@ -87,9 +101,15 @@ export const getExpensesWithCategory = async (month?: string) => {
         icon: categoriesTable.icon,
         color: categoriesTable.color,
       },
+      creditCard: {
+        nickname: creditCardsTable.nickname,
+        last4: creditCardsTable.last4,
+        provider: creditCardsTable.provider,
+      },
     })
     .from(expensesTable)
     .leftJoin(categoriesTable, eq(expensesTable.categoryId, categoriesTable.id))
+    .leftJoin(creditCardsTable, eq(expensesTable.creditCardId, creditCardsTable.id))
     .where(and(like(expensesTable.date, `${targetMonth}%`), eq(expensesTable.isSaving, 0)))
     .orderBy(desc(expensesTable.date));
 };
@@ -115,6 +135,8 @@ export const getExpenseById = async (id: string) => {
       categoryId: expensesTable.categoryId,
       sourceType: expensesTable.sourceType,
       sourceId: expensesTable.sourceId,
+      creditCardId: expensesTable.creditCardId,
+      creditCardTxnType: expensesTable.creditCardTxnType,
       createdAt: expensesTable.createdAt,
       category: {
         id: categoriesTable.id,
@@ -123,9 +145,15 @@ export const getExpenseById = async (id: string) => {
         icon: categoriesTable.icon,
         color: categoriesTable.color,
       },
+      creditCard: {
+        nickname: creditCardsTable.nickname,
+        last4: creditCardsTable.last4,
+        provider: creditCardsTable.provider,
+      },
     })
     .from(expensesTable)
     .leftJoin(categoriesTable, eq(expensesTable.categoryId, categoriesTable.id))
+    .leftJoin(creditCardsTable, eq(expensesTable.creditCardId, creditCardsTable.id))
     .where(eq(expensesTable.id, id))
     .limit(1);
 
@@ -144,7 +172,13 @@ export const getTotalSpentByMonth = async (month?: string) => {
       total: sql<number>`SUM(${expensesTable.amount})`,
     })
     .from(expensesTable)
-    .where(and(like(expensesTable.date, `${targetMonth}%`), eq(expensesTable.isSaving, 0)));
+    .where(
+      and(
+        like(expensesTable.date, `${targetMonth}%`),
+        eq(expensesTable.isSaving, 0),
+        eq(expensesTable.excludeFromSpending, 0)
+      )
+    );
 
   return result[0]?.total ?? 0;
 };
@@ -167,7 +201,13 @@ export const getSpendingByCategory = async (month?: string) => {
     })
     .from(expensesTable)
     .leftJoin(categoriesTable, eq(expensesTable.categoryId, categoriesTable.id))
-    .where(and(like(expensesTable.date, `${targetMonth}%`), eq(expensesTable.isSaving, 0)))
+    .where(
+      and(
+        like(expensesTable.date, `${targetMonth}%`),
+        eq(expensesTable.isSaving, 0),
+        eq(expensesTable.excludeFromSpending, 0)
+      )
+    )
     .groupBy(expensesTable.categoryId);
 };
 
@@ -185,7 +225,12 @@ export const getImpulsePurchaseStats = async (month?: string) => {
     })
     .from(expensesTable)
     .where(
-      and(like(expensesTable.date, `${targetMonth}%`), eq(expensesTable.wasImpulse, 1), eq(expensesTable.isSaving, 0))
+      and(
+        like(expensesTable.date, `${targetMonth}%`),
+        eq(expensesTable.wasImpulse, 1),
+        eq(expensesTable.isSaving, 0),
+        eq(expensesTable.excludeFromSpending, 0)
+      )
     );
 
   return {
@@ -201,9 +246,47 @@ export const getImpulsePurchaseStats = async (month?: string) => {
 export const createExpense = async (data: CreateExpenseInput) => {
   const values = buildExpenseValues(data);
 
-  const result = await db.insert(expensesTable).values(values).returning();
+  return db.transaction(async (tx) => {
+    const result = await tx.insert(expensesTable).values(values).returning();
+    const expense = result[0];
 
-  return result[0];
+    if (expense?.creditCardId && expense.creditCardTxnType === CreditCardTxnTypeEnum.PURCHASE) {
+      const cardRows = await tx
+        .select({
+          statementDayOfMonth: creditCardsTable.statementDayOfMonth,
+          paymentBufferDays: creditCardsTable.paymentBufferDays,
+        })
+        .from(creditCardsTable)
+        .where(eq(creditCardsTable.id, expense.creditCardId))
+        .limit(1);
+
+      const card = cardRows[0];
+      if (!card) {
+        throw new Error(`Credit card not found: ${expense.creditCardId}`);
+      }
+
+      const { statementMonth, statementEndDate, dueDate } = computeStatementFieldsForPurchase(
+        expense.date,
+        card.statementDayOfMonth,
+        card.paymentBufferDays
+      );
+
+      await tx.insert(creditCardExpensesTable).values({
+        creditCardId: expense.creditCardId,
+        expenseId: expense.id,
+        statementMonth,
+        statementEndDate,
+        dueDate,
+      });
+
+      await tx
+        .update(creditCardsTable)
+        .set({ usedAmount: sql`${creditCardsTable.usedAmount} + ${expense.amount}` })
+        .where(eq(creditCardsTable.id, expense.creditCardId));
+    }
+
+    return expense;
+  });
 };
 
 /**
@@ -213,12 +296,17 @@ export const createExpense = async (data: CreateExpenseInput) => {
 export const buildExpenseValues = (data: CreateExpenseInput) => {
   const actualDate = data.date ?? getCurrentDate();
   const computedSourceMonth = getMonthFromDate(actualDate);
+  const creditCardId = data.creditCardId ?? null;
+  const creditCardTxnType = creditCardId ? (data.creditCardTxnType ?? CreditCardTxnTypeEnum.PURCHASE) : null;
 
   return {
     amount: data.amount,
     categoryId: data.categoryId ?? null,
     description: data.description ?? null,
     date: actualDate,
+    creditCardId,
+    creditCardTxnType,
+    excludeFromSpending: data.excludeFromSpending ?? 0,
     wasImpulse: data.wasImpulse ?? 0,
     isSaving: data.isSaving ?? 0,
     savingsType: data.savingsType ?? null,
@@ -233,24 +321,108 @@ export const buildExpenseValues = (data: CreateExpenseInput) => {
 // UPDATE EXPENSE
 // ============================================
 
-export const updateExpense = async (id: string, updateData: UpdateExpenseInput) => {
-  // If date is being updated, recompute sourceMonth
-  const updates = { ...updateData };
-  if (updateData.date) {
-    updates.sourceMonth = getMonthFromDate(updateData.date);
-  }
+export const updateExpense = async (
+  id: string,
+  updateData: UpdateExpenseInput
+): Promise<{ expense: Expense | undefined; newUsedAmount: number | null }> => {
+  return db.transaction(async (tx) => {
+    const existingRows = await tx.select().from(expensesTable).where(eq(expensesTable.id, id)).limit(1);
+    const current = existingRows[0];
+    if (!current) return { expense: undefined, newUsedAmount: null };
 
-  const result = await db.update(expensesTable).set(updates).where(eq(expensesTable.id, id)).returning();
+    const updates = { ...updateData };
+    if (updateData.date) {
+      updates.sourceMonth = getMonthFromDate(updateData.date);
+    }
 
-  return result[0];
+    const result = await tx.update(expensesTable).set(updates).where(eq(expensesTable.id, id)).returning();
+    const updated = result[0];
+
+    let newUsedAmount: number | null = null;
+
+    if (current.creditCardId && updateData.amount !== undefined) {
+      const delta = updateData.amount - current.amount;
+      if (delta !== 0) {
+        // Purchases add to usedAmount; payments reduce it — so a payment edit inverts the delta
+        const adjustedDelta = current.creditCardTxnType === CreditCardTxnTypeEnum.PAYMENT ? -delta : delta;
+        const cardResult = await tx
+          .update(creditCardsTable)
+          .set({ usedAmount: sql`${creditCardsTable.usedAmount} + ${adjustedDelta}` })
+          .where(eq(creditCardsTable.id, current.creditCardId))
+          .returning({ usedAmount: creditCardsTable.usedAmount });
+        newUsedAmount = cardResult[0]?.usedAmount ?? null;
+      }
+    }
+
+    // If date changed on a purchase, recompute the statement cycle fields
+    if (
+      current.creditCardId &&
+      current.creditCardTxnType === CreditCardTxnTypeEnum.PURCHASE &&
+      updateData.date &&
+      updateData.date !== current.date
+    ) {
+      const cardRows = await tx
+        .select({
+          statementDayOfMonth: creditCardsTable.statementDayOfMonth,
+          paymentBufferDays: creditCardsTable.paymentBufferDays,
+        })
+        .from(creditCardsTable)
+        .where(eq(creditCardsTable.id, current.creditCardId))
+        .limit(1);
+      const card = cardRows[0];
+      if (card) {
+        const { statementMonth, statementEndDate, dueDate } = computeStatementFieldsForPurchase(
+          updateData.date,
+          card.statementDayOfMonth,
+          card.paymentBufferDays
+        );
+        await tx
+          .update(creditCardExpensesTable)
+          .set({ statementMonth, statementEndDate, dueDate })
+          .where(eq(creditCardExpensesTable.expenseId, id));
+      }
+    }
+
+    return { expense: updated, newUsedAmount };
+  });
 };
 
 // ============================================
 // DELETE EXPENSE
 // ============================================
 
-export const deleteExpense = async (id: string) => {
-  await db.delete(expensesTable).where(eq(expensesTable.id, id));
+export const deleteExpense = async (id: string): Promise<{ newUsedAmount: number | null }> => {
+  return db.transaction(async (tx) => {
+    const existingRows = await tx.select().from(expensesTable).where(eq(expensesTable.id, id)).limit(1);
+    const current = existingRows[0];
+
+    let newUsedAmount: number | null = null;
+
+    if (current?.creditCardId) {
+      if (current.creditCardTxnType === CreditCardTxnTypeEnum.PURCHASE) {
+        await tx.delete(creditCardExpensesTable).where(eq(creditCardExpensesTable.expenseId, id));
+        const cardResult = await tx
+          .update(creditCardsTable)
+          .set({ usedAmount: sql`${creditCardsTable.usedAmount} - ${current.amount}` })
+          .where(eq(creditCardsTable.id, current.creditCardId))
+          .returning({ usedAmount: creditCardsTable.usedAmount });
+        newUsedAmount = cardResult[0]?.usedAmount ?? null;
+      } else if (current.creditCardTxnType === CreditCardTxnTypeEnum.PAYMENT) {
+        await tx.delete(creditCardPaymentsTable).where(eq(creditCardPaymentsTable.expenseId, id));
+        // Un-payment: money is owed again, so usedAmount increases
+        const cardResult = await tx
+          .update(creditCardsTable)
+          .set({ usedAmount: sql`${creditCardsTable.usedAmount} + ${current.amount}` })
+          .where(eq(creditCardsTable.id, current.creditCardId))
+          .returning({ usedAmount: creditCardsTable.usedAmount });
+        newUsedAmount = cardResult[0]?.usedAmount ?? null;
+      }
+    }
+
+    await tx.delete(expensesTable).where(eq(expensesTable.id, id));
+
+    return { newUsedAmount };
+  });
 };
 
 // ============================================
@@ -271,10 +443,18 @@ export const getOneOffSavings = async (month?: string) => {
 };
 
 /**
- * Get ALL expenses + savings across all time, with category join.
- * No month or isSaving filter — consumers split by `isSaving` flag.
+ * Get expenses + savings with category/card joins, supporting
+ * server-side filtering and offset-based pagination.
  */
-export const getAllExpensesWithCategory = async () => {
+export const getAllExpensesWithCategory = async (filter?: {
+  categoryId?: string;
+  creditCardId?: string;
+  startDate?: string;
+  endDate?: string;
+  isSaving?: number;
+  limit?: number;
+  offset?: number;
+}) => {
   return db
     .select({
       id: expensesTable.id,
@@ -287,6 +467,8 @@ export const getAllExpensesWithCategory = async () => {
       categoryId: expensesTable.categoryId,
       sourceType: expensesTable.sourceType,
       sourceId: expensesTable.sourceId,
+      creditCardId: expensesTable.creditCardId,
+      creditCardTxnType: expensesTable.creditCardTxnType,
       createdAt: expensesTable.createdAt,
       category: {
         id: categoriesTable.id,
@@ -295,10 +477,27 @@ export const getAllExpensesWithCategory = async () => {
         icon: categoriesTable.icon,
         color: categoriesTable.color,
       },
+      creditCard: {
+        nickname: creditCardsTable.nickname,
+        last4: creditCardsTable.last4,
+        provider: creditCardsTable.provider,
+      },
     })
     .from(expensesTable)
     .leftJoin(categoriesTable, eq(expensesTable.categoryId, categoriesTable.id))
-    .orderBy(desc(expensesTable.date));
+    .leftJoin(creditCardsTable, eq(expensesTable.creditCardId, creditCardsTable.id))
+    .where(
+      and(
+        filter?.categoryId ? eq(expensesTable.categoryId, filter.categoryId) : undefined,
+        filter?.creditCardId ? eq(expensesTable.creditCardId, filter.creditCardId) : undefined,
+        filter?.startDate ? sql`${expensesTable.date} >= ${filter.startDate}` : undefined,
+        filter?.endDate ? sql`${expensesTable.date} <= ${filter.endDate}` : undefined,
+        filter?.isSaving !== undefined ? eq(expensesTable.isSaving, filter.isSaving) : undefined
+      )
+    )
+    .orderBy(desc(expensesTable.date))
+    .limit(filter?.limit ?? 30)
+    .offset(filter?.offset ?? 0);
 };
 
 /**

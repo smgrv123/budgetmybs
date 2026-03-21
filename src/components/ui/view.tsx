@@ -38,6 +38,7 @@ export interface BViewProps extends RNViewProps {
   /** Border radius */
   rounded?: BorderRadiusType;
   fullWidth?: boolean;
+  fullRounded?: boolean;
 }
 
 const getSpacing = (value?: SpacingValueType): number | undefined => {
@@ -73,6 +74,7 @@ const BView: FC<BViewProps> = ({
   style,
   children,
   fullWidth = false,
+  fullRounded,
   ...props
 }) => {
   const themeColors = useThemeColors();
@@ -85,6 +87,7 @@ const BView: FC<BViewProps> = ({
         row && styles.row,
         flex && styles.flex,
         {
+          borderRadius: fullRounded ? BorderRadius.full : rounded ? BorderRadius[rounded] : BorderRadius.base,
           ...(padding && { padding: getSpacing(padding) }),
           ...(paddingX && { paddingHorizontal: getSpacing(paddingX) }),
           ...(paddingY && { paddingVertical: getSpacing(paddingY) }),
@@ -97,7 +100,6 @@ const BView: FC<BViewProps> = ({
           ...(align && { alignItems: align }),
           ...(typeof border === 'string' && { borderColor: border, borderWidth: 1 }),
           ...(border === true && { borderColor: themeColors.border, borderWidth: 1 }),
-          ...(rounded && { borderRadius: BorderRadius[rounded] }),
           ...(fullWidth && { width: '100%' }),
         },
         style,

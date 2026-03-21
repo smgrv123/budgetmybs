@@ -1,6 +1,9 @@
 export { default as BDebtsStep } from './debtsStep';
 export type { DebtsStepProps } from './debtsStep';
 
+export { default as BCreditCardsStep } from './creditCardsStep';
+export type { CreditCardsStepProps } from './creditCardsStep';
+
 export { default as BFixedExpensesStep } from './fixedExpensesStep';
 export type { FixedExpensesStepProps } from './fixedExpensesStep';
 

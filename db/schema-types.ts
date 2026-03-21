@@ -10,6 +10,9 @@ import type { DebtData, FixedExpenseData, ProfileData, SavingsGoalData } from '@
 import type {
   categoriesTable,
   chatMessagesTable,
+  creditCardExpensesTable,
+  creditCardPaymentsTable,
+  creditCardsTable,
   debtsTable,
   expensesTable,
   financialPlansTable,
@@ -24,28 +27,26 @@ import type {
 // ============================================
 
 export type Profile = typeof profileTable.$inferSelect;
-export type NewProfile = typeof profileTable.$inferInsert;
 
 export type FixedExpense = typeof fixedExpensesTable.$inferSelect;
-export type NewFixedExpense = typeof fixedExpensesTable.$inferInsert;
 
 export type Debt = typeof debtsTable.$inferSelect;
-export type NewDebt = typeof debtsTable.$inferInsert;
+
+export type CreditCard = typeof creditCardsTable.$inferSelect;
+
+export type CreditCardExpense = typeof creditCardExpensesTable.$inferSelect;
+
+export type CreditCardPayment = typeof creditCardPaymentsTable.$inferSelect;
 
 export type Category = typeof categoriesTable.$inferSelect;
-export type NewCategory = typeof categoriesTable.$inferInsert;
 
 export type Expense = typeof expensesTable.$inferSelect;
-export type NewExpense = typeof expensesTable.$inferInsert;
 
 export type SavingsGoal = typeof savingsGoalsTable.$inferSelect;
-export type NewSavingsGoal = typeof savingsGoalsTable.$inferInsert;
 
 export type MonthlySnapshot = typeof monthlySnapshotsTable.$inferSelect;
-export type NewMonthlySnapshot = typeof monthlySnapshotsTable.$inferInsert;
 
 export type FinancialPlanRecord = typeof financialPlansTable.$inferSelect;
-export type NewFinancialPlanRecord = typeof financialPlansTable.$inferInsert;
 
 // ============================================
 // INPUT TYPES FOR CRUD OPERATIONS
@@ -64,6 +65,17 @@ export type UpdateFixedExpenseInput = Partial<Omit<FixedExpense, 'id' | 'created
 export type CreateDebtInput = Omit<Debt, 'id' | 'isActive' | 'createdAt' | 'updatedAt' | 'dayOfMonth'> &
   Partial<Pick<Debt, 'customType' | 'startDate' | 'dayOfMonth'>>;
 export type UpdateDebtInput = Partial<Omit<Debt, 'id' | 'createdAt' | 'updatedAt'>>;
+
+// Credit Cards
+export type CreateCreditCardInput = Omit<CreditCard, 'id' | 'isActive' | 'createdAt' | 'updatedAt' | 'usedAmount'>;
+export type UpdateCreditCardInput = Partial<Omit<CreditCard, 'id' | 'createdAt' | 'updatedAt'>>;
+
+// Credit Card Payments
+export type CreateCreditCardPaymentInput = {
+  creditCardId: string;
+  amount: number;
+  date?: string;
+};
 
 // Categories
 export type CreateCategoryInput = Pick<Category, 'name' | 'type'> &
@@ -95,6 +107,23 @@ export type CreateFinancialPlanInput = {
 // Monthly Snapshots
 export type CreateMonthlySnapshotInput = Pick<MonthlySnapshot, 'month' | 'frivolousBudget' | 'salary'> &
   Partial<Pick<MonthlySnapshot, 'rolloverFromPrevious'>>;
+
+// ============================================
+// CUSTOM QUERY RESULT TYPES
+// ============================================
+
+export type AmountDue = {
+  carried: number;
+  newPurchases: number;
+  total: number;
+};
+
+export type CreditCardSummary = Pick<CreditCard, 'creditLimit' | 'usedAmount'> & {
+  cardId: CreditCard['id'];
+  utilizationPercent: number;
+  amountDue: AmountDue;
+  dueDate: string | null;
+};
 
 // ============================================
 // CHAT MESSAGE TYPES

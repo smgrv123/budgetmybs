@@ -70,6 +70,7 @@ export const CategoryTypeEnum = {
   GIFTS: 'gifts',
   TRAVEL: 'travel',
   FITNESS: 'fitness',
+  BILLS: 'bills',
   OTHER: 'other',
 } as const;
 
@@ -108,6 +109,35 @@ export const RecurringSourceTypeEnum = {
 export type RecurringSourceType = (typeof RecurringSourceTypeEnum)[keyof typeof RecurringSourceTypeEnum];
 
 export const RECURRING_SOURCE_TYPES = Object.values(RecurringSourceTypeEnum);
+
+/**
+ * Credit card provider types
+ */
+export const CreditCardProviderEnum = {
+  VISA: 'visa',
+  MASTERCARD: 'mastercard',
+  AMEX: 'amex',
+  RUPAY: 'rupay',
+  DINERS: 'diners',
+  DISCOVER: 'discover',
+  OTHER: 'other',
+} as const;
+
+export type CreditCardProvider = (typeof CreditCardProviderEnum)[keyof typeof CreditCardProviderEnum];
+
+export const CREDIT_CARD_PROVIDERS = Object.values(CreditCardProviderEnum);
+
+/**
+ * Credit card transaction types
+ */
+export const CreditCardTxnTypeEnum = {
+  PURCHASE: 'purchase',
+  PAYMENT: 'payment',
+} as const;
+
+export type CreditCardTxnType = (typeof CreditCardTxnTypeEnum)[keyof typeof CreditCardTxnTypeEnum];
+
+export const CREDIT_CARD_TXN_TYPES = Object.values(CreditCardTxnTypeEnum);
 
 // ============================================
 // DISPLAY LABELS (for UI)
@@ -148,6 +178,7 @@ export const CategoryLabels: Record<CategoryType, string> = {
   gifts: 'Gifts',
   travel: 'Travel',
   fitness: 'Fitness',
+  bills: 'Bills',
   other: 'Other',
 };
 

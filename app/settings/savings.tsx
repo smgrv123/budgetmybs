@@ -4,8 +4,8 @@ import { Alert } from 'react-native';
 
 import BListStep from '@/src/components/onboarding/listStep';
 import { BSafeAreaView, BText, BView, ScreenHeader } from '@/src/components/ui';
+import { SavingsTypeOptions, OnboardingStepId as SettingId } from '@/src/constants/onboarding.config';
 import { SAVINGS_SETTINGS_STRINGS, SETTINGS_COMMON_STRINGS } from '@/src/constants/settings.strings';
-import { SavingsTypeOptions } from '@/src/constants/onboarding.config';
 import {
   common,
   createFormFieldsWithCurrency,
@@ -139,6 +139,7 @@ export default function SavingsScreen() {
 
       <BView flex padding="base">
         <BListStep
+          stepId={SettingId.SAVINGS}
           strings={SAVINGS_STEP_CONFIG.strings}
           items={goals}
           itemCardConfig={{

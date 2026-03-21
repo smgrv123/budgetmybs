@@ -3,9 +3,6 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 
-import { AsyncStorageKeys } from '@/src/constants/asyncStorageKeys';
-import { OnboardingStrings } from '@/src/constants/onboarding.strings';
-import { ButtonVariant, ComponentSize, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
 import {
   BAccordion,
   BButton,
@@ -21,6 +18,10 @@ import {
   SuggestedChangeCard,
   SummaryCard,
 } from '@/src/components';
+import { AsyncStorageKeys } from '@/src/constants/asyncStorageKeys';
+import { OnboardingStrings } from '@/src/constants/onboarding.strings';
+import { ButtonVariant, ComponentSize, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { generateFinancialPlan } from '@/src/services/financialPlanService';
 import { useOnboardingStore } from '@/src/store';
 import type { FinancialPlan } from '@/src/types/financialPlan';
@@ -28,7 +29,6 @@ import { applyAISuggestions } from '@/src/utils/applyAISuggestions';
 import { formatIndianNumber } from '@/src/utils/format';
 import { ensureNetworkAvailable, NetworkError, pollNetworkConnection } from '@/src/utils/network';
 import { useSaveOnboardingData } from '@/src/utils/saveOnboardingData';
-import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 
 const { plan } = OnboardingStrings;
 
@@ -38,7 +38,7 @@ export default function ConfirmationScreen() {
   const [aiPlan, setAIPlan] = useState<FinancialPlan | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  const { profile, fixedExpenses, debts, savingsGoals, reset } = useOnboardingStore();
+  const { profile, fixedExpenses, debts, savingsGoals, creditCards, reset } = useOnboardingStore();
 
   const { saveOnboardingData } = useSaveOnboardingData();
 
@@ -62,6 +62,7 @@ export default function ConfirmationScreen() {
           fixedExpenses,
           debts,
           savingsGoals,
+          creditCards,
         });
         setAIPlan(generatedPlan);
 
@@ -94,7 +95,7 @@ export default function ConfirmationScreen() {
         networkPollCleanup();
       }
     };
-  }, [profile, fixedExpenses, debts, savingsGoals]);
+  }, [profile, fixedExpenses, debts, savingsGoals, creditCards]);
 
   const handleBack = () => {
     router.back();
@@ -115,6 +116,7 @@ export default function ConfirmationScreen() {
         fixedExpenses: currentFixedExpenses,
         debts: currentDebts,
         savingsGoals: currentSavingsGoals,
+        creditCards: currentCreditCards,
       } = useOnboardingStore.getState();
 
       // Step 3: Save all data using utility function
@@ -123,6 +125,7 @@ export default function ConfirmationScreen() {
         fixedExpenses: currentFixedExpenses,
         debts: currentDebts,
         savingsGoals: currentSavingsGoals,
+        creditCards: currentCreditCards,
       });
 
       // Step 4: Update health score weights with user choice

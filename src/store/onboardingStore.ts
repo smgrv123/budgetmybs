@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
 import { DebtPayoffPreferenceEnum } from '@/db/types';
-import type { DebtData, FixedExpenseData, ProfileData, SavingsGoalData } from '@/src/types';
+import type { CreditCardData, DebtData, FixedExpenseData, ProfileData, SavingsGoalData } from '@/src/types';
 import { calculateEMI } from '@/src/utils/budget';
 import { generateUUID } from '@/src/utils/id';
 
@@ -11,6 +11,7 @@ export type OnboardingState = {
   fixedExpenses: FixedExpenseData[];
   debts: DebtData[];
   savingsGoals: SavingsGoalData[];
+  creditCards: CreditCardData[];
 
   // Actions - Profile
   setProfile: (data: Partial<ProfileData>) => void;
@@ -30,6 +31,11 @@ export type OnboardingState = {
   addSavingsGoal: (goal: Omit<SavingsGoalData, 'tempId'>) => void;
   updateSavingsGoal: (tempId: string, data: Partial<SavingsGoalData>) => void;
   removeSavingsGoal: (tempId: string) => void;
+
+  // Actions - Credit Cards
+  addCreditCard: (card: Omit<CreditCardData, 'tempId'>) => void;
+  updateCreditCard: (tempId: string, data: Partial<CreditCardData>) => void;
+  removeCreditCard: (tempId: string) => void;
 
   // Actions - General
   reset: () => void;
@@ -52,6 +58,7 @@ const initialState = {
   fixedExpenses: [] as FixedExpenseData[],
   debts: [] as DebtData[],
   savingsGoals: [] as SavingsGoalData[],
+  creditCards: [] as CreditCardData[],
 };
 
 // ============================================
@@ -126,6 +133,22 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
       savingsGoals: state.savingsGoals.filter((g) => g.tempId !== tempId),
     })),
 
+  // Credit Card Actions
+  addCreditCard: (card) =>
+    set((state) => ({
+      creditCards: [...state.creditCards, { ...card, tempId: generateUUID() }],
+    })),
+
+  updateCreditCard: (tempId, data) =>
+    set((state) => ({
+      creditCards: state.creditCards.map((card) => (card.tempId === tempId ? { ...card, ...data } : card)),
+    })),
+
+  removeCreditCard: (tempId) =>
+    set((state) => ({
+      creditCards: state.creditCards.filter((card) => card.tempId !== tempId),
+    })),
+
   // Reset
   reset: () => set(initialState),
 }));
@@ -138,6 +161,7 @@ export const selectProfile = (state: OnboardingState) => state.profile;
 export const selectFixedExpenses = (state: OnboardingState) => state.fixedExpenses;
 export const selectDebts = (state: OnboardingState) => state.debts;
 export const selectSavingsGoals = (state: OnboardingState) => state.savingsGoals;
+export const selectCreditCards = (state: OnboardingState) => state.creditCards;
 
 // Computed values
 export const selectTotalFixedExpenses = (state: OnboardingState) =>

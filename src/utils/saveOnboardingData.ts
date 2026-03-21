@@ -1,12 +1,13 @@
-import type { DebtData, FixedExpenseData, ProfileData, SavingsGoalData } from '@/src/types';
+import type { CreditCardData, DebtData, FixedExpenseData, ProfileData, SavingsGoalData } from '@/src/types';
 import { calculateEMI } from '@/src/utils/budget';
-import { useDebts, useFixedExpenses, useProfile, useSavingsGoals } from '../hooks';
+import { useCreditCards, useDebts, useFixedExpenses, useProfile, useSavingsGoals } from '../hooks';
 
 export type SaveOnboardingDataParams = {
   profile: ProfileData;
   fixedExpenses: FixedExpenseData[];
   debts: DebtData[];
   savingsGoals: SavingsGoalData[];
+  creditCards: CreditCardData[];
 };
 
 /**
@@ -18,8 +19,15 @@ export const useSaveOnboardingData = () => {
   const { createFixedExpenseAsync } = useFixedExpenses();
   const { createDebtAsync } = useDebts();
   const { createSavingsGoalAsync } = useSavingsGoals();
+  const { createCreditCardAsync } = useCreditCards();
 
-  const saveOnboardingData = async ({ profile, fixedExpenses, debts, savingsGoals }: SaveOnboardingDataParams) => {
+  const saveOnboardingData = async ({
+    profile,
+    fixedExpenses,
+    debts,
+    savingsGoals,
+    creditCards,
+  }: SaveOnboardingDataParams) => {
     await Promise.all([
       // Save Profile
       upsertProfileAsync({
@@ -66,6 +74,19 @@ export const useSaveOnboardingData = () => {
           type: goal.type,
           customType: goal.customType || null,
           targetAmount: goal.targetAmount,
+        })
+      ),
+
+      // Save Credit Cards
+      ...creditCards.map((card) =>
+        createCreditCardAsync({
+          nickname: card.nickname,
+          provider: card.provider,
+          bank: card.bank,
+          last4: card.last4,
+          creditLimit: card.creditLimit,
+          statementDayOfMonth: card.statementDayOfMonth,
+          paymentBufferDays: card.paymentBufferDays,
         })
       ),
     ]);
