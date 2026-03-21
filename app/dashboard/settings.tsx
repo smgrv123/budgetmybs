@@ -1,4 +1,4 @@
-import { BudgetOverviewRow, FinancialDataRow, ThemeSelector } from '@/src/components/settings';
+import { BudgetOverviewRow, FinancialDataRow, SplitwiseConnectionCard, ThemeSelector } from '@/src/components/settings';
 import { BButton, BCard, BIcon, BSafeAreaView, BText, BView } from '@/src/components/ui';
 import { BUDGET_OVERVIEW_ITEMS, createFinancialDataItems } from '@/src/constants/settings.config';
 import { Spacing } from '@/src/constants/theme';
@@ -91,6 +91,14 @@ export default function SettingsScreen() {
             {financialDataItems.map(({ key, ...item }) => (
               <FinancialDataRow key={key} {...item} count={counts[key]} />
             ))}
+          </BCard>
+        </BView>
+
+        {/* Integrations Section */}
+        <BView gap="sm">
+          <BText variant="subheading">Integrations</BText>
+          <BCard variant="elevated">
+            <SplitwiseConnectionCard />
           </BCard>
         </BView>
 

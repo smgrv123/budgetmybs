@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 
 import { RecurringSourceTypeEnum } from '@/db/types';
@@ -14,6 +14,7 @@ import {
   BText,
   BView,
   QuickStatSheet,
+  SplitBalancesCard,
 } from '@/src/components';
 import { TransactionCard } from '@/src/components/transaction';
 import { createQuickStats, createStatCards, QuickStatType } from '@/src/constants/dashboardData';
@@ -26,6 +27,9 @@ import {
   useProfile,
   useRecurringStatus,
   useSavingsGoals,
+  useSplitwiseBalances,
+  useSplitwiseReceivables,
+  useSplitwiseSync,
 } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { QuickStatTypeValue } from '@/src/types/dashboard';
@@ -44,6 +48,14 @@ export default function DashboardScreen() {
   const { expenses, totalSpent, totalSaved: totalOneOffSavings, oneOffSavings } = useExpenses();
   const { isItemProcessed } = useRecurringStatus();
   const { rollover, resetRollover, isResettingRollover } = useMonthlyBudget();
+  const { sync: syncSplitwise } = useSplitwiseSync();
+  const { totalOwed, totalOwing, isLoading: isBalancesLoading } = useSplitwiseBalances();
+  const { totalReceivables } = useSplitwiseReceivables();
+
+  // Sync Splitwise expenses on every app open
+  useEffect(() => {
+    syncSplitwise();
+  }, []);
 
   // Gradient colors (theme-aware)
   const HEADER_GRADIENT: [string, string, string] = [
@@ -74,6 +86,8 @@ export default function DashboardScreen() {
   const effectiveBudget = monthlyIncome + rollover;
   const budgetRemaining = effectiveBudget - totalCommitments;
   const budgetUsedPercent = effectiveBudget > 0 ? Math.round((totalCommitments / effectiveBudget) * 100) : 0;
+  const receivablesPercent = effectiveBudget > 0 ? Math.round((totalReceivables / effectiveBudget) * 100) : 0;
+  const clampedReceivablesPercent = Math.min(receivablesPercent, Math.max(0, 100 - budgetUsedPercent));
 
   // Create stat cards and quick stats using helper functions
   const statCards = createStatCards(spentThisMonth, savedThisMonth, themeColors);
@@ -205,12 +219,29 @@ export default function DashboardScreen() {
                   { width: `${Math.min(budgetUsedPercent, 100)}%`, backgroundColor: themeColors.primary },
                 ]}
               />
+              {clampedReceivablesPercent > 0 && (
+                <View
+                  style={[
+                    styles.progressBarFill,
+                    styles.progressBarReceivables,
+                    {
+                      width: `${clampedReceivablesPercent}%`,
+                      left: `${Math.min(budgetUsedPercent, 100)}%`,
+                      backgroundColor: themeColors.success,
+                    },
+                  ]}
+                />
+              )}
             </View>
             <BText variant={TextVariant.CAPTION} muted style={{ marginTop: Spacing.xs }}>
               {budgetUsedPercent}% used
+              {clampedReceivablesPercent > 0 ? ` · ${clampedReceivablesPercent}% in transit` : ''}
             </BText>
           </BView>
         </BView>
+
+        {/* Split Balances Card */}
+        <SplitBalancesCard totalOwed={totalOwed} totalOwing={totalOwing} isLoading={isBalancesLoading} />
 
         {/* Spent/Saved Cards */}
         <BView row gap={SpacingValue.MD} paddingX={SpacingValue.LG} marginY={SpacingValue.MD}>
@@ -298,6 +329,7 @@ export default function DashboardScreen() {
                     savingsType={'savingsType' in item ? item.savingsType : null}
                     isSaving={'isSaving' in item ? Boolean(item.isSaving) : false}
                     isRecurring={'sourceType' in item ? Boolean(item.sourceType) : false}
+                    isSplitwiseSynced={'sourceType' in item ? item.sourceType === 'splitwise' : false}
                   />
                 </BLink>
               </BView>
@@ -359,6 +391,11 @@ const styles = StyleSheet.create({
   progressBarFill: {
     height: '100%',
     borderRadius: BorderRadius.xs,
+  },
+  progressBarReceivables: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
   },
   statsCards: {
     width: '48%',
