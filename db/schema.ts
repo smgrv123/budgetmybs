@@ -139,6 +139,7 @@ export const creditCardPaymentsTable = sqliteTable('credit_card_payments', {
     .$default(() => generateUUID()),
   creditCardId: text('credit_card_id').notNull(),
   expenseId: text('expense_id').notNull().unique(),
+  statementMonth: text('statement_month'), // YYYY-MM — FIFO cycle this payment is attributed to
   createdAt: text('created_at')
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),

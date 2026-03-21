@@ -70,6 +70,7 @@ export const CategoryTypeEnum = {
   GIFTS: 'gifts',
   TRAVEL: 'travel',
   FITNESS: 'fitness',
+  BILLS: 'bills',
   OTHER: 'other',
 } as const;
 
@@ -177,6 +178,7 @@ export const CategoryLabels: Record<CategoryType, string> = {
   gifts: 'Gifts',
   travel: 'Travel',
   fitness: 'Fitness',
+  bills: 'Bills',
   other: 'Other',
 };
 

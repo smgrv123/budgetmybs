@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Alert } from 'react-native';
 
 import type { CreditCardProvider } from '@/db/types';
+import { CreditCardArchiveModal, CreditCardPreviewCard } from '@/src/components/credit-cards';
 import BListStep from '@/src/components/onboarding/listStep';
 import { BSafeAreaView, BText, BView, ScreenHeader } from '@/src/components/ui';
 import {
@@ -19,6 +20,7 @@ import {
   CREDIT_CARD_STEP_CONFIG,
   parseCreditCardFormData,
 } from '@/src/constants/setup-form.config';
+import { SpacingValue, TextVariant } from '@/src/constants/theme';
 import { useCreditCards } from '@/src/hooks';
 import { formatDate } from '@/src/utils/date';
 import { formatIndianNumber } from '@/src/utils/format';
@@ -35,6 +37,14 @@ type CreditCardFormState = {
   paymentBufferDays: number;
 };
 
+type ArchiveModalState = {
+  cardId: string;
+  nickname: string;
+  txnCount: number;
+};
+
+const { archivedSection: ARCHIVED_STRINGS } = CREDIT_CARDS_SETTINGS_STRINGS;
+
 export default function CreditCardsScreen() {
   const router = useRouter();
   const {
@@ -44,24 +54,33 @@ export default function CreditCardsScreen() {
     createCreditCardAsync,
     updateCreditCardAsync,
     removeCreditCardAsync,
-  } = useCreditCards();
+    archiveCreditCardAsync,
+    unarchiveCreditCardAsync,
+    isArchivingCreditCard,
+    isRemovingCreditCard,
+    getLinkedTransactionCount,
+  } = useCreditCards(false);
 
   const [cards, setCards] = useState<CreditCardFormState[]>([]);
-  const [removedItemIds, setRemovedItemIds] = useState<string[]>([]);
+  const [archiveModal, setArchiveModal] = useState<ArchiveModalState | null>(null);
+
+  const archivedCards = useMemo(() => (dbCards ?? []).filter((c) => c.isActive === 0), [dbCards]);
 
   useEffect(() => {
     if (!isCreditCardsLoading && dbCards) {
       setCards(
-        dbCards.map((card) => ({
-          tempId: card.id,
-          nickname: card.nickname,
-          provider: card.provider,
-          bank: card.bank,
-          last4: card.last4,
-          creditLimit: card.creditLimit,
-          statementDayOfMonth: card.statementDayOfMonth,
-          paymentBufferDays: card.paymentBufferDays,
-        }))
+        dbCards
+          .filter((card) => card.isActive === 1)
+          .map((card) => ({
+            tempId: card.id,
+            nickname: card.nickname,
+            provider: card.provider,
+            bank: card.bank,
+            last4: card.last4,
+            creditLimit: card.creditLimit,
+            statementDayOfMonth: card.statementDayOfMonth,
+            paymentBufferDays: card.paymentBufferDays,
+          }))
       );
     }
   }, [isCreditCardsLoading, dbCards]);
@@ -86,16 +105,67 @@ export default function CreditCardsScreen() {
     setCards((prev) => prev.filter((card) => card.tempId !== tempId));
   };
 
-  const handleRemoveItem = (tempId: string) => {
-    const dbItem = dbCards?.find((card) => card.id === tempId);
-    if (dbItem) {
-      setRemovedItemIds([...removedItemIds, dbItem.id]);
+  const handleRemoveItem = async (tempId: string) => {
+    const dbItem = dbCards?.find((card) => card.id === tempId && card.isActive === 1);
+
+    // New card not yet in DB — remove from local state only
+    if (!dbItem) {
+      removeCard(tempId);
+      return;
     }
-    removeCard(tempId);
+
+    const txnCount = await getLinkedTransactionCount(dbItem.id);
+
+    if (txnCount === 0) {
+      Alert.alert(CREDIT_CARDS_SETTINGS_STRINGS.alerts.deleteTitle, CREDIT_CARDS_SETTINGS_STRINGS.alerts.deleteBody, [
+        { text: CREDIT_CARDS_SETTINGS_STRINGS.alerts.deleteCancel, style: 'cancel' },
+        {
+          text: CREDIT_CARDS_SETTINGS_STRINGS.alerts.deleteConfirm,
+          style: 'destructive',
+          onPress: () => {
+            removeCreditCardAsync(dbItem.id, {
+              onError: (error) => console.error(CREDIT_CARDS_SETTINGS_STRINGS.logs.removeFailed, error),
+            });
+          },
+        },
+      ]);
+    } else {
+      setArchiveModal({ cardId: dbItem.id, nickname: dbItem.nickname, txnCount });
+    }
+  };
+
+  const handleArchiveConfirm = () => {
+    if (!archiveModal) return;
+    archiveCreditCardAsync(archiveModal.cardId, {
+      onSuccess: () => setArchiveModal(null),
+      onError: (error) => console.error(CREDIT_CARDS_SETTINGS_STRINGS.logs.archiveFailed, error),
+    });
+  };
+
+  const handleDeleteAnyway = () => {
+    if (!archiveModal) return;
+    removeCreditCardAsync(archiveModal.cardId, {
+      onSuccess: () => setArchiveModal(null),
+      onError: (error) => console.error(CREDIT_CARDS_SETTINGS_STRINGS.logs.removeFailed, error),
+    });
+  };
+
+  const handleUnarchive = (cardId: string) => {
+    Alert.alert(ARCHIVED_STRINGS.unarchiveAlertTitle, ARCHIVED_STRINGS.unarchiveAlertBody, [
+      { text: ARCHIVED_STRINGS.unarchiveCancel, style: 'cancel' },
+      {
+        text: ARCHIVED_STRINGS.unarchiveConfirm,
+        onPress: () => {
+          unarchiveCreditCardAsync(cardId, {
+            onError: (error) => console.error(ARCHIVED_STRINGS.unarchiveFailed, error),
+          });
+        },
+      },
+    ]);
   };
 
   const handleSaveChanges = async () => {
-    const dbIds = new Set((dbCards || []).map((card) => card.id));
+    const dbIds = new Set((dbCards || []).filter((c) => c.isActive === 1).map((card) => card.id));
 
     const addedItems = cards.filter((item) => !dbIds.has(item.tempId));
     const updatedItems = cards.filter((item) => {
@@ -148,11 +218,6 @@ export default function CreditCardsScreen() {
             onError: (error) => console.error(CREDIT_CARDS_SETTINGS_STRINGS.logs.updateFailed, error),
           }
         )
-      ),
-      ...removedItemIds.map((id) =>
-        removeCreditCardAsync(id, {
-          onError: (error) => console.error(CREDIT_CARDS_SETTINGS_STRINGS.logs.removeFailed, error),
-        })
       ),
     ];
 
@@ -233,7 +298,47 @@ export default function CreditCardsScreen() {
           onNext={handleSaveChanges}
           nextButtonLabel={SETTINGS_COMMON_STRINGS.saveChangesButton}
         />
+        {/* //! to be moved into list step in later re-work. ignore for now*/}
+        {archivedCards.length > 0 && (
+          <BView gap={SpacingValue.SM} marginY={SpacingValue.MD}>
+            <BText variant={TextVariant.LABEL} muted>
+              {ARCHIVED_STRINGS.title}
+            </BText>
+            {archivedCards.map((card) => {
+              const previewProps = getPreviewProps({
+                tempId: card.id,
+                nickname: card.nickname,
+                provider: card.provider,
+                bank: card.bank,
+                last4: card.last4,
+                creditLimit: card.creditLimit,
+                statementDayOfMonth: card.statementDayOfMonth,
+                paymentBufferDays: card.paymentBufferDays,
+              });
+              return (
+                <CreditCardPreviewCard
+                  key={card.id}
+                  {...previewProps}
+                  isArchived
+                  onUnarchive={() => handleUnarchive(card.id)}
+                />
+              );
+            })}
+          </BView>
+        )}
       </BView>
+
+      {archiveModal && (
+        <CreditCardArchiveModal
+          isVisible
+          onClose={() => setArchiveModal(null)}
+          onArchive={handleArchiveConfirm}
+          onDeleteAnyway={handleDeleteAnyway}
+          cardNickname={archiveModal.nickname}
+          txnCount={archiveModal.txnCount}
+          isLoading={isArchivingCreditCard || isRemovingCreditCard}
+        />
+      )}
     </BSafeAreaView>
   );
 }

@@ -64,10 +64,14 @@ export {
 
 // Credit cards queries
 export {
+  archiveCreditCard,
   createCreditCard,
+  createCreditCardPayment,
   deleteCreditCard,
+  getCreditCardLinkedTransactionCount,
   getCreditCardSummaries,
   getCreditCards,
+  unarchiveCreditCard,
   updateCreditCard,
 } from './credit-cards';
 

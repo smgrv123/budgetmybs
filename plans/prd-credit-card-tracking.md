@@ -9,8 +9,9 @@ Users of the app frequently pay for daily expenses using credit cards, but the a
 - Upcoming bill payments are invisible — users have no in-app reminder of what they owe and when.
 - When a user pays their credit card bill, there is no way to log that payment or link it back to the card it settles.
 - The transaction list is flat and gives no signal about the payment method used.
+- When a user closes a card account or stops using a card, there is no way to retire it cleanly — the only option today is a hard delete that silently strips card attribution from all linked transactions, destroying spending history.
 
-The result is that users who primarily spend via credit card get an incomplete, misleading picture of their finances.
+The result is that users who primarily spend via credit card get an incomplete, misleading picture of their finances, and those who close a card account have no safe path to remove it.
 
 ---
 
@@ -39,10 +40,27 @@ When a user pays less than the full amount due, interest accrues on the unpaid b
 1. As a user, I want to add a new credit card with its nickname, bank, provider, last 4 digits, credit limit, statement day, and payment buffer, so that the app knows about my card.
 2. As a user, I want to see all my credit cards listed in the Settings screen with a count, so that I can manage them easily.
 3. As a user, I want to edit an existing credit card's details, so that I can correct mistakes or update my limit.
-4. As a user, I want to delete a credit card I no longer use, so that my card list stays clean.
-5. As a user, I want to be asked for confirmation before a card is deleted, so that I don't accidentally lose data.
+4. As a user, I want to remove a credit card I no longer use, so that my card list stays clean.
+5. As a user, I want the removal flow to protect my transaction history by offering Archive as the default when transactions exist, so that I don't accidentally lose data.
 6. As a user, I want to add my credit cards during onboarding, so that my first experience includes card tracking from day one.
 7. As a user, I want to see a live card-shaped preview while filling in the add/edit form, so that I can visually verify the details before saving.
+
+### Card Lifecycle — Archive & Delete
+
+8. As a user, I want to delete a card that has no linked transactions with a simple confirmation alert, so that I can cleanly remove test cards or entry mistakes.
+9. As a user, I want to see a contextual modal (not a plain alert) when I try to delete a card that has linked transactions, so that I understand what is at stake before acting.
+10. As a user, I want the modal to tell me how many transactions are linked to the card, so that I know what history I would be losing.
+11. As a user, I want the modal's primary action to be Archive rather than Delete when transactions exist, so that the safer choice is the default.
+12. As a user, I want archiving a card to hide it everywhere in the app (dropdowns, carousel, filter defaults) while keeping all linked transactions intact, so that my spending history is never lost.
+13. As a user, I want archiving a card to reset its outstanding balance to zero, so that no phantom debt lingers on a hidden card.
+14. As a user, I want the archive modal to warn me if the card has an outstanding balance before I confirm, so that I know to settle it in the real world first.
+15. As a user, I want a "Delete Anyway" option in the archive modal so that I can still hard-delete the card and all its internal tracking data if I choose to, with full awareness of what is removed.
+16. As a user, I want hard-deleting a card to leave my expense transactions untouched (just with no card attribution), so that my spending history totals are not affected.
+17. As a user, I want archived cards to appear in the Settings card list with a clear "Archived" badge, so that I can see which cards are inactive.
+18. As a user, I want a visible Unarchive action on archived cards in Settings, so that I can reactivate a card if I reopen the account or archived it by mistake.
+19. As a user, I want a confirmation alert before unarchiving a card, so that I do not accidentally reactivate a card with a misclick.
+20. As a user, I want archived cards to appear in the transaction filter dropdown with an "Archived" label, so that I can still filter and review transaction history tied to that card.
+21. As a user, I want active cards in the transaction filter dropdown to look unchanged, so that the archived label only appears on inactive cards.
 
 ### Dashboard Carousel
 
@@ -93,6 +111,22 @@ When a user pays less than the full amount due, interest accrues on the unpaid b
 
 35. As a user, I want to filter the all-transactions screen by a specific credit card, so that I can see all purchases on one card across any date range.
 36. As a user, I want the active card filter to show as a removable chip on the all-transactions screen, consistent with other active filters, so that the filter state is visible.
+
+### Chat — Credit Card Extraction
+
+53. As a user, I want to say "I spent 600 on food using my HDFC credit card" in the chat and have the app automatically attribute the expense to the right card, so that I do not have to open the expense form separately.
+54. As a user, I want the AI to pre-fill the credit card field in the confirm expense form when it matches my card from natural language, so that I can verify and correct it before confirming.
+55. As a user, I want the credit card dropdown to always appear in the chat confirm form (even when the AI did not detect a card), so that I can optionally assign a card to any chat-created expense.
+56. As a user, I want to be able to change the AI-suggested card in the confirm form before submitting, so that I can correct misidentifications without starting over.
+57. As a user, I want a chat expense submitted with a card to be treated as a credit card purchase (not a cash expense), so that my card utilisation is updated correctly.
+
+### Transaction Detail — Credit Card Display
+
+58. As a user, I want to see which credit card an expense was paid with on the transaction detail screen, so that I have full context without going to the card detail screen.
+59. As a user, I want the credit card attribution on the transaction detail screen to be styled consistently with the transaction list (coloured dot + nickname + masked last 4), so that the visual language is familiar.
+60. As a user, I want the credit card attribution to be read-only on the transaction detail screen, so that I cannot accidentally break the card balance by reassigning an expense to a different card.
+61. As a user, I want to be able to edit the amount and date of a credit card bill payment from the transaction detail screen, so that I can correct mistakes without needing to delete and re-enter the payment.
+62. As a user, I want recurring expenses to remain non-editable on the transaction detail screen, so that the recurring engine's data integrity is preserved.
 
 ### Amount Due & Notifications
 
@@ -183,6 +217,45 @@ When a user pays less than the full amount due, interest accrues on the unpaid b
 - Warning text displayed: "Your bank may have also charged a late payment fee. Log it manually as a separate transaction."
 - Modal only dismisses after all queued cards are resolved.
 
+### Card Lifecycle — Archive & Delete
+
+**Precondition check:** before showing any removal UI, the DB layer counts linked transactions for the card. Zero transactions → simple system alert → hard delete. One or more transactions → contextual modal.
+
+**Archive path:**
+
+- Single `updateCreditCard` call setting `isActive: 0` and `usedAmount: 0`.
+- All `creditCardExpensesTable` and `creditCardPaymentsTable` rows for that card are left intact — they represent the historical record.
+- `usedAmount` is reset to zero because the user is declaring the real-world balance settled. If the card is later unarchived, it starts fresh from zero (the app has no record of any external payments made during the archived period).
+- The archive modal body: "Archiving will hide this card everywhere but keep your transaction history intact." If `amountDue.total > 0` an additional sentence is shown: "This card has an outstanding balance of ₹{X}. Archiving will mark it as settled."
+- The archive modal presents three actions: **Archive** (primary), **Delete Anyway** (de-emphasised — ghost/text style), **Cancel**.
+
+**Hard delete path (no transactions):**
+
+- System alert only. On confirm: delete the card row. No linking table rows to clean up.
+
+**Hard delete path (force, has transactions):**
+
+- Triggered from the "Delete Anyway" action in the archive modal.
+- DB transaction: delete card row + all rows in `creditCardExpensesTable` for that card + all rows in `creditCardPaymentsTable` for that card.
+- `expensesTable` rows are left untouched. Their `creditCardId` column will still hold the deleted card's ID, but all display queries use LEFT JOINs so the card fields resolve to null silently — no errors, amounts preserved.
+
+**Unarchive path:**
+
+- `updateCreditCard` setting `isActive: 1`. `usedAmount` stays at 0.
+- Guarded by a confirmation alert: "Reactivate this card? Your transaction history will stay intact. The balance will start from zero."
+
+**Surfaces where archived cards are hidden** (`activeOnly = true`, no change needed):
+
+- Add transaction modal
+- Chat inline expense form
+- Dashboard carousel
+- Credit card detail screen (only reachable from the carousel)
+
+**Surfaces that show archived cards:**
+
+- Settings credit card list: all cards shown. Archived cards render with an "Archived" badge and an Unarchive CTA. Active cards render as before.
+- Transaction filter dropdown: `useCreditCards(false)` (all cards). Archived card option labels are suffixed with `· Archived` so users can identify them. Active card labels are unchanged.
+
 ### Delete Cascade (manual, not DB-level)
 
 - Deleting a credit card purchase must also delete the corresponding `creditCardExpensesTable` row and decrement `usedAmount` in the same transaction.
@@ -210,19 +283,42 @@ When a user pays less than the full amount due, interest accrues on the unpaid b
 - Active card filter renders as a removable chip.
 - Backed by an optional `creditCardId` field in the existing filter state type.
 
+### Chat — Credit Card Extraction
+
+- The chat system prompt is extended with the user's full credit card list at prompt-build time. Each card is represented by `{ nickname, bank, provider, last4 }` — enough for the AI to match against natural language references without leaking unnecessary data.
+- The AI response schema gains an optional `creditCard` field that holds the matched card's `nickname` string, or `null` when no card can be confidently identified. This mirrors how categories are handled: the AI returns the canonical display value; the client resolves it to a DB ID.
+- `ChatExpenseData` type gains `creditCard?: string | null`.
+- `InlineExpenseForm` always renders a credit card dropdown regardless of whether the AI returned a match. When a match exists the dropdown is pre-filled with that card; the user can change it. When null, the dropdown starts empty (optional).
+- On form submit, the client resolves the card nickname to a DB ID using the loaded credit card list (same pattern as category name → ID resolution). The resolved `creditCardId` and `creditCardTxnType: 'purchase'` are passed to `createExpense`.
+- If the user clears the card dropdown the expense is submitted as a non-card cash expense, same as before.
+
+### Transaction Detail — Credit Card Display
+
+- When the loaded expense has a `creditCardId`, a read-only credit card section is rendered above the editable details card.
+- The section is styled to match the `TransactionCard` attribution row: a small provider-coloured dot, the card nickname, and the masked last 4 digits (`•••• XXXX`).
+- **No editing of `creditCardId` from this screen** — card reassignment is explicitly deferred. A `// TODO: allow card reassignment in a future edit flow` comment is placed at the relevant call site.
+- Reassigning a card requires updating `usedAmount` on both old and new cards, moving or recreating the `creditCardExpenses` row, and recomputing statement fields — this is scoped as a separate future feature.
+- Bill payments (`creditCardTxnType === 'payment'`) are editable for `amount` and `date`. The DB `updateExpense` function already handles `usedAmount` recalculation with an inverted delta for payments, so no additional write-path work is needed.
+- Recurring expenses remain fully frozen regardless of credit card status, consistent with existing behaviour.
+
 ### Modules to Build / Modify
 
-| Module                    | Action                                                                                                                                                                                                  |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Credit Card Query Module  | Modify: fix `getCreditCardSummaries` cycle-attributed amountDue; add `createCreditCardPayment` with FIFO cycle attribution; wire `usedAmount` updates into all write paths; add `computeInterestCharge` |
-| Expense Query Module      | Modify: add `usedAmount` side-effects to create/update/delete; add `excludeFromSpending` filters to all spending aggregates; extend category join queries to return credit card fields                  |
-| Recurring Engine          | Modify: add overdue card detection pass; trigger on-load overdue modal when past-due cycles exist                                                                                                       |
-| Overdue Modal             | Build: full-screen non-dismissible modal; queues overdue cards; handles "paid" and "not paid" paths; collects interest rate if unset; logs interest transaction                                         |
-| Interest Rate Prompt      | Build: reusable APR/Monthly toggle input, used in both PayBillModal (partial payment) and Overdue Modal                                                                                                 |
-| TransactionCard Component | Modify: add card attribution + Bill Pay badge props                                                                                                                                                     |
-| All-Transactions Screen   | Modify: pass credit card props to `TransactionCard`; add card filter chip to filter modal                                                                                                               |
-| Card Detail Screen        | Build: new screen with `CreditCardPreviewCard` header + scoped filtered transaction list                                                                                                                |
-| useCreditCards Hook       | Modify: add `createCreditCardPaymentAsync` and `logInterestChargeAsync` mutations                                                                                                                       |
+| Module                      | Action                                                                                                                                                                                                                                                                                                                                                                         |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Credit Card Query Module    | Modify: fix `getCreditCardSummaries` cycle-attributed amountDue; add `createCreditCardPayment` with FIFO cycle attribution; wire `usedAmount` updates into all write paths; add `computeInterestCharge`; add `archiveCreditCard` (isActive 0 + usedAmount 0); update `deleteCreditCard` to clean up linking table rows in a DB transaction; add linked-transaction count query |
+| Expense Query Module        | Modify: add `usedAmount` side-effects to create/update/delete; add `excludeFromSpending` filters to all spending aggregates; extend category join queries to return credit card fields                                                                                                                                                                                         |
+| Recurring Engine            | Modify: add overdue card detection pass; trigger on-load overdue modal when past-due cycles exist                                                                                                                                                                                                                                                                              |
+| Overdue Modal               | Build: full-screen non-dismissible modal; queues overdue cards; handles "paid" and "not paid" paths; collects interest rate if unset; logs interest transaction                                                                                                                                                                                                                |
+| Interest Rate Prompt        | Build: reusable APR/Monthly toggle input, used in both PayBillModal (partial payment) and Overdue Modal                                                                                                                                                                                                                                                                        |
+| TransactionCard Component   | Modify: add card attribution + Bill Pay badge props                                                                                                                                                                                                                                                                                                                            |
+| All-Transactions Screen     | Modify: pass credit card props to `TransactionCard`; add card filter chip to filter modal                                                                                                                                                                                                                                                                                      |
+| Card Detail Screen          | Build: new screen with `CreditCardPreviewCard` header + scoped filtered transaction list                                                                                                                                                                                                                                                                                       |
+| useCreditCards Hook         | Modify: add `createCreditCardPaymentAsync` and `logInterestChargeAsync` mutations; add `archiveCreditCard` / `archiveCreditCardAsync` and `unarchiveCreditCard` mutations                                                                                                                                                                                                      |
+| Settings Credit Card Screen | Modify: replace single-action delete with two-path removal flow; render archived cards with badge + unarchive CTA; show archive modal with outstanding balance warning when applicable                                                                                                                                                                                         |
+| Archive Modal Component     | Build: custom modal with Archive / Delete Anyway / Cancel actions and conditional balance warning copy                                                                                                                                                                                                                                                                         |
+| Chat Service                | Modify: extend system prompt to include user's credit card list; add `creditCard` field to AI response schema and `ChatExpenseData` type                                                                                                                                                                                                                                       |
+| InlineExpenseForm           | Modify: add credit card dropdown (always visible, pre-filled from AI match); resolve nickname → DB ID on submit; pass creditCardId + creditCardTxnType to createExpense                                                                                                                                                                                                        |
+| Transaction Detail Screen   | Modify: add read-only credit card attribution section above details card; allow amount/date edits on bill payment rows; add TODO comment for future card reassignment feature                                                                                                                                                                                                  |
 
 ---
 
@@ -249,6 +345,12 @@ When a user pays less than the full amount due, interest accrues on the unpaid b
 - `computeStatementEndDate`: day-31 cards in February should clamp to the last day of February.
 - `computeDueDate`: buffer days that cross a month boundary should land in the correct month.
 
+**Credit Card Lifecycle (archive & delete):**
+
+- `archiveCreditCard`: given a card with purchases and an outstanding balance, archive must set `isActive = 0` and `usedAmount = 0`; linked expense rows must remain untouched; `creditCardExpensesTable` and `creditCardPaymentsTable` rows must remain.
+- `deleteCreditCard` (with transactions): delete must remove the card row, all `creditCardExpensesTable` rows for that card, and all `creditCardPaymentsTable` rows; the expense rows must remain with their original `creditCardId` value intact.
+- Transaction filter: after archiving a card it must appear in the filter dropdown (with "Archived" suffix) and must not appear in the add-transaction or chat dropdowns.
+
 **No UI component tests** in scope for this PRD.
 
 ---
@@ -263,6 +365,13 @@ When a user pays less than the full amount due, interest accrues on the unpaid b
 - Editing which statement cycle a purchase belongs to.
 - Card detail screen showing statement-grouped views (purchases are shown in a flat date-sorted list).
 - Reward points or cashback tracking.
+- Reassigning a credit card expense from one card to another in the transaction detail edit screen (deferred; requires two-card usedAmount updates and statement cycle migration).
+- Chat follow-up clarification when no card is matched — the form dropdown handles this without a conversational round-trip.
+- Recalculating `usedAmount` from historical transactions on unarchive — reactivated cards always start at zero.
+- Bulk archive or bulk delete of multiple cards at once.
+- Automatic archiving after a period of inactivity.
+- Viewing the card detail screen for archived cards — the screen is only reachable from the active-only dashboard carousel.
+- Exporting or downloading transaction history before deletion.
 
 ---
 
@@ -275,3 +384,6 @@ When a user pays less than the full amount due, interest accrues on the unpaid b
 - The interest rate APR↔Monthly toggle is a reusable input component — it must be shared between the PayBillModal partial payment flow and the Overdue Modal, not duplicated.
 - The overdue detection in the recurring engine must be idempotent: if interest has already been logged for a cycle in the current run, it must not be logged again on subsequent app opens for the same cycle.
 - The auto-description for interest charges (e.g. "Interest charged – {card nickname}") must live in a string constants file alongside the bill payment copy.
+- The "Delete Anyway" action in the archive modal must be visually de-emphasised (ghost or plain text style) relative to Archive, so the destructive path feels deliberate rather than casual.
+- Unarchiving sets `isActive: 1` only. `usedAmount` remains at zero — the app has no way to know what the real-world balance is after the card was hidden. New purchases and payments will rebuild it from zero, which is the correct behaviour.
+- The `All-Transactions` screen and any other screen that passes cards to `TransactionFilterModal` must switch to `useCreditCards(false)` so archived cards are available for filtering. This is a data-passing change at the screen level; the filter modal itself just renders whatever it receives.

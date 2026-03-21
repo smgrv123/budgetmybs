@@ -1,70 +1,83 @@
 import { getAllExpensesWithCategory } from '@/db';
 import { TransactionType } from '@/src/constants/theme';
-import type { AllExpense, ExpenseFilter, ExpenseSection } from '@/src/types';
-import { DEFAULT_EXPENSE_FILTER } from '@/src/types';
+import type { AllExpense, ExpenseFilter, TransactionListItem } from '@/src/types';
+import { DEFAULT_EXPENSE_FILTER, ExpenseFilterType } from '@/src/types';
 import { formatMonthLabel } from '@/src/utils/date';
-import { useQuery } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import { useInfiniteQuery } from '@tanstack/react-query';
 
 export const ALL_EXPENSES_QUERY_KEY = ['allExpenses'] as const;
 
+const PAGE_SIZE = 30;
+
 export const useAllExpenses = (filter: ExpenseFilter = DEFAULT_EXPENSE_FILTER) => {
-  // NOTE: queryKey is static because filtering is entirely client-side via useMemo.
-  // The DB is SQLite (local) — we fetch all data once, no network calls.
-  // If filtering ever moves to the DB layer, include `filter` in the key.
-  const query = useQuery({
-    queryKey: ALL_EXPENSES_QUERY_KEY,
-    queryFn: getAllExpensesWithCategory,
+  const isSavingParam =
+    filter.type === ExpenseFilterType.ALL ? undefined : filter.type === ExpenseFilterType.SAVING ? 1 : 0;
+
+  const query = useInfiniteQuery({
+    queryKey: [...ALL_EXPENSES_QUERY_KEY, filter],
+    queryFn: ({ pageParam }) =>
+      getAllExpensesWithCategory({
+        categoryId: filter.categoryId ?? undefined,
+        creditCardId: filter.creditCardId ?? undefined,
+        startDate: filter.startDate || undefined,
+        endDate: filter.endDate || undefined,
+        isSaving: isSavingParam,
+        limit: PAGE_SIZE,
+        offset: pageParam,
+      }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.length < PAGE_SIZE) return undefined;
+      return allPages.reduce((total, page) => total + page.length, 0);
+    },
   });
 
-  // Split into typed AllExpense rows
-  const allExpenses: AllExpense[] = useMemo(
-    () =>
-      (query.data ?? []).map((row) => ({
-        ...row,
-        transactionType: row.isSaving === 1 ? TransactionType.SAVING : TransactionType.EXPENSE,
-      })),
-    [query.data]
+  const allExpenses: AllExpense[] = (query.data?.pages ?? []).flatMap((page) =>
+    page.map((row) => ({
+      ...row,
+      transactionType: row.isSaving === 1 ? TransactionType.SAVING : TransactionType.EXPENSE,
+    }))
   );
 
-  // Apply filters client-side
-  const filteredExpenses = useMemo(() => {
-    return allExpenses.filter((item) => {
-      if (filter.type !== 'all' && item.transactionType !== filter.type) return false;
-      if (filter.categoryId && item.categoryId !== filter.categoryId) return false;
-      if (filter.startDate && item.date < filter.startDate) return false;
-      if (filter.endDate && item.date > filter.endDate) return false;
-      return true;
-    });
-  }, [allExpenses, filter]);
-
-  // Group by YYYY-MM for SectionList
-  const sections: ExpenseSection[] = useMemo(() => {
-    const map = new Map<string, AllExpense[]>();
-
-    for (const item of filteredExpenses) {
-      const month = item.date.slice(0, 7);
-      if (!map.has(month)) map.set(month, []);
-      map.get(month)!.push(item);
+  const monthTotals = new Map<string, number>();
+  for (const expense of allExpenses) {
+    if (expense.transactionType === TransactionType.EXPENSE) {
+      const month = expense.date.slice(0, 7);
+      monthTotals.set(month, (monthTotals.get(month) ?? 0) + expense.amount);
     }
+  }
 
-    return Array.from(map.entries()).map(([month, data]) => ({
-      title: formatMonthLabel(month),
-      month,
-      total: data.filter((t) => t.transactionType === TransactionType.EXPENSE).reduce((sum, t) => sum + t.amount, 0),
-      data,
-    }));
-  }, [filteredExpenses]);
+  const items: TransactionListItem[] = [];
+  let currentMonth = '';
+  for (const expense of allExpenses) {
+    const month = expense.date.slice(0, 7);
+    if (month !== currentMonth) {
+      currentMonth = month;
+      items.push({
+        type: 'sectionHeader',
+        title: formatMonthLabel(month),
+        month,
+        total: monthTotals.get(month) ?? 0,
+      });
+    }
+    items.push({ type: 'transaction', data: expense });
+  }
 
   const hasActiveFilter =
-    filter.categoryId !== null || filter.startDate !== '' || filter.endDate !== '' || filter.type !== 'all';
+    filter.categoryId !== null ||
+    filter.creditCardId !== null ||
+    filter.startDate !== '' ||
+    filter.endDate !== '' ||
+    filter.type !== 'all';
 
   return {
-    filteredExpenses,
-    sections,
+    items,
     hasActiveFilter,
     isLoading: query.isLoading,
     isError: query.isError,
     refetch: query.refetch,
+    fetchNextPage: query.fetchNextPage,
+    hasNextPage: query.hasNextPage ?? false,
+    isFetchingNextPage: query.isFetchingNextPage,
   };
 };

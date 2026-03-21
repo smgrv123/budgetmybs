@@ -70,6 +70,13 @@ export type UpdateDebtInput = Partial<Omit<Debt, 'id' | 'createdAt' | 'updatedAt
 export type CreateCreditCardInput = Omit<CreditCard, 'id' | 'isActive' | 'createdAt' | 'updatedAt' | 'usedAmount'>;
 export type UpdateCreditCardInput = Partial<Omit<CreditCard, 'id' | 'createdAt' | 'updatedAt'>>;
 
+// Credit Card Payments
+export type CreateCreditCardPaymentInput = {
+  creditCardId: string;
+  amount: number;
+  date?: string;
+};
+
 // Categories
 export type CreateCategoryInput = Pick<Category, 'name' | 'type'> &
   Partial<Pick<Category, 'customType' | 'icon' | 'color'>>;
@@ -105,12 +112,16 @@ export type CreateMonthlySnapshotInput = Pick<MonthlySnapshot, 'month' | 'frivol
 // CUSTOM QUERY RESULT TYPES
 // ============================================
 
-export type CreditCardSummary = {
-  cardId: string;
-  usedAmount: number;
-  creditLimit: number;
+export type AmountDue = {
+  carried: number;
+  newPurchases: number;
+  total: number;
+};
+
+export type CreditCardSummary = Pick<CreditCard, 'creditLimit' | 'usedAmount'> & {
+  cardId: CreditCard['id'];
   utilizationPercent: number;
-  amountDue: number;
+  amountDue: AmountDue;
   dueDate: string | null;
 };
 

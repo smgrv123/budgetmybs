@@ -84,19 +84,37 @@ export const CREDIT_CARDS_SETTINGS_STRINGS = {
   },
   listItem: {
     separator: ' • ',
+    archivedSuffix: '· Archived',
+  },
+  archivedSection: {
+    title: 'Archived',
+    unarchiveButton: 'Unarchive',
+    unarchiveAlertTitle: 'Reactivate Card?',
+    unarchiveAlertBody: 'Your transaction history will stay intact. The balance will start from zero.',
+    unarchiveConfirm: 'Reactivate',
+    unarchiveCancel: 'Cancel',
+    unarchiveFailed: 'Failed to unarchive credit card:',
   },
   alerts: {
     deleteTitle: 'Delete Card?',
-    deleteBody: 'This will remove the card from your account.',
+    deleteBody: 'This card has no linked transactions and will be permanently deleted.',
     deleteCancel: 'Cancel',
     deleteConfirm: 'Delete',
     negativeBalanceTitle: 'Balance Warning',
     negativeBalanceBody: 'Your credit card balance has gone below zero. Please check your transactions for accuracy.',
   },
+  archiveModal: {
+    title: 'Archive or Delete Card?',
+    body: (count: number) =>
+      `This card has ${count} linked transaction${count !== 1 ? 's' : ''}. Archiving hides the card everywhere but keeps your history intact.`,
+    archiveButton: 'Archive Card',
+    deleteAnywayButton: 'Delete Anyway',
+  },
   logs: {
     createFailed: 'Failed to create credit card:',
     updateFailed: 'Failed to update credit card:',
     removeFailed: 'Failed to remove credit card:',
+    archiveFailed: 'Failed to archive credit card:',
   },
   form: {
     addTitle: 'Add Credit Card',
@@ -153,9 +171,27 @@ export const CREDIT_CARDS_SETTINGS_STRINGS = {
     loadingLabel: 'Loading card...',
     notFoundLabel: 'Card not found',
     amountDueLabel: 'Amount Due',
+    carriedLabel: 'Carried',
     dueDateLabel: 'Due Date',
     usedLabel: 'Used',
     limitLabel: 'Limit',
     utilizationLabel: 'Utilization',
+  },
+  payBill: {
+    title: 'Pay Bill',
+    amountLabel: 'Payment Amount',
+    amountPlaceholder: 'Enter amount',
+    dateLabel: 'Payment Date',
+    submitButton: 'Pay',
+    cancelButton: 'Cancel',
+    descriptionTemplate: (nickname: string) => `Bill paid for ${nickname}`,
+    successTitle: 'Payment Recorded',
+    successBody: (nickname: string, amount: string) => `₹${amount} payment for ${nickname} has been recorded.`,
+    validation: {
+      amountRequired: 'Amount must be greater than 0',
+    },
+    logs: {
+      paymentFailed: 'Failed to record credit card payment:',
+    },
   },
 } as const;

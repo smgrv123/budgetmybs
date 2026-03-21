@@ -11,6 +11,8 @@ export const CHAT_STRINGS = {
   FORM_EXPENSE_TITLE: 'Confirm Expense',
   FORM_EXPENSE_SUBMIT: 'Add Expense',
   FORM_SUBMITTING: 'Adding...',
+  FORM_CREDIT_CARD_LABEL: 'Credit Card (optional)',
+  FORM_CREDIT_CARD_MODAL_TITLE: 'Select Card',
   FORM_SAVING: 'Saving...',
   FORM_CONFIRM: 'Confirm',
   FORM_CANCEL: 'Cancel',

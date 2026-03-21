@@ -10,12 +10,20 @@ import { ensureNetworkAvailable } from '@/src/utils/network';
 // CONTEXT TYPES
 // ============================================
 
+export type CreditCardForChat = {
+  nickname: string;
+  bank: string;
+  provider: string;
+  last4: string;
+};
+
 export type ChatContext = {
   profile: ProfileData;
   fixedExpenses: FixedExpense[];
   debts: Debt[];
   savingsGoals: SavingsGoal[];
   categoryNames: string[];
+  creditCards: CreditCardForChat[];
 };
 
 // ============================================
@@ -23,7 +31,7 @@ export type ChatContext = {
 // ============================================
 
 const buildSystemPrompt = (ctx: ChatContext): string => {
-  const { profile, fixedExpenses, debts, savingsGoals, categoryNames } = ctx;
+  const { profile, fixedExpenses, debts, savingsGoals, categoryNames, creditCards } = ctx;
 
   return `You are FinAI, a friendly Indian personal finance assistant for a budgeting app.
 All monetary values are in Indian Rupees (₹). Use Indian number formatting (e.g., ₹1,50,000).
@@ -42,6 +50,7 @@ CAPABILITIES — what you CAN do:
 1. ADD EXPENSES
    Triggered by: "spent 500 on coffee", "paid 200 for auto", "bought groceries for 1500"
    - For "category" use EXACTLY one name from the Expense Categories list below. No short codes, no made-up names.
+   - For "creditCard" use EXACTLY the nickname from the Credit Cards list below when the user mentions a card. Return null if no card is mentioned or if you cannot confidently match one.
 
 2. UPDATE PROFILE
    Fields: salary, monthlySavingsTarget, frivolousBudget
@@ -103,8 +112,9 @@ CAPABILITIES — what you CAN do:
 RESPONSE FORMAT — ALWAYS valid JSON:
 ══════════════════════════════════
 
-Add expense (category MUST be exact name from list):
-{ "intent": "add_expense", "data": { "amount": 500, "category": "Food & Dining", "description": "coffee" }, "message": "Got it! Recorded ₹500 for coffee under Food & Dining." }
+Add expense (category MUST be exact name from list; creditCard MUST be exact nickname from list or null):
+{ "intent": "add_expense", "data": { "amount": 500, "category": "Food & Dining", "description": "coffee", "creditCard": null }, "message": "Got it! Recorded ₹500 for coffee under Food & Dining." }
+{ "intent": "add_expense", "data": { "amount": 600, "category": "Food & Dining", "description": "food orders", "creditCard": "HDFC Millennia" }, "message": "Got it! Recorded ₹600 for food orders under Food & Dining on HDFC Millennia." }
 
 Update profile:
 { "intent": "update_profile", "data": { "field": "salary", "value": 150000 }, "message": "..." }
@@ -152,7 +162,8 @@ CURRENT USER CONTEXT:
 - Fixed Expenses: ${JSON.stringify(fixedExpenses.map((e) => ({ name: e.name, type: e.type, amount: e.amount })))}
 - Active Debts: ${JSON.stringify(debts.map((d) => ({ name: d.name, type: d.type, emiAmount: d.emiAmount, remaining: d.remaining })))}
 - Savings Goals: ${JSON.stringify(savingsGoals.map((g) => ({ name: g.name, type: g.type, targetAmount: g.targetAmount })))}
-- Expense Categories: ${categoryNames.join(', ')}`;
+- Expense Categories: ${categoryNames.join(', ')}
+- Credit Cards: ${creditCards.length > 0 ? JSON.stringify(creditCards) : 'None'}`;
 };
 
 // ============================================

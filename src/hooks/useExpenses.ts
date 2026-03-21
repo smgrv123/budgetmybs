@@ -91,6 +91,8 @@ export const useExpenses = (month: string = getCurrentMonth()) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: EXPENSES_QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: TOTAL_SPENT_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: CREDIT_CARDS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: CREDIT_CARD_SUMMARIES_QUERY_KEY });
     },
   });
 

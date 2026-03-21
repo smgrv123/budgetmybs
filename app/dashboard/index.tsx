@@ -1,4 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 
@@ -42,7 +43,6 @@ import type { QuickStatTypeValue } from '@/src/types/dashboard';
 import { calculateTotalEMI, calculateTotalFixedExpenses } from '@/src/utils/budget';
 import { mapDebtToSheet, mapFixedExpenseToSheet, mapSavingsGoalToSheet } from '@/src/utils/dashboard';
 import { formatDate } from '@/src/utils/date';
-import { useRouter } from 'expo-router';
 
 export default function DashboardScreen() {
   const themeColors = useThemeColors();

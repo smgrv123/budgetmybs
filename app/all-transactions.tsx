@@ -1,145 +1,90 @@
-import { TransactionCard } from '@/src/components/transaction';
-import {
-  BButton,
-  BDateField,
-  BDropdown,
-  BIcon,
-  BLink,
-  BModal,
-  BSafeAreaView,
-  BText,
-  BView,
-  FilterChip,
-  ScreenHeader,
-} from '@/src/components/ui';
-import { CREDIT_CARD_PROVIDER_COLORS } from '@/src/constants/credit-cards.config';
-import {
-  ALL_TRANSACTIONS_STRINGS,
-  TRANSACTION_COMMON_STRINGS,
-  TRANSACTION_FILTER_TYPE_OPTIONS,
-  TRANSACTION_VALIDATION_STRINGS,
-} from '@/src/constants/transactions.strings';
 import { CreditCardTxnTypeEnum } from '@/db/types';
-import { ButtonVariant, ModalPosition, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
-import { useAllExpenses, useCategories } from '@/src/hooks';
+import { ActiveFilterChips, TransactionCard, TransactionFilterModal } from '@/src/components/transaction';
+import { BButton, BIcon, BLink, BSafeAreaView, BText, BView, ScreenHeader } from '@/src/components/ui';
+import { CREDIT_CARD_PROVIDER_COLORS } from '@/src/constants/credit-cards.config';
+import { ButtonVariant, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
+import { ALL_TRANSACTIONS_STRINGS } from '@/src/constants/transactions.strings';
+import { useAllExpenses, useCategories, useCreditCards } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
-import type { ExpenseFilter } from '@/src/types';
-import { DEFAULT_EXPENSE_FILTER, ExpenseFilterType } from '@/src/types';
+import type { ExpenseFilter, TransactionListItem } from '@/src/types';
+import { DEFAULT_EXPENSE_FILTER } from '@/src/types';
 import { formatCurrency } from '@/src/utils/format';
-import { useMemo, useState } from 'react';
-import { SectionList, StyleSheet } from 'react-native';
-import { z } from 'zod';
-
-// ─── Date filter validation ─────────────────────────────────────────────────
-const dateFilterSchema = z.object({
-  startDate: z.union([z.literal(''), z.iso.date(TRANSACTION_VALIDATION_STRINGS.startDateISO)]),
-  endDate: z.union([z.literal(''), z.iso.date(TRANSACTION_VALIDATION_STRINGS.endDateISO)]),
-});
+import { useState } from 'react';
+import { ActivityIndicator, FlatList, StyleSheet } from 'react-native';
 
 export default function AllTransactionsScreen() {
   const themeColors = useThemeColors();
   const { allCategories } = useCategories();
+  const { creditCards } = useCreditCards(false);
 
-  // ─── Filter state ────────────────────────────────────────────────────────────
   const [appliedFilter, setAppliedFilter] = useState<ExpenseFilter>(DEFAULT_EXPENSE_FILTER);
-  const [draftFilter, setDraftFilter] = useState<ExpenseFilter>(DEFAULT_EXPENSE_FILTER);
   const [filterModalVisible, setFilterModalVisible] = useState(false);
-  const [dateErrors, setDateErrors] = useState<{ startDate?: string; endDate?: string }>({});
 
-  // ─── Data ─────────────────────────────────────────────────────────────────────
-  const { sections, hasActiveFilter, isLoading, isError, refetch } = useAllExpenses(appliedFilter);
+  const { items, hasActiveFilter, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useAllExpenses(appliedFilter);
 
-  // ─── Category dropdown options ────────────────────────────────────────────────
-  const categoryOptions = useMemo(
-    () => [
-      { label: ALL_TRANSACTIONS_STRINGS.categoryPlaceholder, value: '' },
-      ...(allCategories ?? []).map((c) => ({ label: c.name, value: c.id })),
-    ],
-    [allCategories]
-  );
-
-  // ─── Modal handlers ───────────────────────────────────────────────────────────
-  const openFilter = () => {
-    setDraftFilter(appliedFilter);
-    setDateErrors({});
-    setFilterModalVisible(true);
-  };
-
-  const applyFilter = () => {
-    // Validate date fields via Zod
-    const result = dateFilterSchema.safeParse({
-      startDate: draftFilter.startDate,
-      endDate: draftFilter.endDate,
-    });
-
-    if (!result.success) {
-      const fieldErrors: { startDate?: string; endDate?: string } = {};
-      for (const issue of result.error.issues) {
-        const field = issue.path[0] as 'startDate' | 'endDate';
-        fieldErrors[field] = issue.message;
-      }
-      setDateErrors(fieldErrors);
-      return;
-    }
-
-    if (draftFilter.startDate && draftFilter.endDate && draftFilter.startDate > draftFilter.endDate) {
-      setDateErrors({ endDate: TRANSACTION_VALIDATION_STRINGS.dateRange });
-      return;
-    }
-
-    setDateErrors({});
-    setAppliedFilter(draftFilter);
+  const handleApply = (filter: ExpenseFilter) => {
+    setAppliedFilter(filter);
     setFilterModalVisible(false);
   };
 
-  const clearFilter = () => {
-    setDraftFilter(DEFAULT_EXPENSE_FILTER);
+  const handleClear = () => {
     setAppliedFilter(DEFAULT_EXPENSE_FILTER);
-    setDateErrors({});
     setFilterModalVisible(false);
   };
 
-  // ─── Render helpers ───────────────────────────────────────────────────────────
-  const renderSectionHeader = ({ section }: { section: (typeof sections)[0] }) => (
-    <BView
-      row
-      align="center"
-      justify="space-between"
-      paddingX={SpacingValue.LG}
-      paddingY={SpacingValue.SM}
-      style={{ backgroundColor: themeColors.backgroundSecondary }}
-    >
-      <BText variant={TextVariant.LABEL}>{section.title}</BText>
-      <BText variant={TextVariant.CAPTION} muted>
-        {formatCurrency(section.total)}
-      </BText>
-    </BView>
-  );
+  const handleEndReached = () => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  };
 
-  const renderItem = ({ item }: { item: (typeof sections)[0]['data'][0] }) => {
-    const creditCardColor = item.creditCard ? CREDIT_CARD_PROVIDER_COLORS[item.creditCard.provider] : undefined;
+  const renderItem = ({ item }: { item: TransactionListItem }) => {
+    if (item.type === 'sectionHeader') {
+      return (
+        <BView
+          row
+          align="center"
+          justify="space-between"
+          paddingX={SpacingValue.LG}
+          paddingY={SpacingValue.SM}
+          style={{ backgroundColor: themeColors.backgroundSecondary }}
+        >
+          <BText variant={TextVariant.LABEL}>{item.title}</BText>
+          <BText variant={TextVariant.CAPTION} muted>
+            {formatCurrency(item.total)}
+          </BText>
+        </BView>
+      );
+    }
+
+    const expense = item.data;
+    const creditCardColor = expense.creditCard ? CREDIT_CARD_PROVIDER_COLORS[expense.creditCard.provider] : undefined;
 
     return (
-      <BLink href={`/transaction-detail?id=${item.id}`} fullWidth style={{ paddingVertical: 0 }}>
+      <BLink href={`/transaction-detail?id=${expense.id}`} fullWidth style={{ paddingVertical: Spacing.none }}>
         <TransactionCard
-          id={item.id}
-          description={item.description}
-          amount={item.amount}
-          date={item.date}
-          categoryName={item.category?.name ?? null}
-          categoryIcon={item.category?.icon ?? null}
-          categoryColor={item.category?.color ?? null}
-          savingsType={item.savingsType}
-          isSaving={item.isSaving === 1}
-          isRecurring={Boolean(item.sourceType)}
-          creditCardNickname={item.creditCard?.nickname ?? null}
-          creditCardLast4={item.creditCard?.last4 ?? null}
+          id={expense.id}
+          description={expense.description}
+          amount={expense.amount}
+          date={expense.date}
+          categoryName={expense.category?.name ?? null}
+          categoryIcon={expense.category?.icon ?? null}
+          categoryColor={expense.category?.color ?? null}
+          savingsType={expense.savingsType}
+          isSaving={expense.isSaving === 1}
+          isRecurring={Boolean(expense.sourceType)}
+          creditCardNickname={expense.creditCard?.nickname ?? null}
+          creditCardLast4={expense.creditCard?.last4 ?? null}
           creditCardColor={creditCardColor ?? null}
-          isBillPay={item.creditCardTxnType === CreditCardTxnTypeEnum.PAYMENT}
+          isBillPay={expense.creditCardTxnType === CreditCardTxnTypeEnum.PAYMENT}
         />
       </BLink>
     );
   };
+
+  const keyExtractor = (item: TransactionListItem) =>
+    item.type === 'sectionHeader' ? `header-${item.month}` : item.data.id;
 
   const renderEmpty = () => (
     <BView flex center paddingY={SpacingValue.XL}>
@@ -148,7 +93,7 @@ export default function AllTransactionsScreen() {
         {hasActiveFilter ? ALL_TRANSACTIONS_STRINGS.noTransactionsFiltered : ALL_TRANSACTIONS_STRINGS.noTransactions}
       </BText>
       {hasActiveFilter && (
-        <BButton variant={ButtonVariant.GHOST} onPress={clearFilter} style={{ marginTop: Spacing.xs }}>
+        <BButton variant={ButtonVariant.GHOST} onPress={handleClear} style={{ marginTop: Spacing.xs }}>
           <BText variant={TextVariant.CAPTION} color={themeColors.primary}>
             {ALL_TRANSACTIONS_STRINGS.clearFiltersButton}
           </BText>
@@ -157,25 +102,35 @@ export default function AllTransactionsScreen() {
     </BView>
   );
 
+  const renderFooter = () => {
+    if (!isFetchingNextPage) return null;
+    return (
+      <BView center paddingY={SpacingValue.MD}>
+        <ActivityIndicator color={themeColors.primary} />
+      </BView>
+    );
+  };
+
+  const filterActions = !isError
+    ? [
+        {
+          icon: 'filter-outline',
+          onPress: () => setFilterModalVisible(true),
+          color: hasActiveFilter ? themeColors.primary : themeColors.textMuted,
+        },
+      ]
+    : undefined;
+
   return (
     <BSafeAreaView edges={['top', 'left', 'right']}>
-      {/* Header */}
-      <BView row align="center" justify="space-between" paddingX={SpacingValue.LG}>
-        <BView flex>
-          <ScreenHeader title={ALL_TRANSACTIONS_STRINGS.screenTitle} titleVariant={TextVariant.SUBHEADING} />
-        </BView>
-        {!isError && (
-          <BButton variant={ButtonVariant.GHOST} onPress={openFilter} padding={SpacingValue.XS}>
-            <BIcon
-              name="filter-outline"
-              size="base"
-              color={hasActiveFilter ? themeColors.primary : themeColors.textMuted}
-            />
-          </BButton>
-        )}
+      <BView paddingX={SpacingValue.LG}>
+        <ScreenHeader
+          title={ALL_TRANSACTIONS_STRINGS.screenTitle}
+          titleVariant={TextVariant.SUBHEADING}
+          actions={filterActions}
+        />
       </BView>
 
-      {/* Error state — hide filter chips, show retry */}
       {isError ? (
         <BView flex center gap={SpacingValue.MD} paddingX={SpacingValue.LG}>
           <BIcon name="cloud-offline-outline" size="lg" color={themeColors.error} />
@@ -200,163 +155,38 @@ export default function AllTransactionsScreen() {
         </BView>
       ) : (
         <>
-          {/* Active filter chips */}
-          {hasActiveFilter && (
-            <BView
-              row
-              gap={SpacingValue.XS}
-              paddingX={SpacingValue.LG}
-              paddingY={SpacingValue.XS}
-              style={{ flexWrap: 'wrap' }}
-            >
-              {appliedFilter.type !== ExpenseFilterType.ALL && (
-                <FilterChip
-                  label={
-                    appliedFilter.type === ExpenseFilterType.EXPENSE
-                      ? ALL_TRANSACTIONS_STRINGS.expensesOnlyChip
-                      : ALL_TRANSACTIONS_STRINGS.savingsOnlyChip
-                  }
-                  onRemove={() => setAppliedFilter((f) => ({ ...f, type: ExpenseFilterType.ALL }))}
-                />
-              )}
-              {appliedFilter.categoryId && (
-                <FilterChip
-                  icon="pricetag-outline"
-                  label={
-                    allCategories?.find((c) => c.id === appliedFilter.categoryId)?.name ??
-                    TRANSACTION_COMMON_STRINGS.categoryFallback
-                  }
-                  onRemove={() => setAppliedFilter((f) => ({ ...f, categoryId: null }))}
-                />
-              )}
-              {(appliedFilter.startDate || appliedFilter.endDate) && (
-                <FilterChip
-                  icon="calendar-outline"
-                  label={[appliedFilter.startDate, appliedFilter.endDate].filter(Boolean).join(' – ')}
-                  onRemove={() => setAppliedFilter((f) => ({ ...f, startDate: '', endDate: '' }))}
-                />
-              )}
-            </BView>
-          )}
+          <ActiveFilterChips
+            filter={appliedFilter}
+            onUpdateFilter={setAppliedFilter}
+            categories={allCategories ?? []}
+            creditCards={creditCards}
+          />
 
-          {/* Transactions SectionList */}
-          <SectionList
-            sections={sections}
-            keyExtractor={(item) => item.id}
+          <FlatList
+            data={items}
+            keyExtractor={keyExtractor}
             renderItem={renderItem}
-            renderSectionHeader={renderSectionHeader}
             ListEmptyComponent={isLoading ? null : renderEmpty()}
-            stickySectionHeadersEnabled
+            ListFooterComponent={renderFooter}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
             onRefresh={refetch}
             refreshing={isLoading}
+            onEndReached={handleEndReached}
+            onEndReachedThreshold={0.5}
           />
         </>
       )}
 
-      {/* Filter Modal */}
-      <BModal
+      <TransactionFilterModal
         isVisible={filterModalVisible}
         onClose={() => setFilterModalVisible(false)}
-        title={ALL_TRANSACTIONS_STRINGS.filterModalTitle}
-        position={ModalPosition.BOTTOM}
-      >
-        <BView gap={SpacingValue.MD} paddingX={SpacingValue.LG} paddingY={SpacingValue.MD}>
-          {/* Category */}
-          <BDropdown
-            label={ALL_TRANSACTIONS_STRINGS.categoryLabel}
-            options={categoryOptions}
-            value={draftFilter.categoryId ?? ''}
-            onValueChange={(v) => setDraftFilter((f) => ({ ...f, categoryId: v === '' ? null : String(v) }))}
-            placeholder={ALL_TRANSACTIONS_STRINGS.categoryPlaceholder}
-            modalTitle={ALL_TRANSACTIONS_STRINGS.categoryModalTitle}
-            searchable
-          />
-
-          {/* Date range */}
-          <BView row gap={SpacingValue.SM}>
-            <BView flex>
-              <BDateField
-                label={ALL_TRANSACTIONS_STRINGS.fromLabel}
-                value={draftFilter.startDate}
-                onChange={(v) => {
-                  setDraftFilter((f) => ({ ...f, startDate: v }));
-                  if (dateErrors.startDate) setDateErrors((e) => ({ ...e, startDate: undefined }));
-                  if (dateErrors.endDate) setDateErrors((e) => ({ ...e, endDate: undefined }));
-                }}
-                placeholder={TRANSACTION_COMMON_STRINGS.datePlaceholderISO}
-                error={dateErrors.startDate}
-                maximumDate={draftFilter.endDate || undefined}
-                allowClear
-              />
-            </BView>
-            <BView flex>
-              <BDateField
-                label={ALL_TRANSACTIONS_STRINGS.toLabel}
-                value={draftFilter.endDate}
-                onChange={(v) => {
-                  setDraftFilter((f) => ({ ...f, endDate: v }));
-                  if (dateErrors.endDate) setDateErrors((e) => ({ ...e, endDate: undefined }));
-                }}
-                placeholder={TRANSACTION_COMMON_STRINGS.datePlaceholderISO}
-                error={dateErrors.endDate}
-                minimumDate={draftFilter.startDate || undefined}
-                allowClear
-              />
-            </BView>
-          </BView>
-
-          {/* Type toggle */}
-          <BView>
-            <BText variant={TextVariant.LABEL} style={{ marginBottom: Spacing.xs }}>
-              {ALL_TRANSACTIONS_STRINGS.filterTypeLabel}
-            </BText>
-            <BView row gap={SpacingValue.SM}>
-              {TRANSACTION_FILTER_TYPE_OPTIONS.map((opt) => (
-                <BButton
-                  key={opt.value}
-                  style={{ flex: 1 }}
-                  variant={draftFilter.type === opt.value ? ButtonVariant.PRIMARY : ButtonVariant.OUTLINE}
-                  onPress={() => setDraftFilter((f) => ({ ...f, type: opt.value }))}
-                  paddingY={SpacingValue.SM}
-                >
-                  <BText
-                    variant={TextVariant.CAPTION}
-                    color={draftFilter.type === opt.value ? themeColors.white : themeColors.text}
-                  >
-                    {opt.label}
-                  </BText>
-                </BButton>
-              ))}
-            </BView>
-          </BView>
-
-          {/* Actions */}
-          <BView row gap={SpacingValue.SM} style={{ marginTop: Spacing.xs }}>
-            <BButton
-              style={{ flex: 1 }}
-              variant={ButtonVariant.OUTLINE}
-              onPress={clearFilter}
-              paddingY={SpacingValue.MD}
-            >
-              <BText variant={TextVariant.LABEL} color={themeColors.primary}>
-                {ALL_TRANSACTIONS_STRINGS.clearAllButton}
-              </BText>
-            </BButton>
-            <BButton
-              style={{ flex: 1 }}
-              variant={ButtonVariant.PRIMARY}
-              onPress={applyFilter}
-              paddingY={SpacingValue.MD}
-            >
-              <BText variant={TextVariant.LABEL} color={themeColors.white}>
-                {ALL_TRANSACTIONS_STRINGS.applyButton}
-              </BText>
-            </BButton>
-          </BView>
-        </BView>
-      </BModal>
+        appliedFilter={appliedFilter}
+        onApply={handleApply}
+        onClear={handleClear}
+        categories={allCategories ?? []}
+        creditCards={creditCards}
+      />
     </BSafeAreaView>
   );
 }

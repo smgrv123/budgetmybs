@@ -219,3 +219,127 @@ A `// TODO: trigger notification` placeholder is added to `getCreditCardSummarie
 - [ ] `// TODO: trigger notification` comment exists in `getCreditCardSummaries` at the correct check point
 - [ ] `pnpm lint` passes
 - [ ] `pnpm typecheck` passes
+
+---
+
+## Phase 8 — Transaction Detail Credit Card Display
+
+**User stories**: 58, 59, 60, 61, 62
+
+### What to build
+
+Surface read-only credit card attribution on the transaction detail screen, and unlock editing for bill payment rows.
+
+When the loaded expense has a `creditCardId`, a dedicated read-only section renders above the editable details card. It is styled to match the `TransactionCard` attribution row: a small provider-coloured dot, the card nickname, and the masked last 4 digits (`•••• XXXX`). This section is not shown for non-card expenses.
+
+The edit form's field set is unchanged for regular card purchases — amount, category, date, and description remain editable. Bill payment rows (`creditCardTxnType === 'payment'`) are editable for amount and date only; the DB `updateExpense` function already handles `usedAmount` recalculation with an inverted delta for payments, so no write-path changes are needed.
+
+A clearly labelled `// TODO: allow card reassignment in a future edit flow` comment is placed at the point where `creditCardId` would be edited, explaining that reassignment requires two-card `usedAmount` updates and statement cycle migration.
+
+No schema changes are required for this phase.
+
+### Acceptance criteria
+
+- [ ] A transaction with a credit card shows a read-only attribution section above the details card
+- [ ] Attribution section renders a provider-coloured dot, card nickname, and `•••• last4`
+- [ ] Attribution section is absent for expenses with no `creditCardId`
+- [ ] Editing amount or date on a bill payment row succeeds and correctly adjusts `usedAmount` on the card
+- [ ] The category field is not shown in edit mode for bill payment rows (category is auto-set and should not be changed)
+- [ ] No credit card dropdown or reassignment UI is present in the edit form
+- [ ] `// TODO: allow card reassignment` comment is present at the relevant call site
+- [ ] `pnpm lint` passes
+- [ ] `pnpm typecheck` passes
+
+---
+
+## Phase 9 — Chat Credit Card Extraction
+
+**User stories**: 53, 54, 55, 56, 57
+
+### What to build
+
+Enable the chat AI to extract credit card references from natural language and pre-fill the confirm expense form.
+
+The chat system prompt is extended to include the user's active credit card list at prompt-build time. Each card is represented by `{ nickname, bank, provider, last4 }` — enough for the AI to match against natural language references without leaking unnecessary data.
+
+The AI response schema gains an optional `creditCard` field. When the user's message clearly references one of their cards, the AI returns that card's `nickname` string. When no card can be confidently identified, the AI returns `null`. This mirrors how categories work: the AI returns the canonical display value; the client resolves it to a DB ID.
+
+`ChatExpenseData` gains `creditCard?: string | null`. `InlineExpenseForm` always renders a credit card dropdown regardless of whether the AI returned a match. When a match exists the dropdown is pre-filled with that card's nickname; the user can change it before confirming. When the AI returned `null` (or the user had no cards), the dropdown starts empty and the field is optional.
+
+On form submit, the client resolves the card nickname to a DB ID using the loaded credit card list — the same `find` pattern used to resolve the category name to a category ID. The resolved `creditCardId` and `creditCardTxnType: 'purchase'` are passed to `createExpense`. If the dropdown is left empty the expense is created as a cash expense with no card attribution.
+
+No schema changes are required for this phase.
+
+### Acceptance criteria
+
+- [ ] Saying "I spent 600 on food using my HDFC credit card" pre-fills the credit card dropdown with the correct card
+- [ ] Saying "I spent 600 on food" leaves the credit card dropdown empty (no card pre-filled)
+- [ ] The credit card dropdown always appears in the confirm form, regardless of AI output
+- [ ] The user can change the AI-suggested card in the dropdown before confirming
+- [ ] The user can clear the dropdown to submit the expense as a non-card cash expense
+- [ ] Submitting with a card selected creates the expense with `creditCardId` and `creditCardTxnType: 'purchase'`
+- [ ] `usedAmount` on the selected card increments after a chat-created card expense
+- [ ] The chat-created card expense appears in the card's detail screen transaction list
+- [ ] Submitting with no card selected creates a normal non-card expense (existing behaviour)
+- [ ] `pnpm lint` passes
+- [ ] `pnpm typecheck` passes
+
+---
+
+## Phase 10 — Card Archive & Delete
+
+**User stories**: 4, 5, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17
+
+### What to build
+
+Introduce a two-path card removal flow driven by whether the card has linked transactions.
+
+The DB layer gains a linked-transaction count query, an archive function that sets `isActive: 0` and `usedAmount: 0` in a single update, and an updated hard-delete function that removes the card row plus all rows in the credit-card-expenses and credit-card-payments linking tables in one transaction. Expense rows are left untouched — their `creditCardId` column retains the deleted card's ID; all display queries use LEFT JOINs so the card fields resolve to null silently.
+
+The Settings removal flow uses the transaction count to decide which UI to show. Zero linked transactions: plain system alert with Cancel / Delete. One or more linked transactions: a custom modal with three actions — **Archive** (primary, prominent), **Delete Anyway** (de-emphasised, ghost/text style), and **Cancel**. When `amountDue.total > 0` the modal body includes a second sentence warning that the outstanding balance will be marked as settled on archive.
+
+After a successful archive the card immediately gains an "Archived" badge in the Settings list. It is excluded from the active-only surfaces (add transaction modal, chat inline form, dashboard carousel) automatically because those surfaces already use `activeOnly = true`.
+
+### Acceptance criteria
+
+- [ ] Tapping remove on a card with zero linked transactions shows a plain system alert
+- [ ] Confirming on that alert hard-deletes the card row, all credit-card-expenses rows for that card, and all credit-card-payments rows for that card
+- [ ] Expense rows that referenced the deleted card retain their `creditCardId` value (no nulling out)
+- [ ] Tapping remove on a card with linked transactions shows the custom archive modal
+- [ ] The archive modal shows how many transactions are linked
+- [ ] The archive modal shows an outstanding balance warning when `amountDue.total > 0`
+- [ ] Tapping Archive sets `isActive: 0` and `usedAmount: 0` on the card
+- [ ] Archived card disappears from the add-transaction modal dropdown
+- [ ] Archived card disappears from the chat inline expense form dropdown
+- [ ] Archived card disappears from the dashboard carousel
+- [ ] Archived card appears in the Settings list with an "Archived" badge
+- [ ] Tapping Delete Anyway from the archive modal hard-deletes the card and linking table rows (same as the no-transaction path)
+- [ ] `pnpm lint` passes
+- [ ] `pnpm typecheck` passes
+
+---
+
+## Phase 11 — Unarchive & Archived Cards in Filter
+
+**User stories**: 18, 19, 20, 21
+
+### What to build
+
+Give users a way to reactivate an archived card and allow filtering transactions by archived cards in the all-transactions screen.
+
+Archived card rows in the Settings list gain an Unarchive CTA. Tapping it shows a confirmation alert: "Reactivate this card? Your transaction history will stay intact. The balance will start from zero." Confirming sets `isActive: 1`; `usedAmount` stays at zero (fresh start — the app has no record of real-world payments made while the card was hidden).
+
+The transaction filter dropdown is updated to use all cards (active and archived). Archived card option labels are suffixed with `· Archived` so users can identify them at a glance. Active card labels are unchanged. This change applies to the all-transactions screen; the credit-card detail screen already sets `showCardFilter: false` so no change is needed there.
+
+### Acceptance criteria
+
+- [ ] Archived card rows in Settings show an Unarchive CTA
+- [ ] Tapping Unarchive shows a confirmation alert before proceeding
+- [ ] Confirming sets `isActive: 1` on the card; `usedAmount` remains 0
+- [ ] Unarchived card reappears in the add-transaction dropdown, chat form, and dashboard carousel
+- [ ] Archived cards appear in the all-transactions filter dropdown
+- [ ] Archived card options are labelled with a `· Archived` suffix
+- [ ] Active card options in the filter are unchanged (no suffix)
+- [ ] Filtering by an archived card shows all transactions linked to that card
+- [ ] `pnpm lint` passes
+- [ ] `pnpm typecheck` passes

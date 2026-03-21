@@ -79,6 +79,14 @@ const PREDEFINED_CATEGORIES = [
     isActive: 1,
   },
   {
+    name: 'Bills',
+    type: CategoryTypeEnum.BILLS,
+    icon: 'receipt-outline',
+    color: '#6366F1',
+    isPredefined: 1,
+    isActive: 1,
+  },
+  {
     name: 'Other',
     type: CategoryTypeEnum.OTHER,
     icon: 'ellipsis-horizontal-outline', // Ionicons

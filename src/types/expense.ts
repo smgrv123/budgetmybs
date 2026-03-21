@@ -13,6 +13,7 @@ export type AllExpense = {
   categoryId: string | null;
   sourceType: string | null;
   sourceId: string | null;
+  creditCardId: string | null;
   creditCardTxnType: CreditCardTxnType | null;
   createdAt: string | null;
   category: {
@@ -30,17 +31,25 @@ export type AllExpense = {
   transactionType: TransactionTypeValue;
 };
 
-// ─── SectionList section ───────────────────────────────────────────────────────
-export type ExpenseSection = {
+// ─── FlatList item types (section headers + transaction rows) ─────────────────
+export type TransactionListSectionHeader = {
+  type: 'sectionHeader';
   title: string; // e.g. "March 2026"
   month: string; // e.g. "2026-03"
-  total: number; // sum of expenses in this section (savings excluded)
-  data: AllExpense[];
+  total: number; // sum of expenses in this month (savings excluded)
 };
+
+export type TransactionListTransaction = {
+  type: 'transaction';
+  data: AllExpense;
+};
+
+export type TransactionListItem = TransactionListSectionHeader | TransactionListTransaction;
 
 // ─── Filter state ─────────────────────────────────────────────────────────────
 export type ExpenseFilter = {
   categoryId: string | null;
+  creditCardId: string | null;
   startDate: string;
   endDate: string;
   type: ExpenseFilterTypeValue;
@@ -55,6 +64,7 @@ export type ExpenseFilterTypeValue = (typeof ExpenseFilterType)[keyof typeof Exp
 
 export const DEFAULT_EXPENSE_FILTER: ExpenseFilter = {
   categoryId: null,
+  creditCardId: null,
   startDate: '',
   endDate: '',
   type: ExpenseFilterType.ALL,

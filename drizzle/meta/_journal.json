@@ -29,6 +29,13 @@
       "when": 1773631093345,
       "tag": "0003_living_sleepwalker",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1773970524296,
+      "tag": "0004_slim_leader",
+      "breakpoints": true
     }
   ]
 }

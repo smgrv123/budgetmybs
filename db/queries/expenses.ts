@@ -91,6 +91,7 @@ export const getExpensesWithCategory = async (month?: string) => {
       description: expensesTable.description,
       date: expensesTable.date,
       wasImpulse: expensesTable.wasImpulse,
+      creditCardId: expensesTable.creditCardId,
       creditCardTxnType: expensesTable.creditCardTxnType,
       createdAt: expensesTable.createdAt,
       category: {
@@ -134,6 +135,8 @@ export const getExpenseById = async (id: string) => {
       categoryId: expensesTable.categoryId,
       sourceType: expensesTable.sourceType,
       sourceId: expensesTable.sourceId,
+      creditCardId: expensesTable.creditCardId,
+      creditCardTxnType: expensesTable.creditCardTxnType,
       createdAt: expensesTable.createdAt,
       category: {
         id: categoriesTable.id,
@@ -142,9 +145,15 @@ export const getExpenseById = async (id: string) => {
         icon: categoriesTable.icon,
         color: categoriesTable.color,
       },
+      creditCard: {
+        nickname: creditCardsTable.nickname,
+        last4: creditCardsTable.last4,
+        provider: creditCardsTable.provider,
+      },
     })
     .from(expensesTable)
     .leftJoin(categoriesTable, eq(expensesTable.categoryId, categoriesTable.id))
+    .leftJoin(creditCardsTable, eq(expensesTable.creditCardId, creditCardsTable.id))
     .where(eq(expensesTable.id, id))
     .limit(1);
 
@@ -434,10 +443,18 @@ export const getOneOffSavings = async (month?: string) => {
 };
 
 /**
- * Get ALL expenses + savings across all time, with category join.
- * No month or isSaving filter — consumers split by `isSaving` flag.
+ * Get expenses + savings with category/card joins, supporting
+ * server-side filtering and offset-based pagination.
  */
-export const getAllExpensesWithCategory = async () => {
+export const getAllExpensesWithCategory = async (filter?: {
+  categoryId?: string;
+  creditCardId?: string;
+  startDate?: string;
+  endDate?: string;
+  isSaving?: number;
+  limit?: number;
+  offset?: number;
+}) => {
   return db
     .select({
       id: expensesTable.id,
@@ -450,6 +467,7 @@ export const getAllExpensesWithCategory = async () => {
       categoryId: expensesTable.categoryId,
       sourceType: expensesTable.sourceType,
       sourceId: expensesTable.sourceId,
+      creditCardId: expensesTable.creditCardId,
       creditCardTxnType: expensesTable.creditCardTxnType,
       createdAt: expensesTable.createdAt,
       category: {
@@ -468,7 +486,18 @@ export const getAllExpensesWithCategory = async () => {
     .from(expensesTable)
     .leftJoin(categoriesTable, eq(expensesTable.categoryId, categoriesTable.id))
     .leftJoin(creditCardsTable, eq(expensesTable.creditCardId, creditCardsTable.id))
-    .orderBy(desc(expensesTable.date));
+    .where(
+      and(
+        filter?.categoryId ? eq(expensesTable.categoryId, filter.categoryId) : undefined,
+        filter?.creditCardId ? eq(expensesTable.creditCardId, filter.creditCardId) : undefined,
+        filter?.startDate ? sql`${expensesTable.date} >= ${filter.startDate}` : undefined,
+        filter?.endDate ? sql`${expensesTable.date} <= ${filter.endDate}` : undefined,
+        filter?.isSaving !== undefined ? eq(expensesTable.isSaving, filter.isSaving) : undefined
+      )
+    )
+    .orderBy(desc(expensesTable.date))
+    .limit(filter?.limit ?? 30)
+    .offset(filter?.offset ?? 0);
 };
 
 /**

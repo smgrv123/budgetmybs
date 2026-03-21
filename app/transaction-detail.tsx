@@ -1,4 +1,5 @@
 import type { UpdateExpenseInput } from '@/db/schema-types';
+import { CreditCardTxnTypeEnum } from '@/db/types';
 import {
   BButton,
   BCard,
@@ -12,16 +13,9 @@ import {
   BView,
   ScreenHeader,
 } from '@/src/components/ui';
+import { CREDIT_CARD_PROVIDER_COLORS } from '@/src/constants/credit-cards.config';
 import type { ToastVariantType } from '@/src/constants/theme';
-import {
-  ButtonVariant,
-  CardVariant,
-  Opacity,
-  Spacing,
-  SpacingValue,
-  TextVariant,
-  ToastVariant,
-} from '@/src/constants/theme';
+import { ButtonVariant, CardVariant, Spacing, SpacingValue, TextVariant, ToastVariant } from '@/src/constants/theme';
 import {
   TRANSACTION_COMMON_STRINGS,
   TRANSACTION_DETAIL_STRINGS,
@@ -191,40 +185,33 @@ export default function TransactionDetailScreen() {
   }
 
   const isSaving = expense.isSaving === 1;
+  const isBillPayment = expense.creditCardTxnType === CreditCardTxnTypeEnum.PAYMENT;
   const amountColor = isSaving ? themeColors.success : themeColors.error;
   const amountPrefix = isSaving ? '+' : '-';
 
+  const headerActions = !isEditing
+    ? [
+        {
+          icon: 'create-outline',
+          onPress: enterEditMode,
+          color: isRecurring ? themeColors.textMuted : themeColors.primary,
+        },
+        {
+          icon: 'trash-outline',
+          onPress: handleDelete,
+          color: isRecurring ? themeColors.textMuted : themeColors.error,
+        },
+      ]
+    : undefined;
+
   return (
     <BSafeAreaView edges={['top', 'left', 'right']}>
-      {/* Header */}
-      <BView row align="center" justify="space-between" paddingX={SpacingValue.LG}>
-        <BView flex>
-          <ScreenHeader title={TRANSACTION_DETAIL_STRINGS.screenTitle} titleVariant={TextVariant.SUBHEADING} />
-        </BView>
-        {!isEditing && (
-          <BView row gap={SpacingValue.SM}>
-            <BButton
-              variant={ButtonVariant.GHOST}
-              onPress={enterEditMode}
-              padding={SpacingValue.XS}
-              style={isRecurring && { opacity: Opacity.disabled }}
-            >
-              <BIcon
-                name="create-outline"
-                size="base"
-                color={isRecurring ? themeColors.textMuted : themeColors.primary}
-              />
-            </BButton>
-            <BButton
-              variant={ButtonVariant.GHOST}
-              onPress={handleDelete}
-              padding={SpacingValue.XS}
-              style={isRecurring && { opacity: Opacity.disabled }}
-            >
-              <BIcon name="trash-outline" size="base" color={isRecurring ? themeColors.textMuted : themeColors.error} />
-            </BButton>
-          </BView>
-        )}
+      <BView paddingX={SpacingValue.LG}>
+        <ScreenHeader
+          title={TRANSACTION_DETAIL_STRINGS.screenTitle}
+          titleVariant={TextVariant.SUBHEADING}
+          actions={headerActions}
+        />
       </BView>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -272,47 +259,82 @@ export default function TransactionDetailScreen() {
           )}
         </BCard>
 
+        {/* Credit Card Attribution — read-only, shown only when expense is linked to a card */}
+        {expense.creditCard && (
+          <BCard variant={CardVariant.ELEVATED} style={styles.card}>
+            <BView row align="center" gap={SpacingValue.MD}>
+              <BIcon name="card-outline" size="sm" color={themeColors.textMuted} style={styles.rowIcon} />
+              <BView flex>
+                <BText variant={TextVariant.CAPTION} muted>
+                  {TRANSACTION_DETAIL_STRINGS.creditCardLabel}
+                </BText>
+                <BView row align="center" gap={SpacingValue.XS} style={{ marginTop: Spacing.xs }}>
+                  {/* Provider-coloured dot — same pattern as TransactionCard attribution */}
+                  <BView
+                    fullRounded
+                    style={{
+                      width: 8,
+                      height: 8,
+                      backgroundColor: CREDIT_CARD_PROVIDER_COLORS[expense.creditCard.provider],
+                    }}
+                  />
+                  <BText variant={TextVariant.LABEL}>
+                    {expense.creditCard.nickname} ••{expense.creditCard.last4}
+                  </BText>
+                </BView>
+              </BView>
+            </BView>
+            {/* TODO: allow card reassignment in a future edit flow.
+                Requires updating usedAmount on both old and new card,
+                moving the creditCardExpenses row, and recomputing statement fields. */}
+          </BCard>
+        )}
+
         {/* Details Card */}
         <BCard variant={CardVariant.ELEVATED} style={styles.card}>
           <BView gap={SpacingValue.MD}>
-            {/* Category Row */}
-            <BView row align="flex-start" gap={SpacingValue.MD}>
-              <BIcon name="pricetag-outline" size="sm" color={themeColors.textMuted} style={styles.rowIcon} />
-              <BView flex>
-                <BText variant={TextVariant.CAPTION} muted>
-                  {TRANSACTION_DETAIL_STRINGS.categoryLabel}
-                </BText>
-                {isEditing ? (
-                  <BView style={{ marginTop: Spacing.xs }}>
-                    <BDropdown
-                      options={categoryOptions}
-                      value={editCategoryId ?? ''}
-                      onValueChange={(v) => setEditCategoryId(String(v) === '' ? null : String(v))}
-                      searchable
-                      modalTitle="Select Category"
-                    />
-                  </BView>
-                ) : (
-                  <BView row align="center" gap={SpacingValue.XS} style={{ marginTop: Spacing.xs }}>
-                    {expense.category?.icon && (
-                      <BIcon
-                        name={expense.category.icon as any}
-                        size="sm"
-                        color={expense.category.color ?? themeColors.textMuted}
-                      />
-                    )}
-                    <BText variant={TextVariant.LABEL}>
-                      {expense.category?.name ??
-                        (isSaving ? expense.savingsType : TRANSACTION_COMMON_STRINGS.uncategorizedFallback) ??
-                        TRANSACTION_COMMON_STRINGS.uncategorizedFallback}
+            {/* Category Row + divider — hidden for bill payments (auto-set to Bills, not user-editable) */}
+            {(!isEditing || !isBillPayment) && (
+              <>
+                <BView row align="flex-start" gap={SpacingValue.MD}>
+                  <BIcon name="pricetag-outline" size="sm" color={themeColors.textMuted} style={styles.rowIcon} />
+                  <BView flex>
+                    <BText variant={TextVariant.CAPTION} muted>
+                      {TRANSACTION_DETAIL_STRINGS.categoryLabel}
                     </BText>
+                    {isEditing ? (
+                      <BView style={{ marginTop: Spacing.xs }}>
+                        <BDropdown
+                          options={categoryOptions}
+                          value={editCategoryId ?? ''}
+                          onValueChange={(v) => setEditCategoryId(String(v) === '' ? null : String(v))}
+                          searchable
+                          modalTitle="Select Category"
+                        />
+                      </BView>
+                    ) : (
+                      <BView row align="center" gap={SpacingValue.XS} style={{ marginTop: Spacing.xs }}>
+                        {expense.category?.icon && (
+                          <BIcon
+                            name={expense.category.icon as any}
+                            size="sm"
+                            color={expense.category.color ?? themeColors.textMuted}
+                          />
+                        )}
+                        <BText variant={TextVariant.LABEL}>
+                          {expense.category?.name ??
+                            (isSaving ? expense.savingsType : TRANSACTION_COMMON_STRINGS.uncategorizedFallback) ??
+                            TRANSACTION_COMMON_STRINGS.uncategorizedFallback}
+                        </BText>
+                      </BView>
+                    )}
                   </BView>
-                )}
-              </BView>
-            </BView>
+                </BView>
 
-            {/* Divider */}
-            <BView style={[styles.divider, { backgroundColor: themeColors.border }]} />
+                {/* Divider */}
+                <BView style={[styles.divider, { backgroundColor: themeColors.border }]} />
+              </>
+            )}
 
             {/* Date Row */}
             <BView row align="center" gap={SpacingValue.MD}>

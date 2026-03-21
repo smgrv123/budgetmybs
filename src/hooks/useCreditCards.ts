@@ -1,6 +1,17 @@
-import { createCreditCard, deleteCreditCard, getCreditCardSummaries, getCreditCards, updateCreditCard } from '@/db';
-import type { UpdateCreditCardInput } from '@/db/schema-types';
+import {
+  archiveCreditCard,
+  createCreditCard,
+  createCreditCardPayment,
+  deleteCreditCard,
+  getCreditCardLinkedTransactionCount,
+  getCreditCardSummaries,
+  getCreditCards,
+  unarchiveCreditCard,
+  updateCreditCard,
+} from '@/db';
+import type { CreateCreditCardPaymentInput, UpdateCreditCardInput } from '@/db/schema-types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { EXPENSES_QUERY_KEY, TOTAL_SPENT_QUERY_KEY } from './useExpenses';
 
 export const CREDIT_CARDS_QUERY_KEY = ['creditCards'] as const;
 export const CREDIT_CARD_SUMMARIES_QUERY_KEY = ['creditCards', 'summaries'] as const;
@@ -42,6 +53,42 @@ export const useCreditCards = (activeOnly = true) => {
     },
   });
 
+  const archiveMutation = useMutation({
+    mutationFn: archiveCreditCard,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CREDIT_CARDS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: CREDIT_CARD_SUMMARIES_QUERY_KEY });
+    },
+    onError: (error) => {
+      console.error('Failed to archive credit card:', error);
+    },
+  });
+
+  const unarchiveMutation = useMutation({
+    mutationFn: unarchiveCreditCard,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CREDIT_CARDS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: CREDIT_CARD_SUMMARIES_QUERY_KEY });
+    },
+    onError: (error) => {
+      console.error('Failed to unarchive credit card:', error);
+    },
+  });
+
+  const payBillMutation = useMutation({
+    mutationFn: ({ data, description }: { data: CreateCreditCardPaymentInput; description: string }) =>
+      createCreditCardPayment(data, description),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CREDIT_CARDS_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: CREDIT_CARD_SUMMARIES_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: EXPENSES_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: TOTAL_SPENT_QUERY_KEY });
+    },
+    onError: (error) => {
+      console.error('Failed to record credit card payment:', error);
+    },
+  });
+
   return {
     creditCards: creditCardsQuery.data ?? [],
     creditCardSummaries: summariesQuery.data ?? [],
@@ -67,5 +114,19 @@ export const useCreditCards = (activeOnly = true) => {
     removeCreditCard: deleteMutation.mutate,
     removeCreditCardAsync: deleteMutation.mutateAsync,
     isRemovingCreditCard: deleteMutation.isPending,
+
+    archiveCreditCard: archiveMutation.mutate,
+    archiveCreditCardAsync: archiveMutation.mutateAsync,
+    isArchivingCreditCard: archiveMutation.isPending,
+
+    unarchiveCreditCard: unarchiveMutation.mutate,
+    unarchiveCreditCardAsync: unarchiveMutation.mutateAsync,
+    isUnarchivingCreditCard: unarchiveMutation.isPending,
+
+    getLinkedTransactionCount: getCreditCardLinkedTransactionCount,
+
+    payBill: payBillMutation.mutate,
+    payBillAsync: payBillMutation.mutateAsync,
+    isPayingBill: payBillMutation.isPending,
   };
 };

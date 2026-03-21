@@ -23,7 +23,9 @@ export type CreditCardPreviewCardProps = {
   dueDateLabel?: string | null;
   onDelete?: () => void;
   onEdit?: () => void;
+  onUnarchive?: () => void;
   isEditing?: boolean;
+  isArchived?: boolean;
   confirmDelete?: boolean;
 };
 
@@ -38,7 +40,9 @@ const CreditCardPreviewCard: FC<CreditCardPreviewCardProps> = ({
   dueDateLabel,
   onDelete,
   onEdit,
+  onUnarchive,
   isEditing,
+  isArchived = false,
   confirmDelete = true,
 }) => {
   const themeColors = useThemeColors();
@@ -94,7 +98,18 @@ const CreditCardPreviewCard: FC<CreditCardPreviewCardProps> = ({
                 {displayProvider}
               </BText>
             )}
-            {!isEditing && (
+            {isArchived && (
+              <BView
+                padding={SpacingValue.XS}
+                rounded={SpacingValue.SM}
+                style={{ backgroundColor: 'rgba(0,0,0,0.35)' }}
+              >
+                <BText variant={TextVariant.CAPTION} color={themeColors.white}>
+                  {CREDIT_CARDS_SETTINGS_STRINGS.archivedSection.title}
+                </BText>
+              </BView>
+            )}
+            {!isEditing && !isArchived && (
               <>
                 {onEdit && (
                   <BButton
@@ -117,6 +132,16 @@ const CreditCardPreviewCard: FC<CreditCardPreviewCardProps> = ({
                   </BButton>
                 )}
               </>
+            )}
+            {!isEditing && isArchived && onUnarchive && (
+              <BButton
+                variant={ButtonVariant.GHOST}
+                onPress={onUnarchive}
+                padding={SpacingValue.XS}
+                rounded={SpacingValue.SM}
+              >
+                <BIcon name="refresh-outline" size={IconSize.sm} color={themeColors.white} />
+              </BButton>
             )}
           </BView>
         </BView>

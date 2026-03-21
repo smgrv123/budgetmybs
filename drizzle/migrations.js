@@ -5,6 +5,7 @@ import m0000 from './0000_brainy_red_shift.sql';
 import m0001 from './0001_normal_tony_stark.sql';
 import m0002 from './0002_married_skullbuster.sql';
 import m0003 from './0003_living_sleepwalker.sql';
+import m0004 from './0004_slim_leader.sql';
 
   export default {
     journal,
@@ -12,7 +13,8 @@ import m0003 from './0003_living_sleepwalker.sql';
       m0000,
 m0001,
 m0002,
-m0003
+m0003,
+m0004
     }
   }
   
