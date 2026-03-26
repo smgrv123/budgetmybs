@@ -4,6 +4,7 @@ import { BIcon } from '@/src/components/ui';
 import type { BIconProps } from '@/src/components/ui/icon';
 import { BorderRadius, IconSize } from '@/src/constants/theme';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
+import { useNotificationPermissions, useNotificationScheduler } from '@/src/hooks';
 
 function TabIcon({ name, color }: { name: BIconProps['name']; color: string }) {
   return <BIcon name={name} size={IconSize.base} color={color} />;
@@ -11,6 +12,8 @@ function TabIcon({ name, color }: { name: BIconProps['name']; color: string }) {
 
 export default function DashboardLayout() {
   const themeColors = useThemeColors();
+  useNotificationPermissions();
+  useNotificationScheduler();
 
   return (
     <Tabs

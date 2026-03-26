@@ -16,6 +16,8 @@ export {
 } from './useExpenses';
 export { FIXED_EXPENSES_QUERY_KEY, TOTAL_FIXED_EXPENSES_QUERY_KEY, useFixedExpenses } from './useFixedExpenses';
 export { MONTHLY_BUDGET_QUERY_KEY, useMonthlyBudget } from './useMonthlyBudget';
+export { useNotificationPermissions } from './useNotificationPermissions';
+export { useNotificationScheduler } from './useNotificationScheduler';
 export { PROFILE_QUERY_KEY, useProfile } from './useProfile';
 export { useRecurringStatus } from './useRecurringStatus';
 export {

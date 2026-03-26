@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { CreditCardTxnTypeEnum, RecurringSourceTypeEnum } from '@/db/types';
@@ -13,6 +13,7 @@ import {
   BLink,
   BSafeAreaView,
   BText,
+  BToast,
   BView,
   QuickStatSheet,
 } from '@/src/components';
@@ -26,8 +27,9 @@ import {
   CREDIT_CARD_PROVIDER_OPTIONS,
 } from '@/src/constants/credit-cards.config';
 import { createQuickStats, createStatCards, QuickStatType } from '@/src/constants/dashboardData';
+import { BUDGET_ALERT_STRINGS } from '@/src/constants/notifications.strings';
 import { CREDIT_CARDS_SETTINGS_STRINGS } from '@/src/constants/settings.strings';
-import { BorderRadius, ButtonVariant, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
+import { BorderRadius, ButtonVariant, Spacing, SpacingValue, TextVariant, ToastVariant } from '@/src/constants/theme';
 import {
   useCreditCards,
   useDebts,
@@ -43,6 +45,7 @@ import type { QuickStatTypeValue } from '@/src/types/dashboard';
 import { calculateTotalEMI, calculateTotalFixedExpenses } from '@/src/utils/budget';
 import { mapDebtToSheet, mapFixedExpenseToSheet, mapSavingsGoalToSheet } from '@/src/utils/dashboard';
 import { formatDate } from '@/src/utils/date';
+import { computeFrivolousBudgetAlert } from '@/src/utils/notificationUtils';
 
 export default function DashboardScreen() {
   const themeColors = useThemeColors();
@@ -56,7 +59,7 @@ export default function DashboardScreen() {
   const { expenses, totalSpent, totalSaved: totalOneOffSavings, oneOffSavings } = useExpenses();
   const { creditCards, creditCardSummaries } = useCreditCards();
   const { isItemProcessed } = useRecurringStatus();
-  const { rollover, resetRollover, isResettingRollover } = useMonthlyBudget();
+  const { snapshot, rollover, resetRollover, isResettingRollover } = useMonthlyBudget();
 
   // Gradient colors (theme-aware)
   const HEADER_GRADIENT: [string, string, string] = [
@@ -64,6 +67,35 @@ export default function DashboardScreen() {
     themeColors.confirmationGradientMiddle,
     themeColors.confirmationGradientEnd,
   ];
+
+  // Budget alert session flags — reset when component unmounts (e.g. app restart)
+  const has80Shown = useRef(false);
+  const has100Shown = useRef(false);
+
+  // Toast state
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastVariant, setToastVariant] = useState<typeof ToastVariant.WARNING | typeof ToastVariant.ERROR>(
+    ToastVariant.WARNING
+  );
+
+  const handleExpenseCreated = (amount: number) => {
+    const totalFrivolousBudget = (snapshot?.frivolousBudget ?? 0) + (snapshot?.rolloverFromPrevious ?? 0);
+    const newTotalSpent = totalSpent + amount;
+    const alert = computeFrivolousBudgetAlert(newTotalSpent, totalFrivolousBudget);
+
+    if (alert === 'error' && !has100Shown.current) {
+      has100Shown.current = true;
+      setToastMessage(BUDGET_ALERT_STRINGS.error.message);
+      setToastVariant(ToastVariant.ERROR);
+      setToastVisible(true);
+    } else if (alert === 'warning' && !has80Shown.current) {
+      has80Shown.current = true;
+      setToastMessage(BUDGET_ALERT_STRINGS.warning.message);
+      setToastVariant(ToastVariant.WARNING);
+      setToastVisible(true);
+    }
+  };
 
   // Modal states
   const [isAddTransactionModalVisible, setIsAddTransactionModalVisible] = useState(false);
@@ -384,6 +416,15 @@ export default function DashboardScreen() {
       <AddTransactionModal
         visible={isAddTransactionModalVisible}
         onClose={() => setIsAddTransactionModalVisible(false)}
+        onExpenseCreated={handleExpenseCreated}
+      />
+
+      {/* Budget threshold toast */}
+      <BToast
+        visible={toastVisible}
+        message={toastMessage}
+        variant={toastVariant}
+        onDismiss={() => setToastVisible(false)}
       />
 
       {/* Quick Stat Sheet */}

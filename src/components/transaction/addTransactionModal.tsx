@@ -36,12 +36,14 @@ const savingSchema = z.object({
 type AddTransactionModalProps = {
   visible: boolean;
   onClose: () => void;
+  /** Called after an expense (not a saving) is successfully created, with the saved amount */
+  onExpenseCreated?: (amount: number) => void;
 };
 
 /**
  * Unified modal for adding expenses or one-off savings
  */
-const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose }) => {
+const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, onExpenseCreated }) => {
   const themeColors = useThemeColors();
   const [activeTab, setActiveTab] = useState<TransactionTab>(TransactionTab.EXPENSE);
   const [amount, setAmount] = useState('');
@@ -125,6 +127,7 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose })
         },
         {
           onSuccess: () => {
+            onExpenseCreated?.(validationResult.data.amount);
             handleClose();
           },
           onError: (error) => {

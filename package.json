@@ -11,7 +11,19 @@
     "typecheck": "tsc --noEmit",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepare": "husky",
-    "db:generate": "drizzle-kit generate"
+    "db:generate": "drizzle-kit generate",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/__tests__/**/*.test.ts"
+    ],
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/$1"
+    }
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -28,6 +40,7 @@
     "expo-haptics": "~15.0.8",
     "expo-linear-gradient": "^15.0.8",
     "expo-network": "^8.0.8",
+    "expo-notifications": "~0.32.16",
     "expo-router": "~6.0.23",
     "expo-secure-store": "^15.0.8",
     "expo-splash-screen": "~31.0.13",
@@ -48,6 +61,7 @@
     "zustand": "^5.0.9"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/react": "~19.1.0",
     "babel-plugin-inline-import": "^3.0.0",
     "drizzle-kit": "^0.31.8",
@@ -55,8 +69,11 @@
     "eslint-config-expo": "~10.0.0",
     "eslint-plugin-react-native": "^5.0.0",
     "husky": "^9.1.7",
+    "jest": "^30.3.0",
+    "jest-expo": "^55.0.11",
     "lint-staged": "^16.2.7",
     "prettier": "^3.7.4",
+    "ts-jest": "^29.4.6",
     "typescript": "~5.9.2"
   },
   "lint-staged": {
