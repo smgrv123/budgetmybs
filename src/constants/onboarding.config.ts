@@ -1,5 +1,12 @@
 import type { DebtPayoffPreference } from '@/db/types';
-import { DebtLabels, DebtPayoffPreferenceEnum, FixedExpenseLabels, SavingsLabels } from '@/db/types';
+import {
+  DebtLabels,
+  DebtPayoffPreferenceEnum,
+  FixedExpenseLabels,
+  IncomeLabels,
+  SavingsLabels,
+  USER_INCOME_TYPES,
+} from '@/db/types';
 
 export const OTHER_TYPE_VALUE = 'other';
 
@@ -62,6 +69,11 @@ export const DebtTypeOptions: DropdownOptionConfig[] = Object.entries(DebtLabels
 export const SavingsTypeOptions: DropdownOptionConfig[] = Object.entries(SavingsLabels).map(([value, label]) => ({
   value,
   label,
+}));
+
+export const IncomeTypeOptions: DropdownOptionConfig[] = USER_INCOME_TYPES.map((value) => ({
+  value,
+  label: IncomeLabels[value],
 }));
 
 // ============================================

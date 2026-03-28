@@ -2,6 +2,7 @@ import React, { FC, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { AsyncStorageKeys } from '@/src/constants/asyncStorageKeys';
+import { INCOME_SETTINGS_STRINGS } from '@/src/constants/income.strings';
 import { BorderRadius, ButtonVariant, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { HealthScoreWeights } from '@/src/types';
@@ -12,6 +13,7 @@ import { BButton, BIcon, BText, BView } from '../ui';
 type DashboardHeroCardProps = {
   carouselCardWidth: number;
   rollover: number;
+  additionalIncome: number;
   handleResetRollover: () => void;
   isResettingRollover: boolean;
   budgetRemaining: number;
@@ -22,6 +24,7 @@ type DashboardHeroCardProps = {
 const DashboardHeroCard: FC<DashboardHeroCardProps> = ({
   carouselCardWidth,
   rollover,
+  additionalIncome,
   handleResetRollover,
   isResettingRollover,
   budgetRemaining,
@@ -64,6 +67,14 @@ const DashboardHeroCard: FC<DashboardHeroCardProps> = ({
             >
               <BIcon name="close-circle-outline" color={themeColors.textMuted} size="sm" />
             </BButton>
+          </BView>
+        )}
+        {additionalIncome > 0 && (
+          <BView row align="center" style={{ marginBottom: Spacing.xxs }}>
+            <BIcon name="arrow-up-circle-outline" color={themeColors.success} size="sm" />
+            <BText variant={TextVariant.CAPTION} style={{ color: themeColors.success, marginLeft: Spacing.xxs }}>
+              {INCOME_SETTINGS_STRINGS.budget.additionalIncomeBadge(formatCurrency(additionalIncome))}
+            </BText>
           </BView>
         )}
         <BText variant={TextVariant.HEADING} style={{ marginBottom: Spacing.md }}>

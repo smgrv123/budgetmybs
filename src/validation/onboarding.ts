@@ -1,3 +1,4 @@
+import { USER_INCOME_TYPES } from '@/db/types';
 import { OnboardingStrings } from '@/src/constants/onboarding.strings';
 import { z } from 'zod';
 
@@ -86,6 +87,24 @@ export const savingsGoalSchema = z.object({
 });
 
 export type SavingsGoalFormData = z.infer<typeof savingsGoalSchema>;
+
+// ============================================
+// INCOME SCHEMA
+// ============================================
+
+export const incomeSchema = z.object({
+  amount: z.number().positive({ message: validation.positiveNumber }),
+  type: z
+    .string()
+    .min(1, { message: validation.required })
+    .refine((v) => USER_INCOME_TYPES.includes(v as (typeof USER_INCOME_TYPES)[number]), {
+      message: validation.required,
+    }),
+  customType: z.string().optional(),
+  description: z.string().optional(),
+});
+
+export type IncomeFormData = z.infer<typeof incomeSchema>;
 
 // ============================================
 // VALIDATION HELPERS

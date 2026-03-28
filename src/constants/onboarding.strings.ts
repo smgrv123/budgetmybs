@@ -139,6 +139,36 @@ export const OnboardingStrings = {
     },
   },
 
+  income: {
+    screenTitle: 'Additional Income',
+    heading: 'Additional Income',
+    subheading: 'Add bonuses, freelance income, cashback, and more',
+    addButton: 'Add Income',
+    skipButton: 'Skip for now',
+    continueButton: 'Continue',
+    form: {
+      amount: {
+        placeholder: 'Amount',
+      },
+      type: {
+        placeholder: 'Select type',
+      },
+      description: {
+        placeholder: 'Description (optional)',
+      },
+      addButton: 'Add',
+      cancelButton: 'Cancel',
+      saveButton: 'Save',
+      cancelEditButton: 'Cancel',
+    },
+    customTypeModal: {
+      title: 'Add Custom Income Type',
+      placeholder: 'Enter income type',
+      addButton: 'Add',
+      cancelButton: 'Cancel',
+    },
+  },
+
   savings: {
     screenTitle: 'Monthly Savings',
     heading: 'Your Savings',

@@ -1,4 +1,5 @@
 import { CREDIT_CARD_ICON_NAMES } from '@/src/constants/credit-cards.config';
+import { INCOME_SETTINGS_STRINGS } from '@/src/constants/income.strings';
 import {
   CREDIT_CARDS_SETTINGS_STRINGS,
   DEBTS_SETTINGS_STRINGS,
@@ -47,10 +48,24 @@ export const createFinancialDataItems = (themeColors: ThemeColors): FinancialDat
     iconColor: themeColors.primary,
     route: '/settings/credit-cards',
   },
+  {
+    key: FinancialDataKey.INCOME,
+    label: INCOME_SETTINGS_STRINGS.screenTitle,
+    icon: 'cash-outline',
+    iconBgColor: themeColors.successBackground,
+    iconColor: themeColors.success,
+    route: '/settings/income',
+  },
 ];
 
 export const BUDGET_OVERVIEW_ITEMS: BudgetOverviewItem[] = [
   { key: 'income', label: 'Monthly Income', valueKey: BudgetValueKey.SALARY },
+  {
+    key: 'additionalIncome',
+    label: 'Additional Income',
+    valueKey: BudgetValueKey.ADDITIONAL_INCOME,
+    hideWhenZero: true,
+  },
   { key: 'fixed', label: 'Fixed Expenses', valueKey: BudgetValueKey.FIXED_EXPENSES, isNegative: true },
   { key: 'debt', label: 'Debt Payments', valueKey: BudgetValueKey.DEBT_PAYMENTS, isNegative: true },
 ];

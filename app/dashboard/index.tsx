@@ -59,7 +59,7 @@ export default function DashboardScreen() {
   const { expenses, totalSpent, totalSaved: totalOneOffSavings, oneOffSavings } = useExpenses();
   const { creditCards, creditCardSummaries } = useCreditCards();
   const { isItemProcessed } = useRecurringStatus();
-  const { snapshot, rollover, resetRollover, isResettingRollover } = useMonthlyBudget();
+  const { snapshot, rollover, additionalIncome, resetRollover, isResettingRollover } = useMonthlyBudget();
 
   // Gradient colors (theme-aware)
   const HEADER_GRADIENT: [string, string, string] = [
@@ -80,7 +80,8 @@ export default function DashboardScreen() {
   );
 
   const handleExpenseCreated = (amount: number) => {
-    const totalFrivolousBudget = (snapshot?.frivolousBudget ?? 0) + (snapshot?.rolloverFromPrevious ?? 0);
+    const totalFrivolousBudget =
+      (snapshot?.frivolousBudget ?? 0) + (snapshot?.rolloverFromPrevious ?? 0) + additionalIncome;
     const newTotalSpent = totalSpent + amount;
     const alert = computeFrivolousBudgetAlert(newTotalSpent, totalFrivolousBudget);
 
@@ -117,7 +118,7 @@ export default function DashboardScreen() {
 
   // Calculate budget remaining
   const totalCommitments = savedThisMonth + spentThisMonth;
-  const effectiveBudget = monthlyIncome + rollover;
+  const effectiveBudget = monthlyIncome + rollover + additionalIncome;
   const budgetRemaining = effectiveBudget - totalCommitments;
   const budgetUsedPercent = effectiveBudget > 0 ? Math.round((totalCommitments / effectiveBudget) * 100) : 0;
   const carouselCardWidth = Math.max(0, screenWidth - Spacing.lg * 2);
@@ -246,6 +247,7 @@ export default function DashboardScreen() {
             <DashboardHeroCard
               carouselCardWidth={carouselCardWidth}
               rollover={rollover}
+              additionalIncome={additionalIncome}
               handleResetRollover={handleResetRollover}
               isResettingRollover={isResettingRollover}
               budgetRemaining={budgetRemaining}

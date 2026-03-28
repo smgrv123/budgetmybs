@@ -1,9 +1,10 @@
 import { BText, BView } from '@/src/components/ui';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
-import type { BudgetOverviewItem } from '@/src/types/settings';
 
-interface BudgetOverviewRowProps extends BudgetOverviewItem {
+interface BudgetOverviewRowProps {
+  label: string;
   value: number;
+  isNegative?: boolean;
 }
 
 export default function BudgetOverviewRow({ label, value, isNegative }: BudgetOverviewRowProps) {

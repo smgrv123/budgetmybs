@@ -5,6 +5,7 @@ export const FinancialDataKey = {
   DEBTS: 'debts',
   SAVINGS: 'savings',
   CREDIT_CARDS: 'creditCards',
+  INCOME: 'income',
 } as const;
 export type FinancialDataKeyType = (typeof FinancialDataKey)[keyof typeof FinancialDataKey];
 
@@ -12,6 +13,7 @@ export const BudgetValueKey = {
   SALARY: 'salary',
   FIXED_EXPENSES: 'fixedExpenses',
   DEBT_PAYMENTS: 'debtPayments',
+  ADDITIONAL_INCOME: 'additionalIncome',
 } as const;
 export type BudgetValueKeyType = (typeof BudgetValueKey)[keyof typeof BudgetValueKey];
 
@@ -30,4 +32,5 @@ export type BudgetOverviewItem = {
   label: string;
   valueKey: BudgetValueKeyType;
   isNegative?: boolean;
+  hideWhenZero?: boolean;
 };

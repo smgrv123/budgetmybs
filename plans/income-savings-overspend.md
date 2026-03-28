@@ -29,14 +29,14 @@ The income query module should expose: create, get by month, delete, and a month
 
 ### Acceptance criteria
 
-- [ ] `incomeTable` exists in schema with `id`, `amount`, `type`, `customType`, `date`, `description`, `createdAt` columns
-- [ ] `IncomeType` enum and display labels follow the existing `as const` object pattern in `db/types.ts`
-- [ ] `savings_withdrawal` is present in the enum but excluded from user-facing label exports
-- [ ] Income query module exports: `createIncome`, `getIncomeByMonth`, `deleteIncome`, `getMonthlyIncomeSum`
-- [ ] `useIncome` hook exposes queries and mutations with consistent naming (`createIncome`, `createIncomeAsync`, `isCreatingIncome`, etc.)
-- [ ] `useIncome` is barrel-exported from `src/hooks/index.ts`
-- [ ] All new query functions are barrel-exported from `db/queries/index.ts`
-- [ ] Run `npm run typecheck` and `npm run lint` with no errors
+- [x] `incomeTable` exists in schema with `id`, `amount`, `type`, `customType`, `date`, `description`, `createdAt` columns
+- [x] `IncomeType` enum and display labels follow the existing `as const` object pattern in `db/types.ts`
+- [x] `savings_withdrawal` is present in the enum but excluded from user-facing label exports
+- [x] Income query module exports: `createIncome`, `getIncomeByMonth`, `deleteIncome`, `getMonthlyIncomeSum`
+- [x] `useIncome` hook exposes queries and mutations with consistent naming (`createIncome`, `createIncomeAsync`, `isCreatingIncome`, etc.)
+- [x] `useIncome` is barrel-exported from `src/hooks/index.ts`
+- [x] All new query functions are barrel-exported from `db/queries/index.ts`
+- [x] Run `npm run typecheck` and `npm run lint` with no errors
 
 ---
 
@@ -52,15 +52,15 @@ Add an entry point to this screen from the existing settings navigation.
 
 ### Acceptance criteria
 
-- [ ] Settings screen exists at `app/settings/income.tsx`
-- [ ] User can add income with: amount (required), type dropdown (all types except `savings_withdrawal`), description (optional), date (defaults to today, editable)
-- [ ] Income entries for the current month are listed with amount, type label, date, and description
-- [ ] User can delete an income entry
-- [ ] `customType` text input appears when type is `other`
-- [ ] Screen is reachable from settings navigation
-- [ ] All user-facing strings are in a `src/constants/income.strings.ts` file
-- [ ] New screen and components follow B\* component rules and use theme constants (no hardcoded pixel values or color strings)
-- [ ] Run `npm run typecheck` and `npm run lint` with no errors
+- [x] Settings screen exists at `app/settings/income.tsx`
+- [x] User can add income with: amount (required), type dropdown (all types except `savings_withdrawal`), description (optional), date (defaults to today, editable)
+- [x] Income entries for the current month are listed with amount, type label, date, and description
+- [x] User can delete an income entry
+- [x] `customType` text input appears when type is `other`
+- [x] Screen is reachable from settings navigation
+- [x] All user-facing strings are in a `src/constants/income.strings.ts` file
+- [x] New screen and components follow B\* component rules and use theme constants (no hardcoded pixel values or color strings)
+- [x] Run `npm run typecheck` and `npm run lint` with no errors
 
 ---
 
@@ -74,15 +74,15 @@ Wire the income data layer into the monthly budget calculation. `getRemainingFri
 
 ### Acceptance criteria
 
-- [ ] `getRemainingFrivolousBudget` returns `totalBudget = frivolousBudget + rolloverFromPrevious + additionalIncome`
-- [ ] `additionalIncome` field is included in the return value so UI can display it separately
-- [ ] Rollover formula is `totalPrevBudget - prevSpent - prevSaved` with no floor — result can be negative
-- [ ] A negative rollover is stored correctly on the next month's snapshot
-- [ ] `getMonthlySummary` includes `additionalIncome` in its return shape
-- [ ] Dashboard and budget summary UI surfaces show income contribution to budget when non-zero
-- [ ] `useMonthlyBudget` hook reflects updated return shape
-- [ ] Existing months with zero income are unaffected (sum returns 0, behaviour identical to before)
-- [ ] Run `npm run typecheck` and `npm run lint` with no errors
+- [x] `getRemainingFrivolousBudget` returns `totalBudget = frivolousBudget + rolloverFromPrevious + additionalIncome`
+- [x] `additionalIncome` field is included in the return value so UI can display it separately
+- [x] Rollover formula is `totalPrevBudget - prevSpent - prevSaved` with no floor — result can be negative
+- [x] A negative rollover is stored correctly on the next month's snapshot
+- [x] `getMonthlySummary` includes `additionalIncome` in its return shape
+- [x] Dashboard and budget summary UI surfaces show income contribution to budget when non-zero
+- [x] `useMonthlyBudget` hook reflects updated return shape
+- [x] Existing months with zero income are unaffected (sum returns 0, behaviour identical to before)
+- [x] Run `npm run typecheck` and `npm run lint` with no errors
 
 ---
 
@@ -96,10 +96,10 @@ A pure copy/terminology change with no logic modifications. Replace every instan
 
 ### Acceptance criteria
 
-- [ ] All screen titles, labels, button text, and empty-state copy that previously said "Savings Goal(s)" now say "Monthly Savings"
-- [ ] String constant files updated (no hardcoded strings remain in components)
-- [ ] No changes to DB schema, query functions, hook names, or enum values
-- [ ] Run `npm run typecheck` and `npm run lint` with no errors
+- [x] All screen titles, labels, button text, and empty-state copy that previously said "Savings Goal(s)" now say "Monthly Savings"
+- [x] String constant files updated (no hardcoded strings remain in components)
+- [x] No changes to DB schema, query functions, hook names, or enum values
+- [x] Run `npm run typecheck` and `npm run lint` with no errors
 
 ---
 
@@ -115,15 +115,15 @@ Add balance query functions: one that returns net balance per savings goal (`SUM
 
 ### Acceptance criteria
 
-- [ ] `savingsGoalId` nullable FK exists on `expensesTable` referencing `savingsGoalsTable`
-- [ ] `isWithdrawal` integer column (default 0) exists on `expensesTable`
-- [ ] `getSavingsBalanceByGoal(goalId)` returns `{ deposited, withdrawn, net }` for a specific goal
-- [ ] `getSavingsBalancesByAllGoals()` returns an array of `{ goalId, deposited, withdrawn, net }` for all goals with activity
-- [ ] `getAdHocSavingsBalances()` returns an array of `{ savingsType, deposited, withdrawn, net }` for unlinked savings
-- [ ] Existing savings data (pre-migration) is unaffected — `savingsGoalId` and `isWithdrawal` default to null/0
-- [ ] Balance queries are barrel-exported from `db/queries/index.ts`
-- [ ] `useSavingsGoals` hook exposes balance queries
-- [ ] Run `npm run typecheck` and `npm run lint` with no errors
+- [x] `savingsGoalId` nullable FK exists on `expensesTable` referencing `savingsGoalsTable`
+- [x] `isWithdrawal` integer column (default 0) exists on `expensesTable`
+- [x] `getSavingsBalanceByGoal(goalId)` returns `{ deposited, withdrawn, net }` for a specific goal
+- [x] `getSavingsBalancesByAllGoals()` returns an array of `{ goalId, deposited, withdrawn, net }` for all goals with activity
+- [x] `getAdHocSavingsBalances()` returns an array of `{ savingsType, deposited, withdrawn, net }` for unlinked savings
+- [x] Existing savings data (pre-migration) is unaffected — `savingsGoalId` and `isWithdrawal` default to null/0
+- [x] Balance queries are barrel-exported from `db/queries/index.ts`
+- [x] `useSavingsGoals` hook exposes balance queries
+- [x] Run `npm run typecheck` and `npm run lint` with no errors
 
 ---
 
@@ -139,16 +139,16 @@ The savings summary in the settings savings screen shows each goal and each ad-h
 
 ### Acceptance criteria
 
-- [ ] Savings deposit form collects: amount, savings type, optional savings goal (filtered by type), description
-- [ ] "No goal / Ad-hoc" is always available in the goal picker regardless of type
-- [ ] Deposits linked to a goal correctly set `savingsGoalId` on the expense row
-- [ ] Ad-hoc deposits have `savingsGoalId = null`
-- [ ] Savings summary lists each goal with its net balance as a separate line
-- [ ] Ad-hoc savings of a given type appear as a separate line (e.g., "Mutual Funds (ad-hoc)")
-- [ ] Two goals with the same `savingsType` appear as two distinct lines identified by name
-- [ ] Total saved (sum of all lines) shown at the bottom of the summary
-- [ ] All user-facing strings in constants file
-- [ ] Run `npm run typecheck` and `npm run lint` with no errors
+- [x] Savings deposit form collects: amount, savings type, optional savings goal (filtered by type), description
+- [x] "No goal / Ad-hoc" is always available in the goal picker regardless of type
+- [x] Deposits linked to a goal correctly set `savingsGoalId` on the expense row
+- [x] Ad-hoc deposits have `savingsGoalId = null`
+- [x] Savings summary lists each goal with its net balance as a separate line
+- [x] Ad-hoc savings of a given type appear as a separate line (e.g., "Mutual Funds (ad-hoc)")
+- [x] Two goals with the same `savingsType` appear as two distinct lines identified by name
+- [x] Total saved (sum of all lines) shown at the bottom of the summary
+- [x] All user-facing strings in constants file
+- [x] Run `npm run typecheck` and `npm run lint` with no errors
 
 ---
 

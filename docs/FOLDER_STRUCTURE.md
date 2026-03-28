@@ -9,7 +9,7 @@ budgetmybs/
 │   ├── index.tsx                 # Entry — redirects to dashboard or onboarding
 │   ├── dashboard/                # Dashboard screens
 │   ├── onboarding/               # Onboarding flow screens
-│   ├── settings/                 # Settings screens
+│   ├── settings/                 # Settings screens (fixed-expenses, debts, savings, credit-cards, income)
 │   ├── transaction-detail.tsx    # Modal screen
 │   └── all-transactions.tsx      # Modal screen
 │
@@ -17,6 +17,7 @@ budgetmybs/
 │   ├── components/
 │   │   ├── ui/                   # B* primitives (BButton, BText, BView, etc.)
 │   │   ├── {feature}/            # Feature-scoped components (transaction/, dashboard/, chat/)
+│   │   ├── savings/              # Savings deposit form and summary (SavingsDepositForm, SavingsSummary)
 │   │   ├── {SharedName}.tsx      # Shared non-primitive components (used across features)
 │   │   └── index.ts              # Barrel exports
 │   │
@@ -35,16 +36,20 @@ budgetmybs/
 │   │   └── financialPlanService.ts
 │   │
 │   ├── types/                    # TypeScript type definitions
+│   │   ├── income.ts             # IncomeEntryData type for income settings screen
 │   │   ├── {domain}.ts
 │   │   └── index.ts
 │   │
 │   ├── constants/
 │   │   ├── theme/                # Theme system (colors, spacing, variants, typography, layout)
 │   │   ├── {feature}.strings.ts  # User-facing text
+│   │   ├── income.strings.ts     # Strings for income settings screen
+│   │   ├── savings-deposit.strings.ts  # Strings for savings deposit form and summary
 │   │   ├── {feature}.config.ts   # Structural configuration
 │   │   └── asyncStorageKeys.ts   # AsyncStorage key constants
 │   │
 │   ├── validation/               # Zod schemas
+│   │   ├── savings-deposit.ts    # Zod schema for savings deposit form
 │   │   └── {feature}.ts
 │   │
 │   ├── utils/                    # Pure utility functions

@@ -2,15 +2,26 @@ import { ReactNode } from 'react';
 import type { ZodType } from 'zod';
 
 import { CREDIT_CARD_PROVIDER_OPTIONS } from '@/src/constants/credit-cards.config';
-import { DebtTypeOptions, FixedExpenseTypeOptions, SavingsTypeOptions } from '@/src/constants/onboarding.config';
+import {
+  DebtTypeOptions,
+  FixedExpenseTypeOptions,
+  IncomeTypeOptions,
+  SavingsTypeOptions,
+} from '@/src/constants/onboarding.config';
 import { OnboardingStrings } from '@/src/constants/onboarding.strings';
 import { CREDIT_CARDS_SETTINGS_STRINGS } from '@/src/constants/settings.strings';
 import type { FormField } from '@/src/types';
 import { parseFormattedNumber } from '@/src/utils/format';
 import { creditCardSchema } from '@/src/validation/credit-cards';
-import { debtSchema, fixedExpenseSchema, profileSchema, savingsGoalSchema } from '@/src/validation/onboarding';
+import {
+  debtSchema,
+  fixedExpenseSchema,
+  incomeSchema,
+  profileSchema,
+  savingsGoalSchema,
+} from '@/src/validation/onboarding';
 
-const { profile: profileStrings, fixedExpenses, debts, savings, common } = OnboardingStrings;
+const { profile: profileStrings, fixedExpenses, debts, income, savings, common } = OnboardingStrings;
 const creditCardProviderFieldOptions = CREDIT_CARD_PROVIDER_OPTIONS.map((option) => ({
   value: String(option.value),
   label: option.label,
@@ -135,6 +146,26 @@ export const DEBT_FIELD_CONFIGS: Omit<FormField, 'leftIcon'>[] = [
     placeholder: debts.form.dayOfMonth.placeholder,
     keyboardType: 'numeric',
     helperText: debts.form.dayOfMonth.helperText,
+  },
+];
+
+export const INCOME_FIELD_CONFIGS: Omit<FormField, 'leftIcon'>[] = [
+  {
+    key: 'amount',
+    type: 'input',
+    placeholder: income.form.amount.placeholder,
+    keyboardType: 'numeric',
+  },
+  {
+    key: 'type',
+    type: 'dropdown',
+    placeholder: income.form.type.placeholder,
+    options: IncomeTypeOptions,
+  },
+  {
+    key: 'description',
+    type: 'input',
+    placeholder: income.form.description.placeholder,
   },
 ];
 
@@ -272,6 +303,30 @@ export const SAVINGS_STEP_CONFIG: StepConfig = {
   },
 };
 
+export const INCOME_STEP_CONFIG: StepConfig = {
+  strings: {
+    heading: income.heading,
+    subheading: income.subheading,
+    addButton: income.addButton,
+    continueButton: income.continueButton,
+    skipButton: income.skipButton,
+    form: {
+      addButton: income.form.addButton,
+      cancelButton: income.form.cancelButton,
+      saveButton: income.form.saveButton,
+      cancelEditButton: income.form.cancelEditButton,
+    },
+  },
+  initialFormData: { amount: '', type: '', description: '' },
+  validationSchema: incomeSchema,
+  customTypeModal: {
+    title: income.customTypeModal.title,
+    placeholder: income.customTypeModal.placeholder,
+    addButton: income.customTypeModal.addButton,
+    cancelButton: income.customTypeModal.cancelButton,
+  },
+};
+
 export const CREDIT_CARD_STEP_CONFIG: StepConfig = {
   strings: {
     heading: CREDIT_CARDS_SETTINGS_STRINGS.listStep.heading,
@@ -318,6 +373,12 @@ export const parseSavingsFormData = (data: Record<string, string>) => ({
   name: data.name,
   type: data.type,
   targetAmount: parseFormattedNumber(data.targetAmount),
+});
+
+export const parseIncomeFormData = (data: Record<string, string>) => ({
+  amount: parseFormattedNumber(data.amount),
+  type: data.type,
+  description: data.description || undefined,
 });
 
 export const parseCreditCardFormData = (data: Record<string, string>) => ({
