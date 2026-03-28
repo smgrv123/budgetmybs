@@ -47,7 +47,7 @@ export const FIXED_EXPENSES_SETTINGS_STRINGS = {
 } as const;
 
 export const SAVINGS_SETTINGS_STRINGS = {
-  screenTitle: 'Savings Goals',
+  screenTitle: 'Monthly Savings',
   createFailedLog: 'Failed to create savings goal:',
   updateFailedLog: 'Failed to update savings goal:',
   removeFailedLog: 'Failed to remove savings goal:',

@@ -140,10 +140,10 @@ export const OnboardingStrings = {
   },
 
   savings: {
-    screenTitle: 'Savings Goals',
+    screenTitle: 'Monthly Savings',
     heading: 'Your Savings',
     subheading: 'Add your savings and investment goals',
-    addButton: 'Add Savings Goal',
+    addButton: 'Add Monthly Savings',
     skipButton: 'Skip for now',
     continueButton: 'Continue',
     form: {
@@ -188,7 +188,7 @@ export const OnboardingStrings = {
       title: 'Debts & Loans',
     },
     savingsSection: {
-      title: 'Savings Goals',
+      title: 'Monthly Savings',
     },
     overviewSection: {
       title: 'Monthly Overview',

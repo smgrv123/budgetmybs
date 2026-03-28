@@ -207,7 +207,7 @@ const QuickStatSheet: FC<QuickStatSheetProps> = ({
         data: savingsGoals,
         renderItem: renderSavingsGoal,
         emptyIcon: 'flag-outline',
-        emptyMessage: 'No savings goals yet',
+        emptyMessage: 'No monthly savings yet',
         showHeader: true,
       },
     };

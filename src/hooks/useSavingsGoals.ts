@@ -1,8 +1,11 @@
 import {
   createSavingsGoal,
   deleteSavingsGoal,
+  getAdHocSavingsBalances,
   getCompletedSavingsGoals,
   getIncompleteSavingsGoals,
+  getSavingsBalanceByGoal,
+  getSavingsBalancesByAllGoals,
   getSavingsGoals,
   getTotalMonthlySavingsTarget,
   markGoalAsCompleted,
@@ -15,6 +18,9 @@ export const SAVINGS_GOALS_QUERY_KEY = ['savingsGoals'] as const;
 export const COMPLETED_GOALS_QUERY_KEY = ['savingsGoals', 'completed'] as const;
 export const INCOMPLETE_GOALS_QUERY_KEY = ['savingsGoals', 'incomplete'] as const;
 export const TOTAL_SAVINGS_TARGET_QUERY_KEY = ['savingsGoals', 'totalTarget'] as const;
+export const SAVINGS_BALANCE_BY_GOAL_QUERY_KEY = ['savingsGoals', 'balanceByGoal'] as const;
+export const SAVINGS_BALANCES_ALL_GOALS_QUERY_KEY = ['savingsGoals', 'balancesAllGoals'] as const;
+export const ADHOC_SAVINGS_BALANCES_QUERY_KEY = ['savingsGoals', 'adHocBalances'] as const;
 
 /**
  * Hook for savings goals queries and mutations
@@ -40,6 +46,16 @@ export const useSavingsGoals = (activeOnly = true) => {
   const incompleteGoalsQuery = useQuery({
     queryKey: INCOMPLETE_GOALS_QUERY_KEY,
     queryFn: getIncompleteSavingsGoals,
+  });
+
+  const savingsBalancesAllGoalsQuery = useQuery({
+    queryKey: SAVINGS_BALANCES_ALL_GOALS_QUERY_KEY,
+    queryFn: getSavingsBalancesByAllGoals,
+  });
+
+  const adHocSavingsBalancesQuery = useQuery({
+    queryKey: ADHOC_SAVINGS_BALANCES_QUERY_KEY,
+    queryFn: getAdHocSavingsBalances,
   });
 
   const createMutation = useMutation({
@@ -83,6 +99,14 @@ export const useSavingsGoals = (activeOnly = true) => {
     isSavingsGoalsError: savingsGoalsQuery.isError,
     savingsGoalsError: savingsGoalsQuery.error,
     refetchSavingsGoals: savingsGoalsQuery.refetch,
+
+    // Balance queries
+    savingsBalancesAllGoals: savingsBalancesAllGoalsQuery.data ?? [],
+    isSavingsBalancesAllGoalsLoading: savingsBalancesAllGoalsQuery.isLoading,
+    adHocSavingsBalances: adHocSavingsBalancesQuery.data ?? [],
+    isAdHocSavingsBalancesLoading: adHocSavingsBalancesQuery.isLoading,
+    /** Fetch balance for a single goal on demand (wraps the DB query directly) */
+    getSavingsBalanceByGoal,
 
     // Mutations
     createSavingsGoal: createMutation.mutate,

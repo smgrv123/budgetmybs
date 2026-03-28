@@ -139,6 +139,29 @@ export type CreditCardTxnType = (typeof CreditCardTxnTypeEnum)[keyof typeof Cred
 
 export const CREDIT_CARD_TXN_TYPES = Object.values(CreditCardTxnTypeEnum);
 
+/**
+ * Income types
+ */
+export const IncomeTypeEnum = {
+  BONUS: 'bonus',
+  INTEREST: 'interest',
+  CASHBACK: 'cashback',
+  GIFT: 'gift',
+  FREELANCE: 'freelance',
+  REFUND: 'refund',
+  SAVINGS_WITHDRAWAL: 'savings_withdrawal',
+  OTHER: 'other',
+} as const;
+
+export type IncomeType = (typeof IncomeTypeEnum)[keyof typeof IncomeTypeEnum];
+
+export const INCOME_TYPES = Object.values(IncomeTypeEnum);
+
+/**
+ * Income types available for user-facing dropdowns (excludes system-only types)
+ */
+export const USER_INCOME_TYPES = INCOME_TYPES.filter((t) => t !== IncomeTypeEnum.SAVINGS_WITHDRAWAL);
+
 // ============================================
 // DISPLAY LABELS (for UI)
 // ============================================
@@ -192,6 +215,21 @@ export const SavingsLabels: Record<SavingsType, string> = {
   gold: 'Gold',
   crypto: 'Crypto',
   emergency_fund: 'Emergency Fund',
+  other: 'Other',
+};
+
+/**
+ * Display labels for all income types.
+ * Use USER_INCOME_TYPES to filter out system-only types (e.g. savings_withdrawal) in dropdowns.
+ */
+export const IncomeLabels: Record<IncomeType, string> = {
+  bonus: 'Bonus',
+  interest: 'Interest',
+  cashback: 'Cashback',
+  gift: 'Gift',
+  freelance: 'Freelance',
+  refund: 'Refund',
+  savings_withdrawal: 'Savings Withdrawal',
   other: 'Other',
 };
 

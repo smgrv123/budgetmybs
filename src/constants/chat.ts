@@ -64,7 +64,7 @@ export const CHAT_LOG_STRINGS = {
 export const DeleteEntityType = {
   FIXED_EXPENSE: 'Fixed Expense',
   DEBT: 'Debt',
-  SAVINGS_GOAL: 'Savings Goal',
+  SAVINGS_GOAL: 'Monthly Savings',
 } as const;
 export type DeleteEntityTypeValue = (typeof DeleteEntityType)[keyof typeof DeleteEntityType];
 
@@ -75,8 +75,8 @@ export const CHAT_FORM_TITLES = {
   update_fixed_expense: 'Update Fixed Expense',
   add_debt: 'Add Debt',
   update_debt: 'Update Debt',
-  add_savings_goal: 'Add Savings Goal',
-  update_savings_goal: 'Update Savings Goal',
+  add_savings_goal: 'Add Monthly Savings',
+  update_savings_goal: 'Update Monthly Savings',
 } as const;
 
 /** Profile field labels for the inline update form */

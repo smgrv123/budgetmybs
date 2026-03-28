@@ -21,7 +21,7 @@ budgetmybs/
 │   │   └── index.ts              # Barrel exports
 │   │
 │   ├── hooks/                    # TanStack Query hooks
-│   │   ├── use{Domain}.ts        # One hook per domain (useExpenses, useProfile, etc.)
+│   │   ├── use{Domain}.ts        # One hook per domain (useExpenses, useProfile, useIncome, etc.)
 │   │   ├── theme-hooks/          # Theme-related hooks
 │   │   └── index.ts              # Barrel exports with query keys
 │   │
@@ -68,6 +68,7 @@ budgetmybs/
 │   ├── seed.ts                   # Seed data (categories)
 │   ├── queries/                  # One file per domain
 │   │   ├── expenses.ts
+│   │   ├── income.ts             # Income CRUD + monthly sum
 │   │   ├── profile.ts
 │   │   ├── categories.ts
 │   │   └── ...
