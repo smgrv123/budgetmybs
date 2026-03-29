@@ -17,6 +17,7 @@ budgetmybs/
 │   ├── components/
 │   │   ├── ui/                   # B* primitives (BButton, BText, BView, etc.)
 │   │   ├── {feature}/            # Feature-scoped components (transaction/, dashboard/, chat/)
+│   │   ├── dashboard/            # Dashboard components (QuickActionsSection, QuickStatSheet, heroCard)
 │   │   ├── savings/              # Savings components (SavingsDepositForm, SavingsSummary, SavingsWithdrawalForm)
 │   │   ├── {SharedName}.tsx      # Shared non-primitive components (used across features)
 │   │   └── index.ts              # Barrel exports
@@ -43,6 +44,7 @@ budgetmybs/
 │   ├── constants/
 │   │   ├── theme/                # Theme system (colors, spacing, variants, typography, layout)
 │   │   ├── {feature}.strings.ts  # User-facing text
+│   │   ├── dashboard.strings.ts  # Strings for dashboard Quick Actions section
 │   │   ├── income.strings.ts     # Strings for income settings screen
 │   │   ├── savings-deposit.strings.ts  # Strings for savings deposit form and summary
 │   │   ├── {feature}.config.ts   # Structural configuration

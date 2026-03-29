@@ -202,7 +202,7 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
   ];
 
   return (
-    <BModal isVisible={visible} onClose={handleClose} title={currentConfig.title}>
+    <BModal isVisible={visible} onClose={handleClose} title={currentConfig.title} position="bottom">
       {/* Tabs */}
       <BView row gap={SpacingValue.SM} marginY={SpacingValue.XS}>
         {headerButtonGroup.map(({ title, onPress, key }) => (

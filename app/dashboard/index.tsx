@@ -8,13 +8,13 @@ import {
   AddTransactionModal,
   BButton,
   BCard,
-  BFAB,
   BIcon,
   BLink,
   BSafeAreaView,
   BText,
   BToast,
   BView,
+  QuickActionsSection,
   QuickStatSheet,
 } from '@/src/components';
 import { CreditCardPreviewCard } from '@/src/components/credit-cards';
@@ -334,8 +334,22 @@ export default function DashboardScreen() {
       ),
     },
     {
-      key: 'quick-stats',
+      key: 'quick-actions',
       rank: 3,
+      enabled: true,
+      component: (
+        <QuickActionsSection
+          onLogTransactionPress={() => setIsAddTransactionModalVisible(true)}
+          onLogIncomePress={() => {
+            // stub: Log Income — wired in Phase 10
+          }}
+          onManageSavingsPress={() => router.push('/settings/savings')}
+        />
+      ),
+    },
+    {
+      key: 'quick-stats',
+      rank: 4,
       enabled: true,
       component: (
         <BView paddingX={SpacingValue.LG} marginY={SpacingValue.SM}>
@@ -374,7 +388,7 @@ export default function DashboardScreen() {
     },
     {
       key: 'recent-transactions',
-      rank: 4,
+      rank: 5,
       enabled: true,
       component: (
         <BView paddingX={SpacingValue.LG} marginY={SpacingValue.LG}>
@@ -445,9 +459,6 @@ export default function DashboardScreen() {
             <BView key={key}>{component}</BView>
           ))}
       </ScrollView>
-
-      {/* FAB */}
-      <BFAB onPress={() => setIsAddTransactionModalVisible(true)} />
 
       {/* Add Transaction Modal */}
       <AddTransactionModal
