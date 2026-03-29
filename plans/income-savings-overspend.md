@@ -165,14 +165,14 @@ Note: This withdrawal form will be refactored into a tab in the dedicated saving
 
 ### Acceptance criteria
 
-- [ ] Withdrawal form shows: source picker (goals + ad-hoc types with balances), available balance for selected source, amount field
-- [ ] Source picker only shows sources with a net balance > 0
-- [ ] Submitting a withdrawal creates both the savings withdrawal expense and the `savings_withdrawal` income entry atomically
-- [ ] Monthly budget increases by the withdrawal amount (via income entry)
-- [ ] Savings balance for the source decreases by the withdrawal amount
-- [ ] User cannot over-withdraw (amount > available balance is blocked with a validation error)
-- [ ] `savings_withdrawal` income entries do not appear in the manual income settings screen
-- [ ] Run `pnpm run typecheck` and `pnpm run lint` with no errors
+- [x] Withdrawal form shows: source picker (goals + ad-hoc types with balances), available balance for selected source, amount field
+- [x] Source picker only shows sources with a net balance > 0
+- [x] Submitting a withdrawal creates both the savings withdrawal expense and the `savings_withdrawal` income entry atomically
+- [x] Monthly budget increases by the withdrawal amount (via income entry)
+- [x] Savings balance for the source decreases by the withdrawal amount
+- [x] User cannot over-withdraw (amount > available balance is blocked with a validation error)
+- [x] `savings_withdrawal` income entries do not appear in the manual income settings screen
+- [x] Run `pnpm run typecheck` and `pnpm run lint` with no errors
 
 ---
 
@@ -188,12 +188,12 @@ Convert the dashboard screen from hardcoded section rendering to a data-driven r
 
 ### Acceptance criteria
 
-- [ ] Dashboard sections are driven by a config array with `key`, `rank`, `enabled`, and `component` fields
-- [ ] Config pattern matches the existing settings screen implementation
-- [ ] Sections render in rank order, skipping disabled entries
-- [ ] All existing dashboard sections (header gradient, carousel, stat cards, recent transactions, FAB) continue to render identically
-- [ ] No visual regression — dashboard looks and behaves exactly the same
-- [ ] Run `pnpm run typecheck` and `pnpm run lint` with no errors
+- [x] Dashboard sections are driven by a config array with `key`, `rank`, `enabled`, and `component` fields
+- [x] Config pattern matches the existing settings screen implementation
+- [x] Sections render in rank order, skipping disabled entries
+- [x] All existing dashboard sections (header gradient, carousel, stat cards, recent transactions, FAB) continue to render identically
+- [x] No visual regression — dashboard looks and behaves exactly the same
+- [x] Run `pnpm run typecheck` and `pnpm run lint` with no errors
 
 ---
 
@@ -215,14 +215,14 @@ Add a Quick Actions section to the dashboard with three tiles: Log Transaction, 
 
 ### Acceptance criteria
 
-- [ ] Quick Actions section renders three tiles in a horizontal row: Log Transaction, Log Income, Manage Savings
-- [ ] Each tile has an icon and label
-- [ ] "Log Transaction" opens the existing transaction creation form in a `BModal position="bottom"`
-- [ ] Transaction creation works end-to-end from the new bottom sheet (same fields and behavior as before)
-- [ ] FAB is removed from the dashboard
-- [ ] Quick Actions section is registered in the dashboard config array from Phase 8
-- [ ] All user-facing strings in constants file
-- [ ] Run `pnpm run typecheck` and `pnpm run lint` with no errors
+- [x] Quick Actions section renders three tiles in a horizontal row: Log Transaction, Log Income, Manage Savings
+- [x] Each tile has an icon and label
+- [x] "Log Transaction" opens the existing transaction creation form in a `BModal position="bottom"`
+- [x] Transaction creation works end-to-end from the new bottom sheet (same fields and behavior as before)
+- [x] FAB is removed from the dashboard
+- [x] Quick Actions section is registered in the dashboard config array from Phase 8
+- [x] All user-facing strings in constants file
+- [x] Run `pnpm run typecheck` and `pnpm run lint` with no errors
 
 ---
 

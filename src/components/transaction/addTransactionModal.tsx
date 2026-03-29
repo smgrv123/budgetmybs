@@ -8,7 +8,7 @@ import { CREDIT_CARD_PROVIDER_OPTIONS } from '@/src/constants/credit-cards.confi
 import { CREDIT_CARDS_SETTINGS_STRINGS } from '@/src/constants/settings.strings';
 import { ButtonVariant, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
 import { TRANSACTION_TAB_CONFIGS } from '@/src/constants/transactionForm.config';
-import { TRANSACTION_MODAL_TEXT, TransactionTab } from '@/src/constants/transactionModal';
+import { TransactionTab } from '@/src/constants/transactionModal';
 import { ADD_TRANSACTION_STRINGS, TRANSACTION_VALIDATION_STRINGS } from '@/src/constants/transactions.strings';
 import { useCategories, useCreditCards, useExpenses } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
@@ -17,7 +17,6 @@ import { formatLocalDateToISO } from '@/src/utils/date';
 import { CreditCardTxnTypeEnum } from '@/db/types';
 import { createTransactionFields } from './transactionForm';
 
-// Validation schemas
 const expenseSchema = z.object({
   amount: z.number().positive(TRANSACTION_VALIDATION_STRINGS.amountGreaterThanZero),
   category: z.string().min(1, TRANSACTION_VALIDATION_STRINGS.categoryRequired),
@@ -26,37 +25,24 @@ const expenseSchema = z.object({
   creditCardId: z.string().optional(),
 });
 
-const savingSchema = z.object({
-  amount: z.number().positive(TRANSACTION_VALIDATION_STRINGS.amountGreaterThanZero),
-  savingsType: z.string().min(1, TRANSACTION_VALIDATION_STRINGS.savingsTypeRequired),
-  description: z.string().optional(),
-  date: z.string().min(1, TRANSACTION_VALIDATION_STRINGS.dateRequired),
-});
-
 type AddTransactionModalProps = {
   visible: boolean;
   onClose: () => void;
-  /** Called after an expense (not a saving) is successfully created, with the saved amount */
+  /** Called after an expense is successfully created, with the saved amount */
   onExpenseCreated?: (amount: number) => void;
 };
 
-/**
- * Unified modal for adding expenses or one-off savings
- */
 const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, onExpenseCreated }) => {
   const themeColors = useThemeColors();
-  const [activeTab, setActiveTab] = useState<TransactionTab>(TransactionTab.EXPENSE);
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('');
   const [creditCardId, setCreditCardId] = useState('');
-  const [savingsType, setSavingsType] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState(formatLocalDateToISO(new Date()));
 
   const { allCategories } = useCategories();
   const { creditCards } = useCreditCards();
-
-  const { createExpense, createOneOffSaving, isCreatingExpense, isCreatingOneOffSaving } = useExpenses();
+  const { createExpense, isCreatingExpense } = useExpenses();
 
   const categoryOptions = useMemo(
     () => allCategories.map((cat) => ({ label: cat.name, value: cat.id })),
@@ -91,9 +77,6 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
       case TransactionFieldKey.CREDIT_CARD:
         setCreditCardId(value);
         break;
-      case TransactionFieldKey.SAVINGS_TYPE:
-        setSavingsType(value);
-        break;
       case TransactionFieldKey.DESCRIPTION:
         setDescription(value);
         break;
@@ -105,55 +88,28 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
 
   const handleSubmit = () => {
     const amountNum = parseFloat(amount);
-    if (activeTab === TransactionTab.EXPENSE) {
-      const normalizedCreditCardId = creditCardId.trim() || undefined;
-      const validationResult = expenseSchema.safeParse({
-        amount: amountNum,
-        category,
-        description: description || undefined,
-        date,
-        creditCardId: normalizedCreditCardId,
-      });
-      if (!validationResult.success) return;
-
-      createExpense(
-        {
-          amount: validationResult.data.amount,
-          categoryId: validationResult.data.category,
-          description: validationResult.data.description,
-          date: validationResult.data.date,
-          creditCardId: validationResult.data.creditCardId,
-          creditCardTxnType: validationResult.data.creditCardId ? CreditCardTxnTypeEnum.PURCHASE : null,
-        },
-        {
-          onSuccess: () => {
-            onExpenseCreated?.(validationResult.data.amount);
-            handleClose();
-          },
-          onError: (error) => {
-            console.error(ADD_TRANSACTION_STRINGS.createFailedLog, error);
-          },
-        }
-      );
-    }
-
-    const validationResult = savingSchema.safeParse({
+    const normalizedCreditCardId = creditCardId.trim() || undefined;
+    const validationResult = expenseSchema.safeParse({
       amount: amountNum,
-      savingsType,
+      category,
       description: description || undefined,
       date,
+      creditCardId: normalizedCreditCardId,
     });
     if (!validationResult.success) return;
 
-    createOneOffSaving(
+    createExpense(
       {
         amount: validationResult.data.amount,
-        savingsType: validationResult.data.savingsType as any,
+        categoryId: validationResult.data.category,
         description: validationResult.data.description,
         date: validationResult.data.date,
+        creditCardId: validationResult.data.creditCardId,
+        creditCardTxnType: validationResult.data.creditCardId ? CreditCardTxnTypeEnum.PURCHASE : null,
       },
       {
         onSuccess: () => {
+          onExpenseCreated?.(validationResult.data.amount);
           handleClose();
         },
         onError: (error) => {
@@ -164,23 +120,20 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
   };
 
   const handleClose = () => {
-    // Reset form
     setAmount('');
     setCategory('');
     setCreditCardId('');
-    setSavingsType('');
     setDescription('');
     setDate(formatLocalDateToISO(new Date()));
     onClose();
   };
 
-  const isLoading = isCreatingExpense || isCreatingOneOffSaving;
-  const canSubmit = parseFloat(amount) > 0 && (activeTab === TransactionTab.EXPENSE ? category : savingsType);
+  const canSubmit = parseFloat(amount) > 0 && category;
 
-  const currentConfig = TRANSACTION_TAB_CONFIGS[activeTab];
+  const currentConfig = TRANSACTION_TAB_CONFIGS[TransactionTab.EXPENSE];
   const transactionFields = createTransactionFields({
     configs: currentConfig.fields,
-    values: { amount, category, creditCard: creditCardId, savingsType, description, date },
+    values: { amount, category, creditCard: creditCardId, savingsType: '', description, date },
     handleChange,
     optionsByKey: {
       [TransactionFieldKey.CATEGORY]: categoryOptions,
@@ -188,38 +141,8 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
     },
   });
 
-  const headerButtonGroup = [
-    {
-      key: TransactionTab.EXPENSE,
-      title: TRANSACTION_MODAL_TEXT.tabs.expense,
-      onPress: () => setActiveTab(TransactionTab.EXPENSE),
-    },
-    {
-      key: TransactionTab.SAVING,
-      title: TRANSACTION_MODAL_TEXT.tabs.saving,
-      onPress: () => setActiveTab(TransactionTab.SAVING),
-    },
-  ];
-
   return (
     <BModal isVisible={visible} onClose={handleClose} title={currentConfig.title} position="bottom">
-      {/* Tabs */}
-      <BView row gap={SpacingValue.SM} marginY={SpacingValue.XS}>
-        {headerButtonGroup.map(({ title, onPress, key }) => (
-          <BButton
-            key={key}
-            variant={activeTab === key ? ButtonVariant.PRIMARY : ButtonVariant.SECONDARY}
-            onPress={onPress}
-            style={styles.tab}
-            fullWidth
-          >
-            <BText variant={TextVariant.LABEL} color={activeTab === key ? themeColors.white : themeColors.text}>
-              {title}
-            </BText>
-          </BButton>
-        ))}
-      </BView>
-
       {/* Data-driven form fields */}
       <ScrollView style={styles.fieldsContainer} showsVerticalScrollIndicator={false}>
         {transactionFields.map((item) => (
@@ -257,8 +180,8 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
         <BButton
           variant={ButtonVariant.PRIMARY}
           onPress={handleSubmit}
-          loading={isLoading}
-          disabled={!canSubmit || isLoading}
+          loading={isCreatingExpense}
+          disabled={!canSubmit || isCreatingExpense}
           fullWidth
         >
           <BText variant={TextVariant.LABEL} color={themeColors.white}>
@@ -271,15 +194,12 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
 };
 
 const styles = StyleSheet.create({
-  tab: {
-    flex: 1,
-  },
   fieldsContainer: {
     maxHeight: 400,
   },
   submitContainer: {
     marginTop: Spacing.md,
-    marginHorizontal: -Spacing.base, // Negative margin to extend to modal edges
+    marginHorizontal: -Spacing.base,
     paddingHorizontal: Spacing.base,
     paddingTop: Spacing.md,
     paddingBottom: Spacing.base,

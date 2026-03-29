@@ -1,3 +1,32 @@
+export const INCOME_FORM_STRINGS = {
+  modalTitle: 'Log Income',
+  currencySymbol: '₹',
+  amountLabel: 'Amount',
+  amountPlaceholder: 'e.g. 5000',
+  typeLabel: 'Type',
+  typePlaceholder: 'Select type',
+  typeModalTitle: 'Select Income Type',
+  customTypeLabel: 'Custom Type',
+  customTypePlaceholder: 'e.g. Side hustle',
+  descriptionLabel: 'Description (optional)',
+  descriptionPlaceholder: 'e.g. Freelance project',
+  dateLabel: 'Date',
+  datePlaceholder: 'YYYY-MM-DD',
+  submitButton: 'Log Income',
+  validation: {
+    amountRequired: 'Amount must be greater than 0',
+    typeRequired: 'Please select a type',
+    customTypeRequired: 'Please enter a custom type',
+  },
+  alerts: {
+    createFailed: 'Failed to log income. Please try again.',
+    errorTitle: 'Error',
+  },
+  logs: {
+    createFailed: 'Failed to create income entry:',
+  },
+} as const;
+
 export const INCOME_SETTINGS_STRINGS = {
   screenTitle: 'Additional Income',
   sectionTitle: 'This Month',

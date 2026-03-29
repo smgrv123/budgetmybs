@@ -1,6 +1,9 @@
 // Re-export all UI components
 export * from './ui';
 
+// Re-export income components
+export * from './income';
+
 // Re-export savings components
 export * from './savings';
 

@@ -10,10 +10,12 @@ import {
   BCard,
   BIcon,
   BLink,
+  BModal,
   BSafeAreaView,
   BText,
   BToast,
   BView,
+  IncomeForm,
   QuickActionsSection,
   QuickStatSheet,
 } from '@/src/components';
@@ -27,6 +29,7 @@ import {
   CREDIT_CARD_PROVIDER_OPTIONS,
 } from '@/src/constants/credit-cards.config';
 import { createQuickStats, createStatCards, QuickStatType } from '@/src/constants/dashboardData';
+import { INCOME_FORM_STRINGS } from '@/src/constants/income.strings';
 import { BUDGET_ALERT_STRINGS } from '@/src/constants/notifications.strings';
 import { CREDIT_CARDS_SETTINGS_STRINGS } from '@/src/constants/settings.strings';
 import { BorderRadius, ButtonVariant, Spacing, SpacingValue, TextVariant, ToastVariant } from '@/src/constants/theme';
@@ -100,6 +103,7 @@ export default function DashboardScreen() {
 
   // Modal states
   const [isAddTransactionModalVisible, setIsAddTransactionModalVisible] = useState(false);
+  const [isIncomeModalVisible, setIsIncomeModalVisible] = useState(false);
   const [quickStatSheetVisible, setQuickStatSheetVisible] = useState(false);
   const [selectedQuickStat, setSelectedQuickStat] = useState<QuickStatTypeValue | null>(null);
   const [activeCardIndex, setActiveCardIndex] = useState(0);
@@ -340,9 +344,7 @@ export default function DashboardScreen() {
       component: (
         <QuickActionsSection
           onLogTransactionPress={() => setIsAddTransactionModalVisible(true)}
-          onLogIncomePress={() => {
-            // stub: Log Income — wired in Phase 10
-          }}
+          onLogIncomePress={() => setIsIncomeModalVisible(true)}
           onManageSavingsPress={() => router.push('/settings/savings')}
         />
       ),
@@ -466,6 +468,16 @@ export default function DashboardScreen() {
         onClose={() => setIsAddTransactionModalVisible(false)}
         onExpenseCreated={handleExpenseCreated}
       />
+
+      {/* Log Income Modal */}
+      <BModal
+        isVisible={isIncomeModalVisible}
+        onClose={() => setIsIncomeModalVisible(false)}
+        title={INCOME_FORM_STRINGS.modalTitle}
+        position="bottom"
+      >
+        <IncomeForm onSuccess={() => setIsIncomeModalVisible(false)} />
+      </BModal>
 
       {/* Budget threshold toast */}
       <BToast
