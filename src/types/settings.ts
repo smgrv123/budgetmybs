@@ -5,7 +5,6 @@ export const FinancialDataKey = {
   DEBTS: 'debts',
   SAVINGS: 'savings',
   CREDIT_CARDS: 'creditCards',
-  INCOME: 'income',
 } as const;
 export type FinancialDataKeyType = (typeof FinancialDataKey)[keyof typeof FinancialDataKey];
 

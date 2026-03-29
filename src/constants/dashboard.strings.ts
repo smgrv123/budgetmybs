@@ -5,7 +5,7 @@ export const DASHBOARD_QUICK_ACTIONS_STRINGS = {
     icon: 'receipt-outline',
   },
   logIncome: {
-    label: 'Log Income',
+    label: 'Log Extra Income',
     icon: 'cash-outline',
   },
   manageSavings: {
@@ -13,4 +13,10 @@ export const DASHBOARD_QUICK_ACTIONS_STRINGS = {
     icon: 'wallet-outline',
   },
   comingSoon: 'Coming soon',
+} as const;
+
+export const DASHBOARD_EXTRA_INCOME_STRINGS = {
+  sectionTitle: 'Extra Income',
+  viewAll: 'View All',
+  incomeIcon: 'cash-outline',
 } as const;

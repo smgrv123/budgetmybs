@@ -12,7 +12,6 @@ const SettingsFinancialSection: FC<{
     debts: number;
     savings: number;
     creditCards: number;
-    income: number;
   };
 }> = ({ financialDataItems, counts }) => {
   return (

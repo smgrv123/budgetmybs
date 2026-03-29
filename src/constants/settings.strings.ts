@@ -53,13 +53,6 @@ export const SAVINGS_SETTINGS_STRINGS = {
   removeFailedLog: 'Failed to remove savings goal:',
 } as const;
 
-export const INCOME_SETTINGS_STRINGS = {
-  screenTitle: 'Additional Income',
-  createFailedLog: 'Failed to create income entry:',
-  updateFailedLog: 'Failed to update income entry:',
-  removeFailedLog: 'Failed to remove income entry:',
-} as const;
-
 export const CREDIT_CARDS_SETTINGS_STRINGS = {
   screenTitle: 'Credit Cards',
   manageCardsLabel: 'Manage Cards',

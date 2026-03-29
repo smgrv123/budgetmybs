@@ -15,6 +15,7 @@ import {
   BText,
   BToast,
   BView,
+  ExtraIncomeSection,
   IncomeForm,
   QuickActionsSection,
   QuickStatSheet,
@@ -38,6 +39,7 @@ import {
   useDebts,
   useExpenses,
   useFixedExpenses,
+  useIncome,
   useMonthlyBudget,
   useProfile,
   useRecurringStatus,
@@ -60,6 +62,7 @@ export default function DashboardScreen() {
   const { savingsGoals, completedGoals, incompleteGoals, isSavingsGoalsLoading, markGoalAsCompleted } =
     useSavingsGoals();
   const { expenses, totalSpent, totalSaved: totalOneOffSavings, oneOffSavings } = useExpenses();
+  const { income } = useIncome();
   const { creditCards, creditCardSummaries } = useCreditCards();
   const { isItemProcessed } = useRecurringStatus();
   const { snapshot, rollover, additionalIncome, resetRollover, isResettingRollover } = useMonthlyBudget();
@@ -345,7 +348,7 @@ export default function DashboardScreen() {
         <QuickActionsSection
           onLogTransactionPress={() => setIsAddTransactionModalVisible(true)}
           onLogIncomePress={() => setIsIncomeModalVisible(true)}
-          onManageSavingsPress={() => router.push('/settings/savings')}
+          onManageSavingsPress={() => router.push('/savings')}
         />
       ),
     },
@@ -389,8 +392,14 @@ export default function DashboardScreen() {
       ),
     },
     {
-      key: 'recent-transactions',
+      key: 'extra-income',
       rank: 5,
+      enabled: income.length > 0,
+      component: <ExtraIncomeSection incomeEntries={income} />,
+    },
+    {
+      key: 'recent-transactions',
+      rank: 6,
       enabled: true,
       component: (
         <BView paddingX={SpacingValue.LG} marginY={SpacingValue.LG}>

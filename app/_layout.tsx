@@ -30,6 +30,7 @@ export default function RootLayout() {
               <Stack.Screen name="credit-cards/[id]" options={{ headerShown: false }} />
               <Stack.Screen name="transaction-detail" options={{ headerShown: false }} />
               <Stack.Screen name="all-transactions" options={{ headerShown: false }} />
+              <Stack.Screen name="savings" options={{ headerShown: false }} />
             </Stack>
             <StatusBar style="auto" />
           </ThemeProvider>

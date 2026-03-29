@@ -1,5 +1,4 @@
 import { CREDIT_CARD_ICON_NAMES } from '@/src/constants/credit-cards.config';
-import { INCOME_SETTINGS_STRINGS } from '@/src/constants/income.strings';
 import {
   CREDIT_CARDS_SETTINGS_STRINGS,
   DEBTS_SETTINGS_STRINGS,
@@ -47,14 +46,6 @@ export const createFinancialDataItems = (themeColors: ThemeColors): FinancialDat
     iconBgColor: themeColors.primaryFaded,
     iconColor: themeColors.primary,
     route: '/settings/credit-cards',
-  },
-  {
-    key: FinancialDataKey.INCOME,
-    label: INCOME_SETTINGS_STRINGS.screenTitle,
-    icon: 'cash-outline',
-    iconBgColor: themeColors.successBackground,
-    iconColor: themeColors.success,
-    route: '/settings/income',
   },
 ];
 

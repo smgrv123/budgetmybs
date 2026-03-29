@@ -8,7 +8,6 @@ export default function SettingsLayout() {
       <Stack.Screen name="debts" />
       <Stack.Screen name="savings" />
       <Stack.Screen name="credit-cards" />
-      <Stack.Screen name="income" />
     </Stack>
   );
 }

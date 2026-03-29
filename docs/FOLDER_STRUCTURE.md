@@ -9,15 +9,16 @@ budgetmybs/
 │   ├── index.tsx                 # Entry — redirects to dashboard or onboarding
 │   ├── dashboard/                # Dashboard screens
 │   ├── onboarding/               # Onboarding flow screens
-│   ├── settings/                 # Settings screens (fixed-expenses, debts, savings, credit-cards, income)
+│   ├── settings/                 # Settings screens (fixed-expenses, debts, savings, credit-cards)
 │   ├── transaction-detail.tsx    # Modal screen
-│   └── all-transactions.tsx      # Modal screen
+│   ├── all-transactions.tsx      # Modal screen
+│   └── savings.tsx               # Dedicated savings screen (gradient header + tabs)
 │
 ├── src/                          # Application source code
 │   ├── components/
 │   │   ├── ui/                   # B* primitives (BButton, BText, BView, etc.)
 │   │   ├── {feature}/            # Feature-scoped components (transaction/, dashboard/, chat/)
-│   │   ├── dashboard/            # Dashboard components (QuickActionsSection, QuickStatSheet, heroCard)
+│   │   ├── dashboard/            # Dashboard components (QuickActionsSection, QuickStatSheet, heroCard, ExtraIncomeSection)
 │   │   ├── income/               # Income components (IncomeForm)
 │   │   ├── savings/              # Savings components (SavingsDepositForm, SavingsSummary, SavingsWithdrawalForm)
 │   │   ├── {SharedName}.tsx      # Shared non-primitive components (used across features)
@@ -48,6 +49,7 @@ budgetmybs/
 │   │   ├── dashboard.strings.ts  # Strings for dashboard Quick Actions section
 │   │   ├── income.strings.ts     # Strings for income settings screen and income log form
 │   │   ├── savings-deposit.strings.ts  # Strings for savings deposit form and summary
+│   │   ├── savings-screen.strings.ts   # Strings for the dedicated savings screen (header, tabs)
 │   │   ├── {feature}.config.ts   # Structural configuration
 │   │   └── asyncStorageKeys.ts   # AsyncStorage key constants
 │   │

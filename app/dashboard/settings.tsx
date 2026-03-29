@@ -8,15 +8,7 @@ import { BSafeAreaView, BText, BView } from '@/src/components/ui';
 import { createFinancialDataItems } from '@/src/constants/settings.config';
 import { SETTINGS_SCREEN_STRINGS } from '@/src/constants/settings.strings';
 import { Spacing } from '@/src/constants/theme';
-import {
-  useCreditCards,
-  useDebts,
-  useFixedExpenses,
-  useIncome,
-  useMonthlyBudget,
-  useProfile,
-  useSavingsGoals,
-} from '@/src/hooks';
+import { useCreditCards, useDebts, useFixedExpenses, useMonthlyBudget, useProfile, useSavingsGoals } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { BudgetValueKey, FinancialDataKey } from '@/src/types/settings';
 import { calculateEMI } from '@/src/utils/budget';
@@ -25,7 +17,6 @@ export default function SettingsScreen() {
   const themeColors = useThemeColors();
   const { profile } = useProfile();
   const { additionalIncome } = useMonthlyBudget();
-  const { income } = useIncome();
 
   const { fixedExpenses } = useFixedExpenses();
   const { debts } = useDebts();
@@ -38,7 +29,6 @@ export default function SettingsScreen() {
     [FinancialDataKey.DEBTS]: debts?.length ?? 0,
     [FinancialDataKey.SAVINGS]: savingsGoals?.length ?? 0,
     [FinancialDataKey.CREDIT_CARDS]: creditCards?.length ?? 0,
-    [FinancialDataKey.INCOME]: income?.length ?? 0,
   };
 
   // Create financial data items with theme colors

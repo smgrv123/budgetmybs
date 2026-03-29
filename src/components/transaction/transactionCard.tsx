@@ -1,8 +1,9 @@
 import { BCard, BIcon, BText, BView } from '@/src/components/ui';
-import { CardVariant, SpacingValue, TextVariant } from '@/src/constants/theme';
+import { CardVariant, IconSize, SpacingValue, TextVariant } from '@/src/constants/theme';
 import { TRANSACTION_CARD_STRINGS } from '@/src/constants/transactions.strings';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { formatDate } from '@/src/utils/date';
+import { formatCurrency } from '@/src/utils/format';
 import type { FC } from 'react';
 
 export interface TransactionCardProps {
@@ -65,7 +66,11 @@ const TransactionCard: FC<TransactionCardProps> = ({
       <BView row justify="space-between" align="center">
         {/* Left: icon badge + text */}
         <BView row align="center" gap={SpacingValue.MD} flex>
-          <BView center rounded="base" style={{ width: 36, height: 36, backgroundColor: iconBg }}>
+          <BView
+            center
+            rounded="base"
+            style={{ width: IconSize['2xl'], height: IconSize['2xl'], backgroundColor: iconBg }}
+          >
             <BIcon name={iconName as any} size="sm" color={iconColor} />
           </BView>
           <BView flex>
@@ -106,8 +111,9 @@ const TransactionCard: FC<TransactionCardProps> = ({
           </BView>
         </BView>
         {/* Right: amount */}
-        <BText variant={TextVariant.LABEL} style={{ color: amountColor }}>
-          {amountPrefix}₹{amount.toLocaleString('en-IN')}
+        <BText style={{ color: amountColor }}>
+          {amountPrefix}
+          {formatCurrency(amount)}
         </BText>
       </BView>
     </BCard>
