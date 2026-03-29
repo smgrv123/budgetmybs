@@ -17,7 +17,7 @@ budgetmybs/
 │   ├── components/
 │   │   ├── ui/                   # B* primitives (BButton, BText, BView, etc.)
 │   │   ├── {feature}/            # Feature-scoped components (transaction/, dashboard/, chat/)
-│   │   ├── savings/              # Savings deposit form and summary (SavingsDepositForm, SavingsSummary)
+│   │   ├── savings/              # Savings components (SavingsDepositForm, SavingsSummary, SavingsWithdrawalForm)
 │   │   ├── {SharedName}.tsx      # Shared non-primitive components (used across features)
 │   │   └── index.ts              # Barrel exports
 │   │
@@ -50,6 +50,7 @@ budgetmybs/
 │   │
 │   ├── validation/               # Zod schemas
 │   │   ├── savings-deposit.ts    # Zod schema for savings deposit form
+│   │   ├── savings-withdrawal.ts # Zod schema for savings withdrawal form
 │   │   └── {feature}.ts
 │   │
 │   ├── utils/                    # Pure utility functions

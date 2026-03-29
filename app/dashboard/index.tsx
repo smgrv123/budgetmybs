@@ -218,10 +218,12 @@ export default function DashboardScreen() {
   // ! this should be removed. single query should be triggered for this. again to be picked in a revamp. let go for now
   const combinedTransactions = [...expenses, ...oneOffSavings];
 
-  return (
-    <BSafeAreaView edges={[]}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Gradient Header */}
+  const dashboardSections = [
+    {
+      key: 'header',
+      rank: 0,
+      enabled: true,
+      component: (
         <LinearGradient colors={HEADER_GRADIENT} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.header}>
           <BView paddingY={SpacingValue.MD}>
             <BText variant={TextVariant.BODY} color={themeColors.white} muted style={{ marginBottom: Spacing.xs }}>
@@ -232,8 +234,13 @@ export default function DashboardScreen() {
             </BText>
           </BView>
         </LinearGradient>
-
-        {/* Budget + Credit Card Carousel */}
+      ),
+    },
+    {
+      key: 'carousel',
+      rank: 1,
+      enabled: true,
+      component: (
         <BView style={styles.budgetCardWrapper}>
           <ScrollView
             horizontal
@@ -303,8 +310,13 @@ export default function DashboardScreen() {
             </BView>
           )}
         </BView>
-
-        {/* Spent/Saved Cards */}
+      ),
+    },
+    {
+      key: 'stat-cards',
+      rank: 2,
+      enabled: true,
+      component: (
         <BView row gap={SpacingValue.MD} paddingX={SpacingValue.LG} marginY={SpacingValue.MD}>
           {statCards.map((item) => (
             <BCard key={item.id} variant="default" style={{ flex: 1, padding: Spacing.md }}>
@@ -319,8 +331,13 @@ export default function DashboardScreen() {
             </BCard>
           ))}
         </BView>
-
-        {/* Quick Stats */}
+      ),
+    },
+    {
+      key: 'quick-stats',
+      rank: 3,
+      enabled: true,
+      component: (
         <BView paddingX={SpacingValue.LG} marginY={SpacingValue.SM}>
           <BText variant={TextVariant.SUBHEADING} style={{ marginBottom: Spacing.md }}>
             Quick Stats
@@ -353,8 +370,13 @@ export default function DashboardScreen() {
             ))}
           </BView>
         </BView>
-
-        {/* Recent Transactions */}
+      ),
+    },
+    {
+      key: 'recent-transactions',
+      rank: 4,
+      enabled: true,
+      component: (
         <BView paddingX={SpacingValue.LG} marginY={SpacingValue.LG}>
           <BView row justify="space-between" align="center" style={{ marginBottom: Spacing.md }}>
             <BText variant={TextVariant.SUBHEADING}>Recent Transactions</BText>
@@ -409,6 +431,19 @@ export default function DashboardScreen() {
             })
           )}
         </BView>
+      ),
+    },
+  ];
+
+  return (
+    <BSafeAreaView edges={[]}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {dashboardSections
+          .filter((s) => s.enabled)
+          .sort((a, b) => a.rank - b.rank)
+          .map(({ key, component }) => (
+            <BView key={key}>{component}</BView>
+          ))}
       </ScrollView>
 
       {/* FAB */}

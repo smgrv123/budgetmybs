@@ -29,4 +29,27 @@ export const SAVINGS_DEPOSIT_STRINGS = {
   // Errors
   createFailedLog: 'Failed to create savings deposit:',
   createFailedAlert: 'Failed to save deposit. Please try again.',
+
+  // Withdrawal form
+  withdrawalFormTitle: 'Withdraw Savings',
+  withdrawalSourceLabel: 'Withdrawal Source',
+  withdrawalSourcePlaceholder: 'Select source',
+  withdrawalSourceModalTitle: 'Select Withdrawal Source',
+  withdrawalAvailableBalanceLabel: 'Available Balance',
+  withdrawalAmountLabel: 'Amount to Withdraw',
+  withdrawalAmountPlaceholder: 'Enter amount',
+  withdrawalSubmitButton: 'Confirm Withdrawal',
+  withdrawalAdHocSuffix: '(ad-hoc)',
+  withdrawalButtonLabel: 'Withdraw Savings',
+
+  // Withdrawal validation
+  withdrawalValidation: {
+    amountRequired: 'Amount must be greater than 0',
+    sourceRequired: 'Please select a source',
+    amountExceedsBalance: 'Amount cannot exceed the available balance',
+  },
+
+  // Withdrawal errors
+  withdrawalFailedLog: 'Failed to create savings withdrawal:',
+  withdrawalFailedAlert: 'Failed to process withdrawal. Please try again.',
 } as const;
