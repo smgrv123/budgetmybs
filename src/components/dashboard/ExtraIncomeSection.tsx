@@ -1,61 +1,12 @@
 import type { FC } from 'react';
 
 import type { Income } from '@/db/schema-types';
-import { IncomeLabels } from '@/db/types';
-import { BCard, BIcon, BLink, BText, BView } from '@/src/components/ui';
+import { IncomeLabels, IncomeTypeEnum } from '@/db/types';
+import { BLink, BText, BView } from '@/src/components/ui';
+import { TransactionCard } from '@/src/components/transaction';
 import { DASHBOARD_EXTRA_INCOME_STRINGS } from '@/src/constants/dashboard.strings';
-import { CardVariant, IconSize, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
+import { Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
-import { formatCurrency } from '@/src/utils/format';
-
-interface IncomeEntryCardProps {
-  entry: Income;
-}
-
-const IncomeEntryCard: FC<IncomeEntryCardProps> = ({ entry }) => {
-  const themeColors = useThemeColors();
-  const typeLabel = IncomeLabels[entry.type];
-  const iconBg = `${themeColors.success}20`;
-
-  return (
-    <BLink
-      href={{ pathname: '/income-detail', params: { id: entry.id } }}
-      fullWidth
-      style={{ marginBottom: Spacing.sm }}
-    >
-      <BCard variant={CardVariant.SUMMARY}>
-        <BView row align="center" justify="space-between">
-          <BView
-            center
-            style={{
-              backgroundColor: themeColors.successBackground,
-              marginRight: Spacing.md,
-            }}
-          >
-            <BView
-              center
-              rounded="base"
-              style={{ width: IconSize['2xl'], height: IconSize['2xl'], backgroundColor: iconBg }}
-            >
-              <BIcon name="cash-outline" color={themeColors.success} size="md" />
-            </BView>
-          </BView>
-
-          <BView flex>
-            <BText variant={TextVariant.LABEL}>{typeLabel}</BText>
-            {Boolean(entry.description) && (
-              <BText variant={TextVariant.CAPTION} muted>
-                {entry.description}
-              </BText>
-            )}
-          </BView>
-
-          <BText style={{ color: themeColors.success }}>+{formatCurrency(entry.amount)}</BText>
-        </BView>
-      </BCard>
-    </BLink>
-  );
-};
 
 interface ExtraIncomeSectionProps {
   incomeEntries: Income[];
@@ -81,9 +32,31 @@ const ExtraIncomeSection: FC<ExtraIncomeSectionProps> = ({ incomeEntries }) => {
         </BLink>
       </BView>
 
-      {displayEntries.map((entry) => (
-        <IncomeEntryCard key={entry.id} entry={entry} />
-      ))}
+      {displayEntries.map((entry) => {
+        const typeLabel =
+          entry.type === IncomeTypeEnum.OTHER && entry.customType
+            ? entry.customType
+            : (IncomeLabels[entry.type] ?? entry.type);
+
+        return (
+          <BLink
+            key={entry.id}
+            href={{ pathname: '/income-detail', params: { id: entry.id } }}
+            fullWidth
+            style={{ marginBottom: Spacing.sm }}
+          >
+            <TransactionCard
+              id={entry.id}
+              description={typeLabel}
+              categoryName={entry.description}
+              amount={entry.amount}
+              date={entry.date}
+              isSaving
+              categoryIcon="cash-outline"
+            />
+          </BLink>
+        );
+      })}
     </BView>
   );
 };

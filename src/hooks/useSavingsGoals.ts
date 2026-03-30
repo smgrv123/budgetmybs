@@ -4,6 +4,7 @@ import {
   getAdHocSavingsBalances,
   getCompletedSavingsGoals,
   getIncompleteSavingsGoals,
+  getMonthlyDepositsByGoal,
   getSavingsBalanceByGoal,
   getSavingsBalancesByAllGoals,
   getSavingsGoals,
@@ -12,6 +13,7 @@ import {
   updateSavingsGoal,
 } from '@/db';
 import type { UpdateSavingsGoalInput } from '@/db/schema-types';
+import { getCurrentMonth } from '@/db/utils';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const SAVINGS_GOALS_QUERY_KEY = ['savingsGoals'] as const;
@@ -21,6 +23,7 @@ export const TOTAL_SAVINGS_TARGET_QUERY_KEY = ['savingsGoals', 'totalTarget'] as
 export const SAVINGS_BALANCE_BY_GOAL_QUERY_KEY = ['savingsGoals', 'balanceByGoal'] as const;
 export const SAVINGS_BALANCES_ALL_GOALS_QUERY_KEY = ['savingsGoals', 'balancesAllGoals'] as const;
 export const ADHOC_SAVINGS_BALANCES_QUERY_KEY = ['savingsGoals', 'adHocBalances'] as const;
+export const MONTHLY_DEPOSITS_BY_GOAL_QUERY_KEY = ['savingsGoals', 'monthlyDepositsByGoal'] as const;
 
 /**
  * Hook for savings goals queries and mutations
@@ -56,6 +59,12 @@ export const useSavingsGoals = (activeOnly = true) => {
   const adHocSavingsBalancesQuery = useQuery({
     queryKey: ADHOC_SAVINGS_BALANCES_QUERY_KEY,
     queryFn: getAdHocSavingsBalances,
+  });
+
+  const currentMonth = getCurrentMonth();
+  const monthlyDepositsByGoalQuery = useQuery({
+    queryKey: [...MONTHLY_DEPOSITS_BY_GOAL_QUERY_KEY, { month: currentMonth }],
+    queryFn: () => getMonthlyDepositsByGoal(currentMonth),
   });
 
   const createMutation = useMutation({
@@ -105,6 +114,8 @@ export const useSavingsGoals = (activeOnly = true) => {
     isSavingsBalancesAllGoalsLoading: savingsBalancesAllGoalsQuery.isLoading,
     adHocSavingsBalances: adHocSavingsBalancesQuery.data ?? [],
     isAdHocSavingsBalancesLoading: adHocSavingsBalancesQuery.isLoading,
+    monthlyDepositsByGoal: monthlyDepositsByGoalQuery.data ?? [],
+    isMonthlyDepositsByGoalLoading: monthlyDepositsByGoalQuery.isLoading,
     /** Fetch balance for a single goal on demand (wraps the DB query directly) */
     getSavingsBalanceByGoal,
 

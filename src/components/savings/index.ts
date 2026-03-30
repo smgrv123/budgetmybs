@@ -1,3 +1,9 @@
+export { default as AdHocSavingsAccordion } from './AdHocSavingsAccordion';
 export { default as SavingsDepositForm } from './SavingsDepositForm';
+export { default as SavingsGoalCard } from './SavingsGoalCard';
+export { default as SavingsOverviewTab } from './SavingsOverviewTab';
 export { default as SavingsSummary } from './SavingsSummary';
 export { default as SavingsWithdrawalForm } from './SavingsWithdrawalForm';
+export type { AdHocSavingsAccordionProps } from './AdHocSavingsAccordion';
+export type { SavingsGoalCardProps } from './SavingsGoalCard';
+export type { SavingsOverviewTabProps } from './SavingsOverviewTab';

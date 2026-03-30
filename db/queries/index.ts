@@ -85,6 +85,7 @@ export {
   getAdHocSavingsBalances,
   getCompletedSavingsGoals,
   getIncompleteSavingsGoals,
+  getMonthlyDepositsByGoal,
   getSavingsBalanceByGoal,
   getSavingsBalancesByAllGoals,
   getSavingsGoalById,
@@ -116,7 +117,14 @@ export {
 } from './financialPlan';
 
 // Income queries
-export { createIncome, deleteIncome, getIncomeByMonth, getMonthlyIncomeSum, updateIncome } from './income';
+export {
+  createIncome,
+  deleteIncome,
+  getIncomeById,
+  getIncomeByMonth,
+  getMonthlyIncomeSum,
+  updateIncome,
+} from './income';
 
 // Account queries (delete/reset)
 export { clearUserData } from './account';

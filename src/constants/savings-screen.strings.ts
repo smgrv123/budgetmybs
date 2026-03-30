@@ -13,4 +13,14 @@ export const SAVINGS_SCREEN_STRINGS = {
     deposit: 'Deposit form coming soon.',
     withdraw: 'Withdrawal form coming soon.',
   },
+
+  overview: {
+    noGoals: 'No savings goals yet. Add goals in Settings.',
+    ofTarget: 'of',
+    percentComplete: '% complete',
+    monthlyTargetMet: 'Monthly target met',
+    adHocSectionTitle: 'Ad-hoc Savings',
+    adHocSectionIcon: 'wallet-outline',
+    allTimeTotalLabel: 'All-time total',
+  },
 } as const;

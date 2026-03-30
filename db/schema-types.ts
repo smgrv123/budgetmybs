@@ -153,6 +153,11 @@ export type AdHocSavingsBalance = SavingsBalance & {
   savingsType: string;
 };
 
+export type MonthlyGoalDeposit = {
+  goalId: string;
+  totalDeposited: number;
+};
+
 // ============================================
 // CHAT MESSAGE TYPES
 // ============================================

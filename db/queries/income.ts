@@ -40,6 +40,16 @@ export const getMonthlyIncomeSum = async (month?: string): Promise<number> => {
 };
 
 // ============================================
+// GET INCOME BY ID
+// ============================================
+
+export const getIncomeById = async (id: string) => {
+  const result = await db.select().from(additionalIncomeTable).where(eq(additionalIncomeTable.id, id)).limit(1);
+
+  return result[0] ?? null;
+};
+
+// ============================================
 // CREATE INCOME
 // ============================================
 

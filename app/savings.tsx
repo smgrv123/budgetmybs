@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 
-import { BButton, BCard, BIcon, BSafeAreaView, BText, BView } from '@/src/components';
+import { BButton, BCard, BIcon, BSafeAreaView, BText, BView, SavingsOverviewTab } from '@/src/components';
 import { SAVINGS_SCREEN_STRINGS } from '@/src/constants/savings-screen.strings';
 import { BorderRadius, ButtonVariant, IconSize, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
 import { useSavingsGoals } from '@/src/hooks';
@@ -48,7 +48,7 @@ export default function SavingsScreenRoute() {
   const themeColors = useThemeColors();
   const [activeTab, setActiveTab] = useState<SavingsTabType>(SavingsTab.OVERVIEW);
 
-  const { savingsBalancesAllGoals, adHocSavingsBalances } = useSavingsGoals();
+  const { savingsGoals, savingsBalancesAllGoals, adHocSavingsBalances, monthlyDepositsByGoal } = useSavingsGoals();
 
   // Compute total all-time balance: sum of all goal net balances + all ad-hoc net balances
   const goalTotal = savingsBalancesAllGoals.reduce((sum, b) => sum + b.net, 0);
@@ -139,23 +139,28 @@ export default function SavingsScreenRoute() {
 
       {/* Tab Content */}
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-        <BView flex center padding={SpacingValue.XL}>
-          {activeTab === SavingsTab.OVERVIEW && (
-            <BText variant={TextVariant.BODY} muted>
-              {SAVINGS_SCREEN_STRINGS.tabPlaceholders.overview}
-            </BText>
-          )}
-          {activeTab === SavingsTab.DEPOSIT && (
+        {activeTab === SavingsTab.OVERVIEW && (
+          <SavingsOverviewTab
+            savingsGoals={savingsGoals}
+            savingsBalancesAllGoals={savingsBalancesAllGoals}
+            adHocSavingsBalances={adHocSavingsBalances}
+            monthlyDepositsByGoal={monthlyDepositsByGoal}
+          />
+        )}
+        {activeTab === SavingsTab.DEPOSIT && (
+          <BView center padding={SpacingValue.XL}>
             <BText variant={TextVariant.BODY} muted>
               {SAVINGS_SCREEN_STRINGS.tabPlaceholders.deposit}
             </BText>
-          )}
-          {activeTab === SavingsTab.WITHDRAW && (
+          </BView>
+        )}
+        {activeTab === SavingsTab.WITHDRAW && (
+          <BView center padding={SpacingValue.XL}>
             <BText variant={TextVariant.BODY} muted>
               {SAVINGS_SCREEN_STRINGS.tabPlaceholders.withdraw}
             </BText>
-          )}
-        </BView>
+          </BView>
+        )}
       </ScrollView>
     </BSafeAreaView>
   );

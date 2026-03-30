@@ -1,9 +1,28 @@
-import { createIncome, deleteIncome, getIncomeByMonth, getMonthlyIncomeSum, updateIncome } from '@/db';
+import { createIncome, deleteIncome, getIncomeById, getIncomeByMonth, getMonthlyIncomeSum, updateIncome } from '@/db';
 import type { UpdateIncomeInput } from '@/db/schema-types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const INCOME_QUERY_KEY = ['income'] as const;
+export const INCOME_BY_ID_QUERY_KEY = ['income', 'byId'] as const;
 export const MONTHLY_INCOME_SUM_QUERY_KEY = ['income', 'monthlySum'] as const;
+
+/**
+ * Fetches a single income entry by ID.
+ */
+export const useIncomeById = (id: string | undefined) => {
+  const query = useQuery({
+    queryKey: [...INCOME_BY_ID_QUERY_KEY, id],
+    queryFn: () => getIncomeById(id!),
+    enabled: Boolean(id),
+  });
+
+  return {
+    income: query.data ?? null,
+    isIncomeLoading: query.isLoading,
+    isIncomeError: query.isError,
+    refetchIncome: query.refetch,
+  };
+};
 
 /**
  * Hook for income queries and mutations.

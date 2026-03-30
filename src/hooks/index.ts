@@ -1,6 +1,12 @@
 // TanStack Query Hooks
 export { useAccount } from './useAccount';
-export { INCOME_QUERY_KEY, MONTHLY_INCOME_SUM_QUERY_KEY, useIncome } from './useIncome';
+export {
+  INCOME_BY_ID_QUERY_KEY,
+  INCOME_QUERY_KEY,
+  MONTHLY_INCOME_SUM_QUERY_KEY,
+  useIncome,
+  useIncomeById,
+} from './useIncome';
 export { ALL_EXPENSES_QUERY_KEY, useAllExpenses } from './useAllExpenses';
 export { CATEGORIES_QUERY_KEY, useCategories } from './useCategories';
 export { CHAT_MESSAGES_QUERY_KEY, useChat } from './useChat';
@@ -25,6 +31,7 @@ export {
   ADHOC_SAVINGS_BALANCES_QUERY_KEY,
   COMPLETED_GOALS_QUERY_KEY,
   INCOMPLETE_GOALS_QUERY_KEY,
+  MONTHLY_DEPOSITS_BY_GOAL_QUERY_KEY,
   SAVINGS_BALANCE_BY_GOAL_QUERY_KEY,
   SAVINGS_BALANCES_ALL_GOALS_QUERY_KEY,
   SAVINGS_GOALS_QUERY_KEY,

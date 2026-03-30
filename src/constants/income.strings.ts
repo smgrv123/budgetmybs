@@ -27,6 +27,50 @@ export const INCOME_FORM_STRINGS = {
   },
 } as const;
 
+export const ALL_INCOME_STRINGS = {
+  screenTitle: 'All Income',
+  noIncome: 'No income entries this month',
+  loadErrorTitle: 'Could not load income',
+  loadErrorBody: 'Something went wrong. Tap retry to try again.',
+  retryButton: 'Retry',
+} as const;
+
+export const INCOME_DETAIL_STRINGS = {
+  screenTitle: 'Income Detail',
+  loadingLabel: 'Loading...',
+  notFoundLabel: 'Income entry not found',
+  amountLabel: 'Amount',
+  typeLabel: 'Type',
+  descriptionLabel: 'Description',
+  dateLabel: 'Date',
+  noDescriptionFallback: 'No description',
+  editButton: 'Edit',
+  deleteButton: 'Delete',
+  saveChangesButton: 'Save Changes',
+  cancelButton: 'Cancel',
+  deleteAlertTitle: 'Delete Income Entry?',
+  deleteAlertBody: 'This will permanently remove this income entry.',
+  deleteAlertCancel: 'Cancel',
+  deleteAlertConfirm: 'Delete',
+  changesSavedToast: 'Changes saved',
+  saveChangesFailedToast: 'Failed to save changes. Please try again.',
+  deleteFailedToast: 'Failed to delete. Please try again.',
+  descriptionPlaceholder: 'e.g. Freelance project',
+  amountPlaceholder: 'e.g. 5000',
+  currencySymbol: '₹',
+  typeModalTitle: 'Select Income Type',
+  customTypeLabel: 'Custom Type',
+  customTypePlaceholder: 'e.g. Side hustle',
+  validation: {
+    amountRequired: 'Amount must be greater than 0',
+    amountPositive: 'Amount must be a positive number',
+    typeRequired: 'Please select a type',
+    customTypeRequired: 'Please enter a custom type',
+    dateRequired: 'Date is required',
+    dateValidISO: 'Date must be in YYYY-MM-DD format',
+  },
+} as const;
+
 export const INCOME_SETTINGS_STRINGS = {
   screenTitle: 'Additional Income',
   sectionTitle: 'This Month',

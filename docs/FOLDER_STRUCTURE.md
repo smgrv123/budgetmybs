@@ -12,6 +12,8 @@ budgetmybs/
 │   ├── settings/                 # Settings screens (fixed-expenses, debts, savings, credit-cards)
 │   ├── transaction-detail.tsx    # Modal screen
 │   ├── all-transactions.tsx      # Modal screen
+│   ├── all-income.tsx            # All income entries for the current month
+│   ├── income-detail.tsx         # Income entry detail (view/edit/delete)
 │   └── savings.tsx               # Dedicated savings screen (gradient header + tabs)
 │
 ├── src/                          # Application source code
@@ -20,7 +22,7 @@ budgetmybs/
 │   │   ├── {feature}/            # Feature-scoped components (transaction/, dashboard/, chat/)
 │   │   ├── dashboard/            # Dashboard components (QuickActionsSection, QuickStatSheet, heroCard, ExtraIncomeSection)
 │   │   ├── income/               # Income components (IncomeForm)
-│   │   ├── savings/              # Savings components (SavingsDepositForm, SavingsSummary, SavingsWithdrawalForm)
+│   │   ├── savings/              # Savings components (SavingsDepositForm, SavingsSummary, SavingsWithdrawalForm, SavingsGoalCard, AdHocSavingsAccordion, SavingsOverviewTab)
 │   │   ├── {SharedName}.tsx      # Shared non-primitive components (used across features)
 │   │   └── index.ts              # Barrel exports
 │   │
@@ -47,9 +49,10 @@ budgetmybs/
 │   │   ├── theme/                # Theme system (colors, spacing, variants, typography, layout)
 │   │   ├── {feature}.strings.ts  # User-facing text
 │   │   ├── dashboard.strings.ts  # Strings for dashboard Quick Actions section
-│   │   ├── income.strings.ts     # Strings for income settings screen and income log form
+│   │   ├── income.strings.ts     # Strings for income settings screen, income log form, all-income and income-detail screens
 │   │   ├── savings-deposit.strings.ts  # Strings for savings deposit form and summary
-│   │   ├── savings-screen.strings.ts   # Strings for the dedicated savings screen (header, tabs)
+│   │   ├── savings-icons.config.ts     # SavingsType → Ionicons icon name mapping
+│   │   ├── savings-screen.strings.ts   # Strings for the dedicated savings screen (header, tabs, overview)
 │   │   ├── {feature}.config.ts   # Structural configuration
 │   │   └── asyncStorageKeys.ts   # AsyncStorage key constants
 │   │

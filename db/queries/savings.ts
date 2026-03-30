@@ -1,10 +1,11 @@
-import { and, eq, isNull, sql } from 'drizzle-orm';
+import { and, eq, isNull, like, not, sql } from 'drizzle-orm';
 import { db } from '../client';
 import { expensesTable, savingsGoalsTable } from '../schema';
 import type {
   AdHocSavingsBalance,
   CreateSavingsGoalInput,
   GoalSavingsBalance,
+  MonthlyGoalDeposit,
   SavingsBalance,
   UpdateSavingsGoalInput,
 } from '../schema-types';
@@ -204,5 +205,35 @@ export const getAdHocSavingsBalances = async (): Promise<AdHocSavingsBalance[]> 
       deposited: row.deposited,
       withdrawn: row.withdrawn,
       net: row.deposited - row.withdrawn,
+    }));
+};
+
+/**
+ * Get total deposits (non-withdrawal) per savings goal for a given month (YYYY-MM).
+ * Only includes rows where isSaving=1, isWithdrawal=0, savingsGoalId IS NOT NULL.
+ * Returns an array of { goalId, totalDeposited }.
+ */
+export const getMonthlyDepositsByGoal = async (month: string): Promise<MonthlyGoalDeposit[]> => {
+  const rows = await db
+    .select({
+      goalId: expensesTable.savingsGoalId,
+      totalDeposited: sql<number>`COALESCE(SUM(${expensesTable.amount}), 0)`,
+    })
+    .from(expensesTable)
+    .where(
+      and(
+        eq(expensesTable.isSaving, 1),
+        eq(expensesTable.isWithdrawal, 0),
+        not(isNull(expensesTable.savingsGoalId)),
+        like(expensesTable.date, `${month}%`)
+      )
+    )
+    .groupBy(expensesTable.savingsGoalId);
+
+  return rows
+    .filter((row): row is typeof row & { goalId: string } => row.goalId !== null)
+    .map((row) => ({
+      goalId: row.goalId,
+      totalDeposited: row.totalDeposited,
     }));
 };
