@@ -61,6 +61,7 @@ export const TRANSACTION_DETAIL_STRINGS = {
   recurringDeleteDisabled: "Recurring transactions can't be deleted",
   amountLabel: 'Amount',
   categoryLabel: 'Category',
+  categoryModalTitle: 'Select Category',
   dateLabel: 'Date',
   descriptionLabel: 'Description',
   descriptionPlaceholder: 'Optional note...',
