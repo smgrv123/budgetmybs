@@ -59,8 +59,7 @@ export default function DashboardScreen() {
   const { profile, isProfileLoading, isProfileError, refetchProfile } = useProfile();
   const { fixedExpenses, isFixedExpensesLoading } = useFixedExpenses();
   const { debts, isDebtsLoading } = useDebts();
-  const { savingsGoals, completedGoals, incompleteGoals, isSavingsGoalsLoading, markGoalAsCompleted } =
-    useSavingsGoals();
+  const { savingsGoals, isSavingsGoalsLoading } = useSavingsGoals();
   const { expenses, totalSpent, totalSaved: totalOneOffSavings, oneOffSavings } = useExpenses();
   const { income } = useIncome();
   const { creditCards, creditCardSummaries } = useCreditCards();
@@ -117,7 +116,7 @@ export default function DashboardScreen() {
   const totalFixedExpenses = calculateTotalFixedExpenses(fixedExpenses ?? []);
   const totalEMI = calculateTotalEMI(debts ?? []);
   const monthlyIncome = profile?.salary ?? 0;
-  const totalMonthlySavings = completedGoals.reduce((sum, s) => sum + s.targetAmount, 0);
+  const totalMonthlySavings = savingsGoals.reduce((sum, g) => sum + g.targetAmount, 0);
 
   // Real spending data from DB
   const spentThisMonth = totalSpent;
@@ -139,8 +138,8 @@ export default function DashboardScreen() {
     fixedExpenses?.length ?? 0,
     totalEMI,
     debts?.length ?? 0,
-    completedGoals?.length ?? 0,
-    incompleteGoals?.length ?? 0,
+    totalMonthlySavings,
+    savingsGoals.length,
     themeColors
   );
 
@@ -151,10 +150,8 @@ export default function DashboardScreen() {
         return 'Fixed Expenses';
       case QuickStatType.EMIS:
         return 'EMI Payments';
-      case QuickStatType.COMPLETED:
-        return 'Completed Goals';
-      case QuickStatType.INCOMPLETE:
-        return 'Savings Goals';
+      case QuickStatType.GOALS:
+        return 'Monthly Savings';
       default:
         return 'Goals';
     }
@@ -371,7 +368,7 @@ export default function DashboardScreen() {
                 style={[
                   item.count === 0 && styles.quickStatCardDisabled,
                   styles.statsCards,
-                  { shadowColor: themeColors.text },
+                  { shadowColor: themeColors.text, width: `${Math.floor(96 / quickStats.length)}%` as any },
                 ]}
               >
                 <BCard variant="default" style={{ padding: Spacing.md, width: '100%' }}>
@@ -507,10 +504,6 @@ export default function DashboardScreen() {
         )}
         debts={debts?.map((d) => mapDebtToSheet(d, isItemProcessed(RecurringSourceTypeEnum.DEBT_EMI, d.id)))}
         savingsGoals={savingsGoals?.map(mapSavingsGoalToSheet)}
-        onMarkGoalComplete={(goalId) => {
-          markGoalAsCompleted(goalId);
-          setQuickStatSheetVisible(false);
-        }}
       />
     </BSafeAreaView>
   );

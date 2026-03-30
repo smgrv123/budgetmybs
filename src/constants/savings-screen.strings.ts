@@ -33,6 +33,7 @@ export const SAVINGS_SCREEN_STRINGS = {
     descriptionLabel: 'Description (optional)',
     descriptionPlaceholder: 'e.g. Monthly SIP',
     confirmButton: 'Confirm Deposit',
+    successToastSuffix: 'deposited to savings!',
     createFailedLog: 'Failed to create savings deposit:',
     createFailedAlert: 'Failed to save deposit. Please try again.',
     validation: {

@@ -3,9 +3,27 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 
-import { BButton, BCard, BIcon, BSafeAreaView, BText, BView, SavingsOverviewTab } from '@/src/components';
+import {
+  BButton,
+  BCard,
+  BIcon,
+  BSafeAreaView,
+  BText,
+  BToast,
+  BView,
+  SavingsDepositTab,
+  SavingsOverviewTab,
+} from '@/src/components';
 import { SAVINGS_SCREEN_STRINGS } from '@/src/constants/savings-screen.strings';
-import { BorderRadius, ButtonVariant, IconSize, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
+import {
+  BorderRadius,
+  ButtonVariant,
+  IconSize,
+  Spacing,
+  SpacingValue,
+  TextVariant,
+  ToastVariant,
+} from '@/src/constants/theme';
 import { useSavingsGoals } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { formatCurrency } from '@/src/utils/format';
@@ -47,6 +65,14 @@ export default function SavingsScreenRoute() {
   const router = useRouter();
   const themeColors = useThemeColors();
   const [activeTab, setActiveTab] = useState<SavingsTabType>(SavingsTab.OVERVIEW);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
+  const handleDepositSuccess = (message: string) => {
+    setActiveTab(SavingsTab.OVERVIEW);
+    setToastMessage(message);
+    setToastVisible(true);
+  };
 
   const { savingsGoals, savingsBalancesAllGoals, adHocSavingsBalances, monthlyDepositsByGoal } = useSavingsGoals();
 
@@ -147,21 +173,21 @@ export default function SavingsScreenRoute() {
             monthlyDepositsByGoal={monthlyDepositsByGoal}
           />
         )}
-        {activeTab === SavingsTab.DEPOSIT && (
-          <BView center padding={SpacingValue.XL}>
-            <BText variant={TextVariant.BODY} muted>
-              {SAVINGS_SCREEN_STRINGS.tabPlaceholders.deposit}
-            </BText>
-          </BView>
-        )}
+        {activeTab === SavingsTab.DEPOSIT && <SavingsDepositTab onSuccess={handleDepositSuccess} />}
         {activeTab === SavingsTab.WITHDRAW && (
           <BView center padding={SpacingValue.XL}>
             <BText variant={TextVariant.BODY} muted>
-              {SAVINGS_SCREEN_STRINGS.tabPlaceholders.withdraw}
+              {SAVINGS_SCREEN_STRINGS.withdraw.title}
             </BText>
           </BView>
         )}
       </ScrollView>
+      <BToast
+        visible={toastVisible}
+        message={toastMessage}
+        variant={ToastVariant.SUCCESS}
+        onDismiss={() => setToastVisible(false)}
+      />
     </BSafeAreaView>
   );
 }

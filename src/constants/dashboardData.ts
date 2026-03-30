@@ -46,8 +46,8 @@ export const createQuickStats = (
   fixedExpensesCount: number,
   totalEMI: number,
   debtsCount: number,
-  completedGoalsCount: number,
-  incompleteGoalsCount: number,
+  totalSavingsTarget: number,
+  savingsGoalsCount: number,
   themeColors: ThemeColors
 ): QuickStatItem[] => [
   {
@@ -67,19 +67,11 @@ export const createQuickStats = (
     count: debtsCount,
   },
   {
-    id: QuickStatType.COMPLETED,
-    icon: 'checkmark-circle-outline',
-    value: String(completedGoalsCount),
-    label: 'Completed',
+    id: QuickStatType.GOALS,
+    icon: 'trending-up-outline',
+    value: `₹${totalSavingsTarget.toLocaleString('en-IN')}`,
+    label: 'Savings',
     color: themeColors.success,
-    count: completedGoalsCount,
-  },
-  {
-    id: QuickStatType.INCOMPLETE,
-    icon: 'flag-outline',
-    value: String(incompleteGoalsCount),
-    label: 'Goals',
-    color: themeColors.textMuted,
-    count: incompleteGoalsCount,
+    count: savingsGoalsCount,
   },
 ];
