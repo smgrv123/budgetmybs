@@ -257,6 +257,7 @@ export const ChatActionTypeEnum = {
   ADD_SAVINGS_GOAL: 'add_savings_goal',
   UPDATE_SAVINGS_GOAL: 'update_savings_goal',
   DELETE_SAVINGS_GOAL: 'delete_savings_goal',
+  ADD_INCOME: 'add_income',
 } as const;
 export type ChatActionType = (typeof ChatActionTypeEnum)[keyof typeof ChatActionTypeEnum];
 export const CHAT_ACTION_TYPES = Object.values(ChatActionTypeEnum);
@@ -288,6 +289,7 @@ export const ChatIntentEnum = {
   ADD_SAVINGS_GOAL: 'add_savings_goal',
   UPDATE_SAVINGS_GOAL: 'update_savings_goal',
   DELETE_SAVINGS_GOAL: 'delete_savings_goal',
+  ADD_INCOME: 'add_income',
   GENERAL: 'general',
 } as const;
 export type ChatIntent = (typeof ChatIntentEnum)[keyof typeof ChatIntentEnum];

@@ -4,6 +4,7 @@ import type {
   ChatIntentEnum,
   DebtType,
   FixedExpenseType,
+  IncomeType,
   ProfileFieldType,
   SavingsType,
 } from '@/db/types';
@@ -58,6 +59,14 @@ export type ChatSavingsGoalData = {
   existingName?: string;
 };
 
+export type ChatIncomeData = {
+  amount: number;
+  type: IncomeType;
+  customType?: string;
+  description?: string;
+  date: string;
+};
+
 export type ChatDeleteData = {
   existingName: string; // name of the entity to delete — always required
 };
@@ -80,4 +89,5 @@ export type ChatResponse =
   | { intent: typeof ChatIntentEnum.ADD_SAVINGS_GOAL; message: string; data: ChatSavingsGoalData }
   | { intent: typeof ChatIntentEnum.UPDATE_SAVINGS_GOAL; message: string; data: ChatSavingsGoalData }
   | { intent: typeof ChatIntentEnum.DELETE_SAVINGS_GOAL; message: string; data: ChatDeleteData }
+  | { intent: typeof ChatIntentEnum.ADD_INCOME; message: string; data: ChatIncomeData }
   | { intent: typeof ChatIntentEnum.GENERAL; message: string; data?: undefined };

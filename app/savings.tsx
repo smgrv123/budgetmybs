@@ -13,6 +13,7 @@ import {
   BView,
   SavingsDepositTab,
   SavingsOverviewTab,
+  SavingsWithdrawTab,
 } from '@/src/components';
 import { SAVINGS_SCREEN_STRINGS } from '@/src/constants/savings-screen.strings';
 import {
@@ -69,6 +70,12 @@ export default function SavingsScreenRoute() {
   const [toastMessage, setToastMessage] = useState('');
 
   const handleDepositSuccess = (message: string) => {
+    setActiveTab(SavingsTab.OVERVIEW);
+    setToastMessage(message);
+    setToastVisible(true);
+  };
+
+  const handleWithdrawSuccess = (message: string) => {
     setActiveTab(SavingsTab.OVERVIEW);
     setToastMessage(message);
     setToastVisible(true);
@@ -174,13 +181,7 @@ export default function SavingsScreenRoute() {
           />
         )}
         {activeTab === SavingsTab.DEPOSIT && <SavingsDepositTab onSuccess={handleDepositSuccess} />}
-        {activeTab === SavingsTab.WITHDRAW && (
-          <BView center padding={SpacingValue.XL}>
-            <BText variant={TextVariant.BODY} muted>
-              {SAVINGS_SCREEN_STRINGS.withdraw.title}
-            </BText>
-          </BView>
-        )}
+        {activeTab === SavingsTab.WITHDRAW && <SavingsWithdrawTab onSuccess={handleWithdrawSuccess} />}
       </ScrollView>
       <BToast
         visible={toastVisible}

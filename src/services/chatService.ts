@@ -1,10 +1,12 @@
 import { getRecentChatMessages } from '@/db';
-import type { ChatMessage, Debt, FixedExpense, SavingsGoal } from '@/db/schema-types';
-import { DEBT_TYPES, FIXED_EXPENSE_TYPES, SAVINGS_TYPES } from '@/db/types';
+import type { ChatMessage, Debt, FixedExpense, Income, SavingsGoal } from '@/db/schema-types';
+import { ChatIntentEnum, DEBT_TYPES, FIXED_EXPENSE_TYPES, SAVINGS_TYPES, USER_INCOME_TYPES } from '@/db/types';
 import { generateJSON } from '@/src/services/gemini';
 import type { ChatResponse } from '@/src/types/chat';
 import type { ProfileData } from '@/src/types/onboarding';
 import { ensureNetworkAvailable } from '@/src/utils/network';
+import dayjs from 'dayjs';
+import { z } from 'zod';
 
 // ============================================
 // CONTEXT TYPES
@@ -24,6 +26,7 @@ export type ChatContext = {
   savingsGoals: SavingsGoal[];
   categoryNames: string[];
   creditCards: CreditCardForChat[];
+  incomeEntries?: Income[];
 };
 
 // ============================================
@@ -31,7 +34,7 @@ export type ChatContext = {
 // ============================================
 
 const buildSystemPrompt = (ctx: ChatContext): string => {
-  const { profile, fixedExpenses, debts, savingsGoals, categoryNames, creditCards } = ctx;
+  const { profile, fixedExpenses, debts, savingsGoals, categoryNames, creditCards, incomeEntries } = ctx;
 
   return `You are FinAI, a friendly Indian personal finance assistant for a budgeting app.
 All monetary values are in Indian Rupees (₹). Use Indian number formatting (e.g., ₹1,50,000).
@@ -101,7 +104,14 @@ CAPABILITIES — what you CAN do:
     - Confirm deletion in your message before returning this intent
     - Use existingName to identify the target
 
-12. FINANCIAL PLANNING & ADVICE
+12. LOG INCOME
+    Triggered by: "I got a bonus", "received freelance payment", "log income", "got cashback", "received gift money", "got a refund", "earned interest"
+    Types (use exact value): ${USER_INCOME_TYPES.join(', ')}
+    - "date" must be in YYYY-MM-DD format; use today's date if not mentioned
+    - "customType" is required only when type is "other"
+    - Do NOT use "savings_withdrawal" — that type is system-only
+
+13. FINANCIAL PLANNING & ADVICE
     - Analyze their ACTUAL financial picture — cite real ₹ amounts from their data
     - Recommend debt payoff strategies aligned with their preference (${profile.debtPayoffPreference})
     - Factor in Indian-specific instruments (PPF, NPS, ELSS, FD rates)
@@ -149,12 +159,18 @@ Update savings goal (only changed fields + existingName):
 Delete savings goal:
 { "intent": "delete_savings_goal", "data": { "existingName": "Emergency Fund" }, "message": "Are you sure you want to delete Emergency Fund? This cannot be undone." }
 
+Log income:
+{ "intent": "add_income", "data": { "amount": 50000, "type": "bonus", "description": "Year-end bonus", "date": "2026-03-30" }, "message": "Got it! Logging ₹50,000 bonus income for today." }
+{ "intent": "add_income", "data": { "amount": 15000, "type": "freelance", "description": "Website project", "date": "2026-03-28" }, "message": "Got it! Recording ₹15,000 freelance payment." }
+{ "intent": "add_income", "data": { "amount": 2000, "type": "other", "customType": "Dividend", "description": "Quarterly dividend", "date": "2026-03-30" }, "message": "Got it! Logging ₹2,000 dividend income." }
+
 General / advice:
 { "intent": "general", "message": "..." }
 
 ══════════════════════════════════
 CURRENT USER CONTEXT:
 ══════════════════════════════════
+- Today's date: ${dayjs().format('YYYY-MM-DD')} (use this exact value for "today" in any date field)
 - Monthly Salary: ₹${profile.salary.toLocaleString('en-IN')}
 - Monthly Savings Target: ₹${profile.monthlySavingsTarget.toLocaleString('en-IN')}
 - Discretionary/Fun Budget: ₹${profile.frivolousBudget.toLocaleString('en-IN')}
@@ -163,7 +179,8 @@ CURRENT USER CONTEXT:
 - Active Debts: ${JSON.stringify(debts.map((d) => ({ name: d.name, type: d.type, emiAmount: d.emiAmount, remaining: d.remaining })))}
 - Savings Goals: ${JSON.stringify(savingsGoals.map((g) => ({ name: g.name, type: g.type, targetAmount: g.targetAmount })))}
 - Expense Categories: ${categoryNames.join(', ')}
-- Credit Cards: ${creditCards.length > 0 ? JSON.stringify(creditCards) : 'None'}`;
+- Credit Cards: ${creditCards.length > 0 ? JSON.stringify(creditCards) : 'None'}
+- This Month's Income Entries: ${incomeEntries && incomeEntries.length > 0 ? JSON.stringify(incomeEntries.map((e) => ({ type: e.type, amount: e.amount, date: e.date, description: e.description }))) : 'None'}`;
 };
 
 // ============================================
@@ -177,6 +194,40 @@ const formatHistory = (messages: ChatMessage[]): string => {
     '\n\n══════════════════════════════════\nCONVERSATION HISTORY (for context only — do NOT extract data from here):\n══════════════════════════════════\n' +
     messages.map((m) => `${m.role === 'user' ? 'User' : 'FinAI'}: ${m.content}`).join('\n')
   );
+};
+
+// ============================================
+// RESPONSE VALIDATION
+// ============================================
+
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+const chatIncomeDateSchema = z
+  .string()
+  .transform((val) => (ISO_DATE_RE.test(val) ? val : dayjs().format('YYYY-MM-DD')));
+
+const chatIncomeDataSchema = z.object({
+  amount: z.number().positive(),
+  type: z.enum(USER_INCOME_TYPES as [string, ...string[]]),
+  customType: z.string().optional(),
+  description: z.string().optional(),
+  date: chatIncomeDateSchema,
+});
+
+/**
+ * Post-process the raw AI response. Validates intent-specific data through
+ * Zod schemas and normalises fields (e.g. bad date strings → today's YYYY-MM-DD).
+ */
+const normaliseResponse = (raw: ChatResponse): ChatResponse => {
+  if (raw.intent === ChatIntentEnum.ADD_INCOME) {
+    const parsed = chatIncomeDataSchema.safeParse(raw.data);
+    if (parsed.success) {
+      return { ...raw, data: parsed.data } as ChatResponse;
+    }
+    // Log the violation but still return so the caller can show the form with a safe fallback
+    console.warn('[chatService] add_income data failed schema validation:', parsed.error.flatten());
+  }
+  return raw;
 };
 
 // ============================================
@@ -210,7 +261,8 @@ ${userMessage}
 Respond with ONLY valid JSON matching the format above.`;
 
   try {
-    return await generateJSON<ChatResponse>(fullPrompt);
+    const raw = await generateJSON<ChatResponse>(fullPrompt);
+    return normaliseResponse(raw);
   } catch (error) {
     // If the request failed due to the network dropping mid-call,
     // re-check connectivity so callers can show a specific offline error.

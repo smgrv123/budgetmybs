@@ -3,11 +3,10 @@ import { useEffect, useState } from 'react';
 import { Alert, ScrollView } from 'react-native';
 
 import BListStep from '@/src/components/onboarding/listStep';
-import { BSafeAreaView, BText, BView, BButton, BModal, ScreenHeader } from '@/src/components/ui';
-import { SavingsDepositForm, SavingsSummary, SavingsWithdrawalForm } from '@/src/components/savings';
+import { BSafeAreaView, BText, BView, ScreenHeader } from '@/src/components/ui';
+import { SavingsSummary } from '@/src/components/savings';
 import { SavingsTypeOptions, OnboardingStepId as SettingId } from '@/src/constants/onboarding.config';
 import { SAVINGS_SETTINGS_STRINGS, SETTINGS_COMMON_STRINGS } from '@/src/constants/settings.strings';
-import { SAVINGS_DEPOSIT_STRINGS } from '@/src/constants/savings-deposit.strings';
 import {
   common,
   createFormFieldsWithCurrency,
@@ -16,15 +15,13 @@ import {
   SAVINGS_STEP_CONFIG,
 } from '@/src/constants/setup-form.config';
 import { useSavingsGoals } from '@/src/hooks';
-import { ButtonVariant, Spacing, TextVariant } from '@/src/constants/theme';
+import { Spacing } from '@/src/constants/theme';
 import type { SavingsGoalData } from '@/src/types';
 import { formatIndianNumber } from '@/src/utils/format';
 import { generateUUID } from '@/src/utils/id';
-import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 
 export default function SavingsScreen() {
   const router = useRouter();
-  const themeColors = useThemeColors();
   const {
     savingsGoals: dbGoals,
     isSavingsGoalsLoading,
@@ -37,8 +34,6 @@ export default function SavingsScreen() {
 
   const [goals, setGoals] = useState<SavingsGoalData[]>([]);
   const [removedItemIds, setRemovedItemIds] = useState<string[]>([]);
-  const [isDepositModalVisible, setIsDepositModalVisible] = useState(false);
-  const [isWithdrawalModalVisible, setIsWithdrawalModalVisible] = useState(false);
 
   // Initialize local state from DB
   useEffect(() => {
@@ -156,22 +151,6 @@ export default function SavingsScreen() {
           <SavingsSummary goalBalances={savingsBalancesAllGoals} adHocBalances={adHocSavingsBalances} />
         </BView>
 
-        {/* Add Deposit Button */}
-        <BView paddingX="base" marginY="sm">
-          <BButton variant={ButtonVariant.PRIMARY} onPress={() => setIsDepositModalVisible(true)} fullWidth>
-            <BText variant={TextVariant.LABEL} color={themeColors.white}>
-              {SAVINGS_DEPOSIT_STRINGS.depositFormTitle}
-            </BText>
-          </BButton>
-        </BView>
-
-        {/* Withdraw Savings Button */}
-        <BView paddingX="base" marginY="sm">
-          <BButton variant={ButtonVariant.SECONDARY} onPress={() => setIsWithdrawalModalVisible(true)} fullWidth>
-            <BText variant={TextVariant.LABEL}>{SAVINGS_DEPOSIT_STRINGS.withdrawalButtonLabel}</BText>
-          </BButton>
-        </BView>
-
         {/* Goals Management */}
         <BView flex padding="base">
           <BListStep
@@ -201,30 +180,6 @@ export default function SavingsScreen() {
           />
         </BView>
       </ScrollView>
-
-      {/* Deposit Modal */}
-      <BModal
-        isVisible={isDepositModalVisible}
-        onClose={() => setIsDepositModalVisible(false)}
-        title={SAVINGS_DEPOSIT_STRINGS.depositFormTitle}
-        position="bottom"
-        showCloseButton
-        closeOnBackdrop
-      >
-        <SavingsDepositForm onSuccess={() => setIsDepositModalVisible(false)} />
-      </BModal>
-
-      {/* Withdrawal Modal */}
-      <BModal
-        isVisible={isWithdrawalModalVisible}
-        onClose={() => setIsWithdrawalModalVisible(false)}
-        title={SAVINGS_DEPOSIT_STRINGS.withdrawalFormTitle}
-        position="bottom"
-        showCloseButton
-        closeOnBackdrop
-      >
-        <SavingsWithdrawalForm onSuccess={() => setIsWithdrawalModalVisible(false)} />
-      </BModal>
     </BSafeAreaView>
   );
 }

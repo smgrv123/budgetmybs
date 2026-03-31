@@ -19,6 +19,16 @@ export const CHAT_STRINGS = {
   DELETE_CONFIRM_SUFFIX: '? This cannot be undone.',
   DELETE_CONFIRM_PREFIX: 'Are you sure you want to delete',
   DELETE_BUTTON: 'Delete',
+  FORM_INCOME_TITLE: 'Confirm Income',
+  FORM_INCOME_SUBMIT: 'Add Income',
+  FORM_INCOME_AMOUNT_LABEL: 'Amount (₹)',
+  FORM_INCOME_TYPE_LABEL: 'Income Type',
+  FORM_INCOME_TYPE_MODAL_TITLE: 'Select Income Type',
+  FORM_INCOME_CUSTOM_TYPE_LABEL: 'Custom Type',
+  FORM_INCOME_CUSTOM_TYPE_PLACEHOLDER: 'e.g. Dividend',
+  FORM_INCOME_DESCRIPTION_LABEL: 'Description (optional)',
+  FORM_INCOME_DESCRIPTION_PLACEHOLDER: 'e.g. Year-end bonus',
+  FORM_INCOME_DATE_LABEL: 'Date',
 } as const;
 
 export const CHAT_MESSAGE_STRINGS = {
@@ -30,8 +40,10 @@ export const CHAT_MESSAGE_STRINGS = {
   expenseSaveFailedReply: "Couldn't save the expense. Please try again.",
   updateSaveFailedReply: "Couldn't save the changes. Please try again.",
   deleteFailedReply: "Couldn't delete. Please try again.",
+  incomeSaveFailedReply: "Couldn't save the income entry. Please try again.",
   updateSuccessReply: '✅ Done! Your data has been updated.',
   expenseAddedReply: (amount: number) => `✅ Expense of ₹${amount.toLocaleString('en-IN')} added successfully!`,
+  incomeAddedReply: (amount: number) => `✅ Income of ₹${amount.toLocaleString('en-IN')} logged successfully!`,
   deleteSuccessReply: (name: string) => `✅ ${name} has been deleted.`,
 } as const;
 
@@ -59,6 +71,7 @@ export const CHAT_LOG_STRINGS = {
   deleteFixedExpenseError: 'Failed to delete fixed expense:',
   deleteDebtError: 'Failed to delete debt:',
   deleteSavingsGoalError: 'Failed to delete savings goal:',
+  addIncomeError: 'Failed to add income entry:',
 } as const;
 
 export const DeleteEntityType = {

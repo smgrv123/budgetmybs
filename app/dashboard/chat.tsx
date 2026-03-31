@@ -12,6 +12,7 @@ import {
   ChatInput,
   InlineDeleteConfirm,
   InlineExpenseForm,
+  InlineIncomeForm,
   InlineProfileUpdate,
 } from '@/src/components/chat';
 import type { UpdatableIntent } from '@/src/components/chat/inlineProfileUpdate';
@@ -36,11 +37,12 @@ import {
   useDebts,
   useExpenses,
   useFixedExpenses,
+  useIncome,
   useProfile,
   useSavingsGoals,
 } from '@/src/hooks';
 import { sendChatMessage } from '@/src/services/chatService';
-import type { ChatDeleteData, ChatExpenseData } from '@/src/types/chat';
+import type { ChatDeleteData, ChatExpenseData, ChatIncomeData } from '@/src/types/chat';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { checkNetworkConnection, NetworkError } from '@/src/utils/network';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -50,6 +52,7 @@ import { Alert, FlatList, KeyboardAvoidingView, Platform, StyleSheet } from 'rea
 
 type PendingAction =
   | { kind: 'expense'; messageId: string; data: ChatExpenseData }
+  | { kind: 'income'; messageId: string; data: ChatIncomeData }
   | { kind: 'update'; messageId: string; payload: UpdatableIntent }
   | { kind: 'delete'; messageId: string; entityType: DeleteEntityTypeValue; data: ChatDeleteData };
 
@@ -93,6 +96,8 @@ export default function ChatScreen() {
   const { debts, createDebtAsync, updateDebtAsync, removeDebtAsync } = useDebts();
 
   const { savingsGoals, createSavingsGoalAsync, updateSavingsGoalAsync, removeSavingsGoalAsync } = useSavingsGoals();
+
+  const { income, createIncomeAsync } = useIncome();
 
   const { messages, isMessagesLoading, sendMessage, sendMessageAsync, updateAction, updateActionAsync, clearHistory } =
     useChat();
@@ -200,6 +205,7 @@ export default function ChatScreen() {
         provider: c.provider,
         last4: c.last4,
       })),
+      incomeEntries: income,
     };
 
     let response: Awaited<ReturnType<typeof sendChatMessage>> | null = null;
@@ -307,6 +313,9 @@ export default function ChatScreen() {
             data: response.data,
           });
           break;
+        case ChatIntentEnum.ADD_INCOME:
+          setPendingAction({ kind: 'income', messageId: assistantMsg.id, data: response.data });
+          break;
       }
     }
 
@@ -365,6 +374,60 @@ export default function ChatScreen() {
       {
         role: ChatRoleEnum.ASSISTANT,
         content: CHAT_MESSAGE_STRINGS.expenseAddedReply(data.amount),
+      },
+      { onError: console.error }
+    );
+    setPendingAction(null);
+  };
+
+  const handleIncomeConfirm = async (data: ChatIncomeData) => {
+    if (!pendingAction) return;
+    const createdIncome = await runMutation(
+      createIncomeAsync(
+        {
+          amount: data.amount,
+          type: data.type,
+          customType: data.customType ?? null,
+          description: data.description,
+          date: data.date,
+        },
+        {
+          onError: (error) => console.error(CHAT_LOG_STRINGS.addIncomeError, error),
+        }
+      )
+    );
+
+    if (!createdIncome) {
+      sendMessage(
+        { role: ChatRoleEnum.ASSISTANT, content: CHAT_MESSAGE_STRINGS.incomeSaveFailedReply },
+        { onError: console.error }
+      );
+      setPendingAction(null);
+      return;
+    }
+
+    const completedAction = await runMutation(
+      updateActionAsync(
+        { id: pendingAction.messageId, actionStatus: ChatActionStatusEnum.COMPLETED },
+        {
+          onError: (error) => console.error(CHAT_LOG_STRINGS.completeActionError, error),
+        }
+      )
+    );
+
+    if (!completedAction) {
+      sendMessage(
+        { role: ChatRoleEnum.ASSISTANT, content: CHAT_MESSAGE_STRINGS.incomeSaveFailedReply },
+        { onError: console.error }
+      );
+      setPendingAction(null);
+      return;
+    }
+
+    sendMessage(
+      {
+        role: ChatRoleEnum.ASSISTANT,
+        content: CHAT_MESSAGE_STRINGS.incomeAddedReply(data.amount),
       },
       { onError: console.error }
     );
@@ -726,6 +789,14 @@ export default function ChatScreen() {
           <InlineExpenseForm
             initialData={pendingAction.data}
             onSubmit={handleExpenseConfirm}
+            onCancel={handleActionCancel}
+            isSubmitting={isSending}
+          />
+        )}
+        {pendingAction?.kind === 'income' && (
+          <InlineIncomeForm
+            initialData={pendingAction.data}
+            onSubmit={handleIncomeConfirm}
             onCancel={handleActionCancel}
             isSubmitting={isSending}
           />
