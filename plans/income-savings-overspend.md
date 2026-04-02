@@ -153,7 +153,7 @@ Note: This deposit form will be refactored into a tab in the dedicated savings s
 
 ---
 
-## Phase 7: Savings — Withdrawal UI
+## Phase 7: Savings — Withdrawal UI ✅
 
 **User stories**: 18–22
 
@@ -226,7 +226,7 @@ Add a Quick Actions section to the dashboard with three tiles: Log Transaction, 
 
 ---
 
-## Phase 10: Income Bottom Sheet Modal
+## Phase 10: Income Bottom Sheet Modal ✅
 
 **User stories**: 1–7, 10, 37
 
@@ -236,18 +236,18 @@ Wire the "Log Income" quick action tile to open a `BModal position="bottom"` wit
 
 ### Acceptance criteria
 
-- [ ] "Log Income" quick action opens a bottom sheet modal with income form
-- [ ] Form fields: amount (required), type dropdown, description (optional), date (defaults to today)
-- [ ] `savings_withdrawal` type is not shown in the type dropdown
-- [ ] `customType` text input appears when type is `other`
-- [ ] Submitting creates an income entry and closes the modal
-- [ ] Income data on dashboard refreshes after creation
-- [ ] All user-facing strings in constants file
-- [ ] Run `pnpm run typecheck` and `pnpm run lint` with no errors
+- [x] "Log Income" quick action opens a bottom sheet modal with income form
+- [x] Form fields: amount (required), type dropdown, description (optional), date (defaults to today)
+- [x] `savings_withdrawal` type is not shown in the type dropdown
+- [x] `customType` text input appears when type is `other`
+- [x] Submitting creates an income entry and closes the modal
+- [x] Income data on dashboard refreshes after creation
+- [x] All user-facing strings in constants file
+- [x] Run `pnpm run typecheck` and `pnpm run lint` with no errors
 
 ---
 
-## Phase 11: Income Dashboard Section
+## Phase 11: Income Dashboard Section ✅
 
 **User stories**: 8, 41
 
@@ -263,18 +263,18 @@ Add an "Extra Income This Month" section to the dashboard showing the 2 most rec
 
 ### Acceptance criteria
 
-- [ ] "Extra Income This Month" section appears on the dashboard between Quick Stats and Recent Transactions
-- [ ] Shows at most 2 most recent income entries for the current month
-- [ ] Each entry card shows: type icon, type label, description, and amount in green with "+" prefix
-- [ ] "View All" CTA is shown when entries exist
-- [ ] Section is hidden when no income entries exist for the month
-- [ ] Section is registered in the dashboard config array
-- [ ] All user-facing strings in constants file
-- [ ] Run `pnpm run typecheck` and `pnpm run lint` with no errors
+- [x] "Extra Income This Month" section appears on the dashboard between Quick Stats and Recent Transactions
+- [x] Shows at most 2 most recent income entries for the current month
+- [x] Each entry card shows: type icon, type label, description, and amount in green with "+" prefix
+- [x] "View All" CTA is shown when entries exist
+- [x] Section is hidden when no income entries exist for the month
+- [x] Section is registered in the dashboard config array
+- [x] All user-facing strings in constants file
+- [x] Run `pnpm run typecheck` and `pnpm run lint` with no errors
 
 ---
 
-## Phase 12: Income List + Detail Screens
+## Phase 12: Income List + Detail Screens ✅
 
 **User stories**: 42
 
@@ -286,20 +286,20 @@ The list screen shows all income entries for the current month in a scrollable l
 
 ### Acceptance criteria
 
-- [ ] Income list screen exists as a new route, showing all income entries for the current month
-- [ ] Tapping an income entry navigates to the income detail screen
-- [ ] Income detail screen shows all fields and allows editing (amount, type, description, date)
-- [ ] Income detail screen allows deletion with confirmation
-- [ ] "View All" CTA on dashboard navigates to the income list screen
-- [ ] Tapping an income card on the dashboard navigates to the income detail screen
-- [ ] Navigation pattern matches the existing transaction flow
-- [ ] Route registered in root layout
-- [ ] All user-facing strings in constants file
-- [ ] Run `pnpm run typecheck` and `pnpm run lint` with no errors
+- [x] Income list screen exists as a new route, showing all income entries for the current month
+- [x] Tapping an income entry navigates to the income detail screen
+- [x] Income detail screen shows all fields and allows editing (amount, type, description, date)
+- [x] Income detail screen allows deletion with confirmation
+- [x] "View All" CTA on dashboard navigates to the income list screen
+- [x] Tapping an income card on the dashboard navigates to the income detail screen
+- [x] Navigation pattern matches the existing transaction flow
+- [x] Route registered in root layout
+- [x] All user-facing strings in constants file
+- [x] Run `pnpm run typecheck` and `pnpm run lint` with no errors
 
 ---
 
-## Phase 13: Settings Income Cleanup
+## Phase 13: Settings Income Cleanup ✅
 
 **User stories**: cleanup
 
@@ -309,16 +309,16 @@ Remove the income settings screen and its entry point, since income logging now 
 
 ### Acceptance criteria
 
-- [ ] `app/settings/income.tsx` is deleted
-- [ ] Income entry removed from settings financial section config
-- [ ] Income route removed from settings layout
-- [ ] No dead imports or references to the deleted screen remain
-- [ ] Settings screen continues to work correctly without the income entry
-- [ ] Run `pnpm run typecheck` and `pnpm run lint` with no errors
+- [x] `app/settings/income.tsx` is deleted
+- [x] Income entry removed from settings financial section config
+- [x] Income route removed from settings layout
+- [x] No dead imports or references to the deleted screen remain
+- [x] Settings screen continues to work correctly without the income entry
+- [x] Run `pnpm run typecheck` and `pnpm run lint` with no errors
 
 ---
 
-## Phase 14: Savings Screen — Route, Header, Tab Structure
+## Phase 14: Savings Screen — Route, Header, Tab Structure ✅
 
 **User stories**: 38, 44, 45
 
@@ -337,19 +337,19 @@ Wire the "Manage Savings" quick action tile on the dashboard to navigate to this
 
 ### Acceptance criteria
 
-- [ ] `app/savings.tsx` route exists and is registered in the root layout
-- [ ] Screen has a gradient header with wallet icon, total savings amount, and "Total Savings (All Time)" label
-- [ ] Three tab buttons (Overview, Deposit, Withdraw) are rendered below the header
-- [ ] Active tab is visually distinguished (different background/text color)
-- [ ] Tapping a tab switches the content area
-- [ ] "Manage Savings" quick action on dashboard navigates to this screen
-- [ ] Back navigation returns to dashboard
-- [ ] All user-facing strings in constants file
-- [ ] Run `pnpm run typecheck` and `pnpm run lint` with no errors
+- [x] `app/savings.tsx` route exists and is registered in the root layout
+- [x] Screen has a gradient header with wallet icon, total savings amount, and "Total Savings (All Time)" label
+- [x] Three tab buttons (Overview, Deposit, Withdraw) are rendered below the header
+- [x] Active tab is visually distinguished (different background/text color)
+- [x] Tapping a tab switches the content area
+- [x] "Manage Savings" quick action on dashboard navigates to this screen
+- [x] Back navigation returns to dashboard
+- [x] All user-facing strings in constants file
+- [x] Run `pnpm run typecheck` and `pnpm run lint` with no errors
 
 ---
 
-## Phase 15: Savings Screen — Overview Tab
+## Phase 15: Savings Screen — Overview Tab ✅
 
 **User stories**: 46, 47, 48
 
@@ -370,16 +370,16 @@ The ad-hoc section is an accordion: collapsed shows the total ad-hoc savings amo
 
 ### Acceptance criteria
 
-- [ ] Overview tab shows a card for each savings goal
-- [ ] Each goal card shows: icon (mapped from SavingsType), name, type label, monthly progress bar, percentage, all-time total
-- [ ] Progress bar reflects this month's deposits vs the goal's `targetAmount` (monthly target)
-- [ ] Checkmark or visual indicator shown when monthly target is met (deposits ≥ targetAmount)
-- [ ] New query: get monthly deposit sum per goal for the current month
-- [ ] Ad-hoc savings section rendered as an accordion (collapsed: total amount, expanded: individual items by type)
-- [ ] Ad-hoc items are paginated 5 at a time with a "Show more" CTA
-- [ ] SavingsType → Ionicons icon mapping defined in a constants file
-- [ ] All user-facing strings in constants file
-- [ ] Run `pnpm run typecheck` and `pnpm run lint` with no errors
+- [x] Overview tab shows a card for each savings goal
+- [x] Each goal card shows: icon (mapped from SavingsType), name, type label, monthly progress bar, percentage, all-time total
+- [x] Progress bar reflects this month's deposits vs the goal's `targetAmount` (monthly target)
+- [x] Checkmark or visual indicator shown when monthly target is met (deposits ≥ targetAmount)
+- [x] New query: get monthly deposit sum per goal for the current month
+- [x] Ad-hoc savings section rendered as an accordion (collapsed: total amount, expanded: individual items by type)
+- [x] Ad-hoc items are paginated 5 at a time with a "Show more" CTA
+- [x] SavingsType → Ionicons icon mapping defined in a constants file
+- [x] All user-facing strings in constants file
+- [x] Run `pnpm run typecheck` and `pnpm run lint` with no errors
 
 ---
 
@@ -414,7 +414,7 @@ Refactor the existing `SavingsDepositForm` component to work as tab content rath
 
 ---
 
-## Phase 17: Savings Screen — Withdraw Tab + Settings Savings Cleanup
+## Phase 17: Savings Screen — Withdraw Tab + Settings Savings Cleanup ✅
 
 **User stories**: 18, 19, 20, 21, 22, 51, 52
 
@@ -434,18 +434,18 @@ Also clean up the settings savings screen: remove the deposit and withdraw butto
 
 ### Acceptance criteria
 
-- [ ] Withdraw tab shows: "Withdraw From" dropdown, available balance, amount field, reason field, warning banner, confirm button
-- [ ] "Withdraw From" dropdown only shows sources with net balance > 0
-- [ ] Available balance updates when source selection changes
-- [ ] Amount validation blocks over-withdrawal (amount > available balance)
-- [ ] Warning banner text explains that withdrawing increases monthly spending budget
-- [ ] Confirm button uses danger/red variant
-- [ ] Submission creates both savings withdrawal expense and `savings_withdrawal` income entry
-- [ ] Total savings in header and Overview tab update after withdrawal
-- [ ] Settings savings screen (`app/settings/savings.tsx`) no longer shows deposit/withdraw buttons or modals
-- [ ] Settings savings screen retains full BListStep goal CRUD functionality
-- [ ] All user-facing strings in constants file
-- [ ] Run `pnpm run typecheck` and `pnpm run lint` with no errors
+- [x] Withdraw tab shows: "Withdraw From" dropdown, available balance, amount field, reason field, warning banner, confirm button
+- [x] "Withdraw From" dropdown only shows sources with net balance > 0
+- [x] Available balance updates when source selection changes
+- [x] Amount validation blocks over-withdrawal (amount > available balance)
+- [x] Warning banner text explains that withdrawing increases monthly spending budget
+- [x] Confirm button uses danger/red variant
+- [x] Submission creates both savings withdrawal expense and `savings_withdrawal` income entry
+- [x] Total savings in header and Overview tab update after withdrawal
+- [x] Settings savings screen (`app/settings/savings.tsx`) no longer shows deposit/withdraw buttons or modals
+- [x] Settings savings screen retains full BListStep goal CRUD functionality
+- [x] All user-facing strings in constants file
+- [x] Run `pnpm run typecheck` and `pnpm run lint` with no errors
 
 ---
 
@@ -466,7 +466,7 @@ Merge the existing "Completed" and "Goals" (or "Incomplete") quick stat cards on
 
 ---
 
-## Phase 19: Chat — Income Intent
+## Phase 19: Chat — Income Intent ✅
 
 **User stories**: 11, 12
 
@@ -476,18 +476,18 @@ Add `add_income` to `ChatIntentEnum` and `ChatResponse` discriminated union. Cre
 
 ### Acceptance criteria
 
-- [ ] `ChatIntentEnum.ADD_INCOME` exists and is handled in the chat screen switch
-- [ ] System prompt includes income capability block with trigger phrases and example JSON
-- [ ] `ChatIncomeData` type defined in chat types
-- [ ] Inline income confirmation form shows: amount, type dropdown (no `savings_withdrawal`), description, date
-- [ ] Confirmed income entries are created via `useIncome` mutation
-- [ ] Action status is marked completed on confirm, cancelled on dismiss
-- [ ] New string constants added to chat constants
-- [ ] Run `pnpm run typecheck` and `pnpm run lint` with no errors
+- [x] `ChatIntentEnum.ADD_INCOME` exists and is handled in the chat screen switch
+- [x] System prompt includes income capability block with trigger phrases and example JSON
+- [x] `ChatIncomeData` type defined in chat types
+- [x] Inline income confirmation form shows: amount, type dropdown (no `savings_withdrawal`), description, date
+- [x] Confirmed income entries are created via `useIncome` mutation
+- [x] Action status is marked completed on confirm, cancelled on dismiss
+- [x] New string constants added to chat constants
+- [x] Run `pnpm run typecheck` and `pnpm run lint` with no errors
 
 ---
 
-## Phase 20: Chat — Savings Deposit Intent
+## Phase 20: Chat — Savings Deposit Intent ✅
 
 **User stories**: 23, 24
 
