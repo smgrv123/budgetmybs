@@ -64,6 +64,7 @@ export const useAllExpenses = (filter: ExpenseFilter = DEFAULT_EXPENSE_FILTER) =
     sections,
     hasActiveFilter,
     isLoading: query.isLoading,
+    isFetching: query.isFetching,
     isError: query.isError,
     refetch: query.refetch,
   };

@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
 import { RecurringSourceTypeEnum } from '@/db/types';
 import {
@@ -48,7 +48,7 @@ export default function DashboardScreen() {
   const { expenses, totalSpent, totalSaved: totalOneOffSavings, oneOffSavings } = useExpenses();
   const { isItemProcessed } = useRecurringStatus();
   const { rollover, resetRollover, isResettingRollover } = useMonthlyBudget();
-  const { sync: syncSplitwise } = useSplitwiseSync();
+  const { sync: syncSplitwise, isSyncing } = useSplitwiseSync();
   const { totalOwed, totalOwing, isLoading: isBalancesLoading } = useSplitwiseBalances();
   const { totalReceivables } = useSplitwiseReceivables();
 
@@ -170,7 +170,17 @@ export default function DashboardScreen() {
 
   return (
     <BSafeAreaView edges={[]}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isSyncing}
+            onRefresh={() => syncSplitwise()}
+            tintColor={themeColors.primary}
+            colors={[themeColors.primary]}
+          />
+        }
+      >
         {/* Gradient Header */}
         <LinearGradient colors={HEADER_GRADIENT} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.header}>
           <BView paddingY={SpacingValue.MD}>

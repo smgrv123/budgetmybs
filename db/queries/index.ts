@@ -111,3 +111,6 @@ export {
   getRecentChatMessages,
   updateChatMessageAction,
 } from './chat';
+
+// Splitwise sync queue queries
+export { deleteQueueItem, enqueueSplitwisePush, getPendingQueueItems, incrementQueueRetry } from './splitwiseQueue';

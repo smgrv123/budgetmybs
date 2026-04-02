@@ -256,6 +256,23 @@ export const chatMessagesTable = sqliteTable('chat_messages', {
 });
 
 // ============================================
+// SPLITWISE SYNC QUEUE TABLE
+// ============================================
+
+export const splitwiseSyncQueueTable = sqliteTable('splitwise_sync_queue', {
+  id: text('id')
+    .primaryKey()
+    .$default(() => generateUUID()),
+  localExpenseId: text('local_expense_id').notNull(), // FK to expenses.id
+  payload: text('payload', { mode: 'json' }).$type<Record<string, string | number | boolean>>().notNull(), // Flat Splitwise createExpense body
+  retryCount: integer('retry_count').notNull().default(0),
+  lastAttemptedAt: text('last_attempted_at'), // ISO timestamp, nullable
+  createdAt: text('created_at')
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
+// ============================================
 // RELATIONS
 // ============================================
 

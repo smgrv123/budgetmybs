@@ -45,7 +45,7 @@ export default function AllTransactionsScreen() {
   const [dateErrors, setDateErrors] = useState<{ startDate?: string; endDate?: string }>({});
 
   // ─── Data ─────────────────────────────────────────────────────────────────────
-  const { sections, hasActiveFilter, isLoading, isError, refetch } = useAllExpenses(appliedFilter);
+  const { sections, hasActiveFilter, isLoading, isFetching, isError, refetch } = useAllExpenses(appliedFilter);
   const { sync: syncSplitwise, isSyncing } = useSplitwiseSync();
 
   const handleRefresh = () => {
@@ -245,7 +245,7 @@ export default function AllTransactionsScreen() {
             stickySectionHeadersEnabled
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
-            refreshControl={<RefreshControl refreshing={isLoading || isSyncing} onRefresh={handleRefresh} />}
+            refreshControl={<RefreshControl refreshing={isFetching || isSyncing} onRefresh={handleRefresh} />}
           />
         </>
       )}

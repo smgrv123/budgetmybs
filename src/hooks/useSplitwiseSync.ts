@@ -1,5 +1,6 @@
 import { isSplitwiseConnected } from '@/src/config/splitwise';
 import { syncSplitwiseExpenses } from '@/src/services/splitwiseSync';
+import { drainSplitQueue } from '@/src/services/splitwisePush';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ALL_EXPENSES_QUERY_KEY } from './useAllExpenses';
 import { EXPENSES_QUERY_KEY, TOTAL_SPENT_QUERY_KEY } from './useExpenses';
@@ -13,7 +14,9 @@ export const useSplitwiseSync = () => {
     mutationFn: async () => {
       const connected = await isSplitwiseConnected();
       if (!connected) return false;
-      return syncSplitwiseExpenses();
+      await syncSplitwiseExpenses();
+      await drainSplitQueue();
+      return true;
     },
     onSuccess: (synced) => {
       if (!synced) return;
