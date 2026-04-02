@@ -14,23 +14,28 @@ import {
   InlineExpenseForm,
   InlineIncomeForm,
   InlineProfileUpdate,
+  InlineSavingsForm,
 } from '@/src/components/chat';
 import type { UpdatableIntent } from '@/src/components/chat/inlineProfileUpdate';
 import { BButton, BIcon, BSafeAreaView, BText, BView } from '@/src/components/ui';
 import type { DeleteEntityTypeValue } from '@/src/constants/chat';
 import {
-  CHAT_STRINGS,
   CHAT_ALERT_STRINGS,
-  DebtFieldKey,
-  FixedExpenseFieldKey,
   CHAT_LOG_STRINGS,
   CHAT_MESSAGE_STRINGS,
+  CHAT_STRINGS,
+  DebtFieldKey,
   DeleteEntityType,
+  FixedExpenseFieldKey,
   ProfileUpdateFieldKey,
   SavingsGoalFieldKey,
 } from '@/src/constants/chat';
 import { ButtonVariant, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
 import {
+  ADHOC_SAVINGS_BALANCES_QUERY_KEY,
+  MONTHLY_DEPOSITS_BY_GOAL_QUERY_KEY,
+  SAVINGS_BALANCES_ALL_GOALS_QUERY_KEY,
+  SAVINGS_GOALS_QUERY_KEY,
   useCategories,
   useChat,
   useCreditCards,
@@ -41,10 +46,11 @@ import {
   useProfile,
   useSavingsGoals,
 } from '@/src/hooks';
-import { sendChatMessage } from '@/src/services/chatService';
-import type { ChatDeleteData, ChatExpenseData, ChatIncomeData } from '@/src/types/chat';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
+import { sendChatMessage } from '@/src/services/chatService';
+import type { ChatDeleteData, ChatExpenseData, ChatIncomeData, ChatSavingsData } from '@/src/types/chat';
 import { checkNetworkConnection, NetworkError } from '@/src/utils/network';
+import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, FlatList, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 
@@ -53,6 +59,7 @@ import { Alert, FlatList, KeyboardAvoidingView, Platform, StyleSheet } from 'rea
 type PendingAction =
   | { kind: 'expense'; messageId: string; data: ChatExpenseData }
   | { kind: 'income'; messageId: string; data: ChatIncomeData }
+  | { kind: 'savings'; messageId: string; data: ChatSavingsData }
   | { kind: 'update'; messageId: string; payload: UpdatableIntent }
   | { kind: 'delete'; messageId: string; entityType: DeleteEntityTypeValue; data: ChatDeleteData };
 
@@ -83,6 +90,8 @@ export default function ChatScreen() {
   }, [verifyNetwork]);
 
   // ── Data (each hook called exactly once) ──────────────────────────────────
+
+  const queryClient = useQueryClient();
 
   const { profile, upsertProfileAsync } = useProfile();
 
@@ -316,6 +325,9 @@ export default function ChatScreen() {
         case ChatIntentEnum.ADD_INCOME:
           setPendingAction({ kind: 'income', messageId: assistantMsg.id, data: response.data });
           break;
+        case ChatIntentEnum.LOG_SAVINGS:
+          setPendingAction({ kind: 'savings', messageId: assistantMsg.id, data: response.data });
+          break;
       }
     }
 
@@ -428,6 +440,67 @@ export default function ChatScreen() {
       {
         role: ChatRoleEnum.ASSISTANT,
         content: CHAT_MESSAGE_STRINGS.incomeAddedReply(data.amount),
+      },
+      { onError: console.error }
+    );
+    setPendingAction(null);
+  };
+
+  const handleSavingsConfirm = async (data: ChatSavingsData) => {
+    if (!pendingAction) return;
+    const createdDeposit = await runMutation(
+      createExpenseAsync(
+        {
+          amount: data.amount,
+          isSaving: 1,
+          isWithdrawal: 0,
+          savingsType: data.savingsType,
+          savingsGoalId: data.savingsGoalId ?? undefined,
+          description: data.description,
+          excludeFromSpending: 1,
+        },
+        {
+          onError: (error) => console.error(CHAT_LOG_STRINGS.addSavingsDepositError, error),
+        }
+      )
+    );
+
+    if (!createdDeposit) {
+      sendMessage(
+        { role: ChatRoleEnum.ASSISTANT, content: CHAT_MESSAGE_STRINGS.savingsSaveFailedReply },
+        { onError: console.error }
+      );
+      setPendingAction(null);
+      return;
+    }
+
+    queryClient.invalidateQueries({ queryKey: SAVINGS_GOALS_QUERY_KEY });
+    queryClient.invalidateQueries({ queryKey: SAVINGS_BALANCES_ALL_GOALS_QUERY_KEY });
+    queryClient.invalidateQueries({ queryKey: ADHOC_SAVINGS_BALANCES_QUERY_KEY });
+    queryClient.invalidateQueries({ queryKey: MONTHLY_DEPOSITS_BY_GOAL_QUERY_KEY });
+
+    const completedAction = await runMutation(
+      updateActionAsync(
+        { id: pendingAction.messageId, actionStatus: ChatActionStatusEnum.COMPLETED },
+        {
+          onError: (error) => console.error(CHAT_LOG_STRINGS.completeActionError, error),
+        }
+      )
+    );
+
+    if (!completedAction) {
+      sendMessage(
+        { role: ChatRoleEnum.ASSISTANT, content: CHAT_MESSAGE_STRINGS.savingsSaveFailedReply },
+        { onError: console.error }
+      );
+      setPendingAction(null);
+      return;
+    }
+
+    sendMessage(
+      {
+        role: ChatRoleEnum.ASSISTANT,
+        content: CHAT_MESSAGE_STRINGS.savingsAddedReply(data.amount),
       },
       { onError: console.error }
     );
@@ -799,6 +872,15 @@ export default function ChatScreen() {
             onSubmit={handleIncomeConfirm}
             onCancel={handleActionCancel}
             isSubmitting={isSending}
+          />
+        )}
+        {pendingAction?.kind === 'savings' && (
+          <InlineSavingsForm
+            initialData={pendingAction.data}
+            onSubmit={handleSavingsConfirm}
+            onCancel={handleActionCancel}
+            isSubmitting={isSending}
+            savingsGoals={savingsGoals}
           />
         )}
         {pendingAction?.kind === 'update' && (

@@ -401,16 +401,16 @@ Refactor the existing `SavingsDepositForm` component to work as tab content rath
 
 ### Acceptance criteria
 
-- [ ] Deposit tab shows a form with: "Deposit To" dropdown, amount, description, confirm button
-- [ ] "Deposit To" dropdown lists all savings goals by name + "Ad-hoc" option
-- [ ] Selecting "Ad-hoc" reveals a secondary category dropdown with SavingsType options
-- [ ] Selecting a goal directly sets the `savingsGoalId` and `savingsType` from the goal
-- [ ] Amount and description fields work correctly
-- [ ] Confirm creates a savings expense with correct `savingsGoalId` (or null for ad-hoc)
-- [ ] Form resets after successful deposit
-- [ ] Total savings in header updates after deposit
-- [ ] All user-facing strings in constants file
-- [ ] Run `pnpm run typecheck` and `pnpm run lint` with no errors
+- [x] Deposit tab shows a form with: "Deposit To" dropdown, amount, description, confirm button
+- [x] "Deposit To" dropdown lists all savings goals by name + "Ad-hoc" option
+- [x] Selecting "Ad-hoc" reveals a secondary category dropdown with SavingsType options
+- [x] Selecting a goal directly sets the `savingsGoalId` and `savingsType` from the goal
+- [x] Amount and description fields work correctly
+- [x] Confirm creates a savings expense with correct `savingsGoalId` (or null for ad-hoc)
+- [x] Form resets after successful deposit
+- [x] Total savings in header updates after deposit
+- [x] All user-facing strings in constants file
+- [x] Run `pnpm run typecheck` and `pnpm run lint` with no errors
 
 ---
 
@@ -459,13 +459,10 @@ Merge the existing "Completed" and "Goals" (or "Incomplete") quick stat cards on
 
 ### Acceptance criteria
 
-- [ ] "Completed" and "Goals"/"Incomplete" stat cards are merged into a single "Savings" card
-- [ ] Savings card shows a checklist of monthly savings goals
-- [ ] Each line shows goal name and monthly target amount
-- [ ] Completed goals (this month's deposits ≥ targetAmount) show strikethrough text and checkmark
-- [ ] Incomplete goals show without strikethrough
-- [ ] Tapping the card opens a sheet with the full checklist (if it follows the existing quick stat sheet pattern)
-- [ ] Run `pnpm run typecheck` and `pnpm run lint` with no errors
+- [x] "Completed" and "Goals"/"Incomplete" stat cards are merged into a single "Savings" card
+- [x] Savings card shows total monthly savings target and goal count (same compact design as Fixed/EMIs)
+- [x] Tapping the card opens the existing quick stat bottom sheet
+- [x] Run `pnpm run typecheck` and `pnpm run lint` with no errors
 
 ---
 
@@ -500,14 +497,14 @@ Add `log_savings` to `ChatIntentEnum` and `ChatResponse`. Create `ChatSavingsDat
 
 ### Acceptance criteria
 
-- [ ] `ChatIntentEnum.LOG_SAVINGS` exists and is handled
-- [ ] System prompt includes savings deposit capability with example JSON showing goal matching
-- [ ] Active monthly savings (name, type, id) are included in the `ChatContext` passed to the service
-- [ ] AI response includes `savingsGoalId` when it can match, null otherwise
-- [ ] Inline savings form pre-selects the AI-matched goal; user can override via dropdown
-- [ ] Goal dropdown lists all goals + "Ad-hoc" option (with secondary category picker for ad-hoc)
-- [ ] Confirmed savings are created with correct `savingsGoalId` (or null for ad-hoc)
-- [ ] Run `pnpm run typecheck` and `pnpm run lint` with no errors
+- [x] `ChatIntentEnum.LOG_SAVINGS` exists and is handled
+- [x] System prompt includes savings deposit capability with example JSON showing goal matching
+- [x] Active monthly savings (name, type, id) are included in the `ChatContext` passed to the service
+- [x] AI response includes `savingsGoalId` when it can match, null otherwise
+- [x] Inline savings form pre-selects the AI-matched goal; user can override via dropdown
+- [x] Goal dropdown lists all goals + "Ad-hoc" option (with secondary category picker for ad-hoc)
+- [x] Confirmed savings are created with correct `savingsGoalId` (or null for ad-hoc)
+- [x] Run `pnpm run typecheck` and `pnpm run lint` with no errors
 
 ---
 

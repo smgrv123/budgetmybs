@@ -29,6 +29,16 @@ export const CHAT_STRINGS = {
   FORM_INCOME_DESCRIPTION_LABEL: 'Description (optional)',
   FORM_INCOME_DESCRIPTION_PLACEHOLDER: 'e.g. Year-end bonus',
   FORM_INCOME_DATE_LABEL: 'Date',
+  FORM_SAVINGS_TITLE: 'Confirm Savings Deposit',
+  FORM_SAVINGS_SUBMIT: 'Add Deposit',
+  FORM_SAVINGS_AMOUNT_LABEL: 'Amount (₹)',
+  FORM_SAVINGS_DEPOSIT_TO_LABEL: 'Deposit To',
+  FORM_SAVINGS_DEPOSIT_TO_MODAL_TITLE: 'Select Destination',
+  FORM_SAVINGS_ADHOC_OPTION: 'Ad-hoc',
+  FORM_SAVINGS_CATEGORY_LABEL: 'Savings Category',
+  FORM_SAVINGS_CATEGORY_MODAL_TITLE: 'Select Category',
+  FORM_SAVINGS_DESCRIPTION_LABEL: 'Description (optional)',
+  FORM_SAVINGS_DESCRIPTION_PLACEHOLDER: 'e.g. Monthly SIP',
 } as const;
 
 export const CHAT_MESSAGE_STRINGS = {
@@ -45,6 +55,9 @@ export const CHAT_MESSAGE_STRINGS = {
   expenseAddedReply: (amount: number) => `✅ Expense of ₹${amount.toLocaleString('en-IN')} added successfully!`,
   incomeAddedReply: (amount: number) => `✅ Income of ₹${amount.toLocaleString('en-IN')} logged successfully!`,
   deleteSuccessReply: (name: string) => `✅ ${name} has been deleted.`,
+  savingsSaveFailedReply: "Couldn't save the savings deposit. Please try again.",
+  savingsAddedReply: (amount: number) =>
+    `✅ Savings deposit of ₹${amount.toLocaleString('en-IN')} recorded successfully!`,
 } as const;
 
 export const CHAT_ALERT_STRINGS = {
@@ -72,6 +85,7 @@ export const CHAT_LOG_STRINGS = {
   deleteDebtError: 'Failed to delete debt:',
   deleteSavingsGoalError: 'Failed to delete savings goal:',
   addIncomeError: 'Failed to add income entry:',
+  addSavingsDepositError: 'Failed to add savings deposit:',
 } as const;
 
 export const DeleteEntityType = {

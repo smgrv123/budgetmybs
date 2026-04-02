@@ -67,6 +67,13 @@ export type ChatIncomeData = {
   date: string;
 };
 
+export type ChatSavingsData = {
+  amount: number;
+  savingsGoalId: string | null; // null = ad-hoc
+  savingsType: SavingsType; // required; for ad-hoc must be a valid SavingsType
+  description?: string;
+};
+
 export type ChatDeleteData = {
   existingName: string; // name of the entity to delete — always required
 };
@@ -90,4 +97,5 @@ export type ChatResponse =
   | { intent: typeof ChatIntentEnum.UPDATE_SAVINGS_GOAL; message: string; data: ChatSavingsGoalData }
   | { intent: typeof ChatIntentEnum.DELETE_SAVINGS_GOAL; message: string; data: ChatDeleteData }
   | { intent: typeof ChatIntentEnum.ADD_INCOME; message: string; data: ChatIncomeData }
+  | { intent: typeof ChatIntentEnum.LOG_SAVINGS; message: string; data: ChatSavingsData }
   | { intent: typeof ChatIntentEnum.GENERAL; message: string; data?: undefined };

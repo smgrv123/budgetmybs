@@ -111,7 +111,14 @@ CAPABILITIES — what you CAN do:
     - "customType" is required only when type is "other"
     - Do NOT use "savings_withdrawal" — that type is system-only
 
-13. FINANCIAL PLANNING & ADVICE
+13. LOG SAVINGS DEPOSIT
+    Triggered by: "saved 5000 to emergency fund", "put money into savings", "log savings deposit", "deposited to mutual funds", "added to my SIP"
+    Active Monthly Savings (match by name): ${savingsGoals.length > 0 ? JSON.stringify(savingsGoals.map((g) => ({ id: g.id, name: g.name, type: g.type }))) : 'None'}
+    - If the user names a goal that matches one above, set "savingsGoalId" to its id and "savingsType" to its type
+    - If the user says ad-hoc or no goal matches, set "savingsGoalId" to null and "savingsType" to a valid type from: ${SAVINGS_TYPES.join(', ')}
+    - Amount must always be > 0
+
+14. FINANCIAL PLANNING & ADVICE
     - Analyze their ACTUAL financial picture — cite real ₹ amounts from their data
     - Recommend debt payoff strategies aligned with their preference (${profile.debtPayoffPreference})
     - Factor in Indian-specific instruments (PPF, NPS, ELSS, FD rates)
@@ -164,6 +171,12 @@ Log income:
 { "intent": "add_income", "data": { "amount": 15000, "type": "freelance", "description": "Website project", "date": "2026-03-28" }, "message": "Got it! Recording ₹15,000 freelance payment." }
 { "intent": "add_income", "data": { "amount": 2000, "type": "other", "customType": "Dividend", "description": "Quarterly dividend", "date": "2026-03-30" }, "message": "Got it! Logging ₹2,000 dividend income." }
 
+Log savings deposit (goal-linked — savingsGoalId matched from active goals):
+{ "intent": "log_savings", "data": { "amount": 5000, "savingsGoalId": "abc-123", "savingsType": "emergency_fund", "description": "Monthly top-up" }, "message": "Got it! Recording ₹5,000 deposit to Emergency Fund." }
+
+Log savings deposit (ad-hoc — no goal matched or user said ad-hoc):
+{ "intent": "log_savings", "data": { "amount": 3000, "savingsGoalId": null, "savingsType": "mutual_funds", "description": "SIP" }, "message": "Got it! Recording ₹3,000 ad-hoc savings deposit under Mutual Funds." }
+
 General / advice:
 { "intent": "general", "message": "..." }
 
@@ -214,6 +227,13 @@ const chatIncomeDataSchema = z.object({
   date: chatIncomeDateSchema,
 });
 
+const chatSavingsDataSchema = z.object({
+  amount: z.number().positive(),
+  savingsGoalId: z.string().nullable(),
+  savingsType: z.enum(SAVINGS_TYPES as [string, ...string[]]),
+  description: z.string().optional(),
+});
+
 /**
  * Post-process the raw AI response. Validates intent-specific data through
  * Zod schemas and normalises fields (e.g. bad date strings → today's YYYY-MM-DD).
@@ -226,6 +246,14 @@ const normaliseResponse = (raw: ChatResponse): ChatResponse => {
     }
     // Log the violation but still return so the caller can show the form with a safe fallback
     console.warn('[chatService] add_income data failed schema validation:', parsed.error.flatten());
+  }
+  if (raw.intent === ChatIntentEnum.LOG_SAVINGS) {
+    const parsed = chatSavingsDataSchema.safeParse(raw.data);
+    if (parsed.success) {
+      return { ...raw, data: parsed.data } as ChatResponse;
+    }
+    // Log the violation but still return so the caller can show the form with a safe fallback
+    console.warn('[chatService] log_savings data failed schema validation:', parsed.error.flatten());
   }
   return raw;
 };
