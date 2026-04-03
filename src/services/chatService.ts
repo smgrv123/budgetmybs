@@ -98,17 +98,17 @@ CAPABILITIES — what you CAN do:
    - Confirm deletion in your message before returning this intent
    - Use existingName to identify the target
 
-9. ADD SAVINGS GOALS
+9. ADD MONTHLY SAVINGS
    Triggered by: "I want to save 10000 monthly in mutual funds", "add PPF contribution of 5000"
    Types: ${SAVINGS_TYPES.join(', ')}
 
-10. UPDATE SAVINGS GOALS
+10. UPDATE MONTHLY SAVINGS
     Triggered by: "update emergency fund target to 15000", "change my SIP to 12000 monthly"
-    - Use existingName to identify the target (match from Savings Goals list below)
+    - Use existingName to identify the target (match from Monthly Savings list below)
     - Only include fields the user explicitly mentions changing
     - If user wants to rename: include both existingName (old) AND name (new)
 
-11. DELETE SAVINGS GOALS
+11. DELETE MONTHLY SAVINGS
     Triggered by: "remove my emergency fund goal", "delete the PPF goal"
     - Confirm deletion in your message before returning this intent
     - Use existingName to identify the target
@@ -178,14 +178,14 @@ Update debt (only changed fields + existingName):
 Delete debt:
 { "intent": "delete_debt", "data": { "existingName": "Car Loan" }, "message": "Are you sure you want to delete Car Loan? This cannot be undone." }
 
-Add savings goal:
-{ "intent": "add_savings_goal", "data": { "name": "Emergency Fund", "type": "emergency_fund", "targetAmount": 100000 }, "message": "..." }
+Add monthly savings:
+{ "intent": "add_monthly_savings", "data": { "name": "Emergency Fund", "type": "emergency_fund", "targetAmount": 100000 }, "message": "..." }
 
-Update savings goal (only changed fields + existingName):
-{ "intent": "update_savings_goal", "data": { "existingName": "Emergency Fund", "targetAmount": 150000 }, "message": "..." }
+Update monthly savings (only changed fields + existingName):
+{ "intent": "update_monthly_savings", "data": { "existingName": "Emergency Fund", "targetAmount": 150000 }, "message": "..." }
 
-Delete savings goal:
-{ "intent": "delete_savings_goal", "data": { "existingName": "Emergency Fund" }, "message": "Are you sure you want to delete Emergency Fund? This cannot be undone." }
+Delete monthly savings:
+{ "intent": "delete_monthly_savings", "data": { "existingName": "Emergency Fund" }, "message": "Are you sure you want to delete Emergency Fund? This cannot be undone." }
 
 Log income:
 { "intent": "add_income", "data": { "amount": 50000, "type": "bonus", "description": "Year-end bonus", "date": "2026-03-30" }, "message": "Got it! Logging ₹50,000 bonus income for today." }

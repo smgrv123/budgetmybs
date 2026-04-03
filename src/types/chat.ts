@@ -102,9 +102,9 @@ export type ChatResponse =
   | { intent: typeof ChatIntentEnum.ADD_DEBT; message: string; data: ChatDebtData }
   | { intent: typeof ChatIntentEnum.UPDATE_DEBT; message: string; data: ChatDebtData }
   | { intent: typeof ChatIntentEnum.DELETE_DEBT; message: string; data: ChatDeleteData }
-  | { intent: typeof ChatIntentEnum.ADD_SAVINGS_GOAL; message: string; data: ChatSavingsGoalData }
-  | { intent: typeof ChatIntentEnum.UPDATE_SAVINGS_GOAL; message: string; data: ChatSavingsGoalData }
-  | { intent: typeof ChatIntentEnum.DELETE_SAVINGS_GOAL; message: string; data: ChatDeleteData }
+  | { intent: typeof ChatIntentEnum.ADD_MONTHLY_SAVINGS; message: string; data: ChatSavingsGoalData }
+  | { intent: typeof ChatIntentEnum.UPDATE_MONTHLY_SAVINGS; message: string; data: ChatSavingsGoalData }
+  | { intent: typeof ChatIntentEnum.DELETE_MONTHLY_SAVINGS; message: string; data: ChatDeleteData }
   | { intent: typeof ChatIntentEnum.ADD_INCOME; message: string; data: ChatIncomeData }
   | { intent: typeof ChatIntentEnum.LOG_SAVINGS; message: string; data: ChatSavingsData }
   | { intent: typeof ChatIntentEnum.WITHDRAW_SAVINGS; message: string; data: ChatWithdrawalData }

@@ -339,15 +339,15 @@ export default function ChatScreen() {
             data: response.data,
           });
           break;
-        case ChatIntentEnum.ADD_SAVINGS_GOAL:
-        case ChatIntentEnum.UPDATE_SAVINGS_GOAL:
+        case ChatIntentEnum.ADD_MONTHLY_SAVINGS:
+        case ChatIntentEnum.UPDATE_MONTHLY_SAVINGS:
           setPendingAction({
             kind: 'update',
             messageId: assistantMsg.id,
             payload: { intent: response.intent, data: response.data },
           });
           break;
-        case ChatIntentEnum.DELETE_SAVINGS_GOAL:
+        case ChatIntentEnum.DELETE_MONTHLY_SAVINGS:
           setPendingAction({
             kind: 'delete',
             messageId: assistantMsg.id,
@@ -739,7 +739,7 @@ export default function ChatScreen() {
         }
         break;
       }
-      case ChatIntentEnum.ADD_SAVINGS_GOAL:
+      case ChatIntentEnum.ADD_MONTHLY_SAVINGS:
         operationAttempted = true;
         updateResult = await runMutation(
           createSavingsGoalAsync(
@@ -754,7 +754,7 @@ export default function ChatScreen() {
           )
         );
         break;
-      case ChatIntentEnum.UPDATE_SAVINGS_GOAL: {
+      case ChatIntentEnum.UPDATE_MONTHLY_SAVINGS: {
         const match = savingsGoals.find((g) => g.name === payload.data.existingName);
         if (match) {
           operationAttempted = true;

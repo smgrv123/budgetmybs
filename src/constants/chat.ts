@@ -115,8 +115,8 @@ export const CHAT_FORM_TITLES = {
   update_fixed_expense: 'Update Fixed Expense',
   add_debt: 'Add Debt',
   update_debt: 'Update Debt',
-  add_savings_goal: 'Add Monthly Savings',
-  update_savings_goal: 'Update Monthly Savings',
+  add_monthly_savings: 'Add Monthly Savings',
+  update_monthly_savings: 'Update Monthly Savings',
 } as const;
 
 /** Profile field labels for the inline update form */

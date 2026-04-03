@@ -26,7 +26,7 @@ export type UpdatableIntent =
     }
   | { intent: typeof ChatIntentEnum.ADD_DEBT | typeof ChatIntentEnum.UPDATE_DEBT; data: ChatDebtData }
   | {
-      intent: typeof ChatIntentEnum.ADD_SAVINGS_GOAL | typeof ChatIntentEnum.UPDATE_SAVINGS_GOAL;
+      intent: typeof ChatIntentEnum.ADD_MONTHLY_SAVINGS | typeof ChatIntentEnum.UPDATE_MONTHLY_SAVINGS;
       data: ChatSavingsGoalData;
     };
 
@@ -37,7 +37,7 @@ const NAME_KEYS = new Set<string>([FixedExpenseFieldKey.NAME, SavingsGoalFieldKe
 const UPDATE_INTENTS = new Set<string>([
   ChatIntentEnum.UPDATE_FIXED_EXPENSE,
   ChatIntentEnum.UPDATE_DEBT,
-  ChatIntentEnum.UPDATE_SAVINGS_GOAL,
+  ChatIntentEnum.UPDATE_MONTHLY_SAVINGS,
 ]);
 
 function getExistingName(payload: UpdatableIntent): string | undefined {
@@ -94,8 +94,8 @@ function getFields(payload: UpdatableIntent): { label: string; key: string; valu
           value: String(payload.data.tenureMonths ?? ''),
         },
       ];
-    case ChatIntentEnum.ADD_SAVINGS_GOAL:
-    case ChatIntentEnum.UPDATE_SAVINGS_GOAL:
+    case ChatIntentEnum.ADD_MONTHLY_SAVINGS:
+    case ChatIntentEnum.UPDATE_MONTHLY_SAVINGS:
       return [
         {
           label: FIELD_KEY_LABELS[FixedExpenseFieldKey.NAME] ?? 'Name',
