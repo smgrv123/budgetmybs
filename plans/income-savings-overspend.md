@@ -508,7 +508,7 @@ Add `log_savings` to `ChatIntentEnum` and `ChatResponse`. Create `ChatSavingsDat
 
 ---
 
-## Phase 21: Chat — Savings Withdrawal Intent
+## Phase 21: Chat — Savings Withdrawal Intent ✅
 
 **User stories**: 25–27
 
@@ -518,18 +518,18 @@ Add `withdraw_savings` to `ChatIntentEnum` and `ChatResponse`. Create `ChatWithd
 
 ### Acceptance criteria
 
-- [ ] `ChatIntentEnum.WITHDRAW_SAVINGS` exists and is handled
-- [ ] Savings balances (goal balances + ad-hoc type balances) are included in `ChatContext`
-- [ ] System prompt includes withdrawal capability with balance-aware guidance
-- [ ] AI warns in its message if the requested amount exceeds available balance
-- [ ] Inline withdrawal form shows source, available balance, and amount field
-- [ ] Client-side validation also blocks over-withdrawal before submission
-- [ ] Confirmed withdrawal triggers atomic savings expense + `savings_withdrawal` income creation
-- [ ] Run `pnpm run typecheck` and `pnpm run lint` with no errors
+- [x] `ChatIntentEnum.WITHDRAW_SAVINGS` exists and is handled
+- [x] Savings balances (goal balances + ad-hoc type balances) are included in `ChatContext`
+- [x] System prompt includes withdrawal capability with balance-aware guidance
+- [x] AI warns in its message if the requested amount exceeds available balance
+- [x] Inline withdrawal form shows source, available balance, and amount field
+- [x] Client-side validation also blocks over-withdrawal before submission
+- [x] Confirmed withdrawal triggers atomic savings expense + `savings_withdrawal` income creation
+- [x] Run `pnpm run typecheck` and `pnpm run lint` with no errors
 
 ---
 
-## Phase 22: Chat — Monthly Savings Intent Rename
+## Phase 22: Chat — Monthly Savings Intent Rename ✅
 
 **User stories**: 31
 
@@ -539,10 +539,10 @@ Rename the existing savings goal chat intents in all surfaces: `ChatIntentEnum` 
 
 ### Acceptance criteria
 
-- [ ] `ChatIntentEnum.ADD_MONTHLY_SAVINGS`, `UPDATE_MONTHLY_SAVINGS`, `DELETE_MONTHLY_SAVINGS` replace old savings goal values
-- [ ] `ChatResponse` union updated to use new intent names
-- [ ] System prompt capabilities section uses "Monthly Savings" terminology
-- [ ] All switch cases, form titles, field keys, and string constants updated
-- [ ] `UpdatableIntent` union in inline update form reflects new intent names
-- [ ] Existing monthly savings CRUD via chat continues to work end-to-end
-- [ ] Run `pnpm run typecheck` and `pnpm run lint` with no errors
+- [x] `ChatIntentEnum.ADD_MONTHLY_SAVINGS`, `UPDATE_MONTHLY_SAVINGS`, `DELETE_MONTHLY_SAVINGS` replace old savings goal values
+- [x] `ChatResponse` union updated to use new intent names
+- [x] System prompt capabilities section uses "Monthly Savings" terminology
+- [x] All switch cases, form titles, field keys, and string constants updated
+- [x] `UpdatableIntent` union in inline update form reflects new intent names
+- [x] Existing monthly savings CRUD via chat continues to work end-to-end
+- [x] Run `pnpm run typecheck` and `pnpm run lint` with no errors
