@@ -5,6 +5,8 @@ import {
   ChatRoleEnum,
   CreditCardTxnTypeEnum,
   DebtPayoffPreferenceEnum,
+  IncomeTypeEnum,
+  SavingsLabels,
 } from '@/db/types';
 import {
   ChatBubble,
@@ -15,6 +17,7 @@ import {
   InlineIncomeForm,
   InlineProfileUpdate,
   InlineSavingsForm,
+  InlineWithdrawalForm,
 } from '@/src/components/chat';
 import type { UpdatableIntent } from '@/src/components/chat/inlineProfileUpdate';
 import { BButton, BIcon, BSafeAreaView, BText, BView } from '@/src/components/ui';
@@ -33,7 +36,9 @@ import {
 import { ButtonVariant, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
 import {
   ADHOC_SAVINGS_BALANCES_QUERY_KEY,
+  INCOME_QUERY_KEY,
   MONTHLY_DEPOSITS_BY_GOAL_QUERY_KEY,
+  MONTHLY_INCOME_SUM_QUERY_KEY,
   SAVINGS_BALANCES_ALL_GOALS_QUERY_KEY,
   SAVINGS_GOALS_QUERY_KEY,
   useCategories,
@@ -48,7 +53,13 @@ import {
 } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { sendChatMessage } from '@/src/services/chatService';
-import type { ChatDeleteData, ChatExpenseData, ChatIncomeData, ChatSavingsData } from '@/src/types/chat';
+import type {
+  ChatDeleteData,
+  ChatExpenseData,
+  ChatIncomeData,
+  ChatSavingsData,
+  ChatWithdrawalData,
+} from '@/src/types/chat';
 import { checkNetworkConnection, NetworkError } from '@/src/utils/network';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -60,6 +71,7 @@ type PendingAction =
   | { kind: 'expense'; messageId: string; data: ChatExpenseData }
   | { kind: 'income'; messageId: string; data: ChatIncomeData }
   | { kind: 'savings'; messageId: string; data: ChatSavingsData }
+  | { kind: 'withdrawal'; messageId: string; data: ChatWithdrawalData }
   | { kind: 'update'; messageId: string; payload: UpdatableIntent }
   | { kind: 'delete'; messageId: string; entityType: DeleteEntityTypeValue; data: ChatDeleteData };
 
@@ -104,7 +116,14 @@ export default function ChatScreen() {
 
   const { debts, createDebtAsync, updateDebtAsync, removeDebtAsync } = useDebts();
 
-  const { savingsGoals, createSavingsGoalAsync, updateSavingsGoalAsync, removeSavingsGoalAsync } = useSavingsGoals();
+  const {
+    savingsGoals,
+    savingsBalancesAllGoals,
+    adHocSavingsBalances,
+    createSavingsGoalAsync,
+    updateSavingsGoalAsync,
+    removeSavingsGoalAsync,
+  } = useSavingsGoals();
 
   const { income, createIncomeAsync } = useIncome();
 
@@ -196,6 +215,19 @@ export default function ChatScreen() {
       return;
     }
 
+    // Build savings sources (goal + ad-hoc) for withdrawal context — only include sources with a positive balance
+    const goalSources = savingsBalancesAllGoals
+      .filter((b) => b.net > 0)
+      .map((b) => ({ id: b.goalId, label: b.goalName, availableBalance: b.net }));
+
+    const adHocSources = adHocSavingsBalances
+      .filter((b) => b.net > 0)
+      .map((b) => ({
+        id: b.savingsType as string,
+        label: `${SavingsLabels[b.savingsType as keyof typeof SavingsLabels] ?? b.savingsType} (Ad-hoc)`,
+        availableBalance: b.net,
+      }));
+
     const context = {
       profile: {
         name: profile.name,
@@ -215,6 +247,7 @@ export default function ChatScreen() {
         last4: c.last4,
       })),
       incomeEntries: income,
+      savingsSources: [...goalSources, ...adHocSources],
     };
 
     let response: Awaited<ReturnType<typeof sendChatMessage>> | null = null;
@@ -327,6 +360,9 @@ export default function ChatScreen() {
           break;
         case ChatIntentEnum.LOG_SAVINGS:
           setPendingAction({ kind: 'savings', messageId: assistantMsg.id, data: response.data });
+          break;
+        case ChatIntentEnum.WITHDRAW_SAVINGS:
+          setPendingAction({ kind: 'withdrawal', messageId: assistantMsg.id, data: response.data });
           break;
       }
     }
@@ -501,6 +537,91 @@ export default function ChatScreen() {
       {
         role: ChatRoleEnum.ASSISTANT,
         content: CHAT_MESSAGE_STRINGS.savingsAddedReply(data.amount),
+      },
+      { onError: console.error }
+    );
+    setPendingAction(null);
+  };
+
+  const handleWithdrawalConfirm = async (data: ChatWithdrawalData) => {
+    if (!pendingAction) return;
+
+    // Atomic write 1: savings withdrawal expense (isSaving=1, isWithdrawal=1)
+    const createdExpense = await runMutation(
+      createExpenseAsync(
+        {
+          amount: data.amount,
+          isSaving: 1,
+          isWithdrawal: 1,
+          savingsType: data.savingsType ?? undefined,
+          savingsGoalId: data.savingsGoalId ?? undefined,
+          excludeFromSpending: 1,
+        },
+        {
+          onError: (error) => console.error(CHAT_LOG_STRINGS.addSavingsWithdrawalError, error),
+        }
+      )
+    );
+
+    if (!createdExpense) {
+      sendMessage(
+        { role: ChatRoleEnum.ASSISTANT, content: CHAT_MESSAGE_STRINGS.withdrawalSaveFailedReply },
+        { onError: console.error }
+      );
+      setPendingAction(null);
+      return;
+    }
+
+    // Atomic write 2: income entry with type savings_withdrawal
+    const createdIncome = await runMutation(
+      createIncomeAsync(
+        {
+          amount: data.amount,
+          type: IncomeTypeEnum.SAVINGS_WITHDRAWAL,
+        },
+        {
+          onError: (error) => console.error(CHAT_LOG_STRINGS.addSavingsWithdrawalError, error),
+        }
+      )
+    );
+
+    if (!createdIncome) {
+      sendMessage(
+        { role: ChatRoleEnum.ASSISTANT, content: CHAT_MESSAGE_STRINGS.withdrawalSaveFailedReply },
+        { onError: console.error }
+      );
+      setPendingAction(null);
+      return;
+    }
+
+    queryClient.invalidateQueries({ queryKey: SAVINGS_BALANCES_ALL_GOALS_QUERY_KEY });
+    queryClient.invalidateQueries({ queryKey: ADHOC_SAVINGS_BALANCES_QUERY_KEY });
+    queryClient.invalidateQueries({ queryKey: MONTHLY_DEPOSITS_BY_GOAL_QUERY_KEY });
+    queryClient.invalidateQueries({ queryKey: INCOME_QUERY_KEY });
+    queryClient.invalidateQueries({ queryKey: MONTHLY_INCOME_SUM_QUERY_KEY });
+
+    const completedAction = await runMutation(
+      updateActionAsync(
+        { id: pendingAction.messageId, actionStatus: ChatActionStatusEnum.COMPLETED },
+        {
+          onError: (error) => console.error(CHAT_LOG_STRINGS.completeActionError, error),
+        }
+      )
+    );
+
+    if (!completedAction) {
+      sendMessage(
+        { role: ChatRoleEnum.ASSISTANT, content: CHAT_MESSAGE_STRINGS.withdrawalSaveFailedReply },
+        { onError: console.error }
+      );
+      setPendingAction(null);
+      return;
+    }
+
+    sendMessage(
+      {
+        role: ChatRoleEnum.ASSISTANT,
+        content: CHAT_MESSAGE_STRINGS.withdrawalSuccessReply(data.amount),
       },
       { onError: console.error }
     );
@@ -881,6 +1002,14 @@ export default function ChatScreen() {
             onCancel={handleActionCancel}
             isSubmitting={isSending}
             savingsGoals={savingsGoals}
+          />
+        )}
+        {pendingAction?.kind === 'withdrawal' && (
+          <InlineWithdrawalForm
+            initialData={pendingAction.data}
+            onSubmit={handleWithdrawalConfirm}
+            onCancel={handleActionCancel}
+            isSubmitting={isSending}
           />
         )}
         {pendingAction?.kind === 'update' && (

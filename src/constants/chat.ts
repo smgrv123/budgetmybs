@@ -39,6 +39,15 @@ export const CHAT_STRINGS = {
   FORM_SAVINGS_CATEGORY_MODAL_TITLE: 'Select Category',
   FORM_SAVINGS_DESCRIPTION_LABEL: 'Description (optional)',
   FORM_SAVINGS_DESCRIPTION_PLACEHOLDER: 'e.g. Monthly SIP',
+  FORM_WITHDRAWAL_TITLE: 'Confirm Savings Withdrawal',
+  FORM_WITHDRAWAL_SUBMIT: 'Withdraw',
+  FORM_WITHDRAWAL_SOURCE_LABEL: 'Withdraw From',
+  FORM_WITHDRAWAL_BALANCE_LABEL: 'Available Balance',
+  FORM_WITHDRAWAL_AMOUNT_LABEL: 'Amount (₹)',
+  FORM_WITHDRAWAL_REASON_LABEL: 'Reason (optional)',
+  FORM_WITHDRAWAL_REASON_PLACEHOLDER: 'e.g. Medical expense',
+  FORM_WITHDRAWAL_AMOUNT_ERROR: 'Please enter a valid amount greater than 0.',
+  FORM_WITHDRAWAL_EXCEEDS_BALANCE_ERROR: 'Amount exceeds available balance.',
 } as const;
 
 export const CHAT_MESSAGE_STRINGS = {
@@ -58,6 +67,9 @@ export const CHAT_MESSAGE_STRINGS = {
   savingsSaveFailedReply: "Couldn't save the savings deposit. Please try again.",
   savingsAddedReply: (amount: number) =>
     `✅ Savings deposit of ₹${amount.toLocaleString('en-IN')} recorded successfully!`,
+  withdrawalSaveFailedReply: "Couldn't process the withdrawal. Please try again.",
+  withdrawalSuccessReply: (amount: number) =>
+    `✅ Savings withdrawal of ₹${amount.toLocaleString('en-IN')} processed successfully!`,
 } as const;
 
 export const CHAT_ALERT_STRINGS = {
@@ -86,6 +98,7 @@ export const CHAT_LOG_STRINGS = {
   deleteSavingsGoalError: 'Failed to delete savings goal:',
   addIncomeError: 'Failed to add income entry:',
   addSavingsDepositError: 'Failed to add savings deposit:',
+  addSavingsWithdrawalError: 'Failed to process savings withdrawal:',
 } as const;
 
 export const DeleteEntityType = {

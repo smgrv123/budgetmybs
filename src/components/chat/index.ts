@@ -5,5 +5,6 @@ export { default as InlineDeleteConfirm } from './inlineDeleteConfirm';
 export { default as InlineExpenseForm } from './inlineExpenseForm';
 export { default as InlineIncomeForm } from './inlineIncomeForm';
 export { default as InlineSavingsForm } from './InlineSavingsForm';
+export { default as InlineWithdrawalForm } from './InlineWithdrawalForm';
 export { default as InlineProfileUpdate } from './inlineProfileUpdate';
 export type { UpdatableIntent } from './inlineProfileUpdate';

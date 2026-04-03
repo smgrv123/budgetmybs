@@ -19,6 +19,13 @@ export type CreditCardForChat = {
   last4: string;
 };
 
+/** A single savings source (goal or ad-hoc) with its available balance, used by the AI for withdrawal validation */
+export type SavingsSourceForChat = {
+  id: string; // goal id (for goal sources) or savingsType string (for ad-hoc sources)
+  label: string;
+  availableBalance: number;
+};
+
 export type ChatContext = {
   profile: ProfileData;
   fixedExpenses: FixedExpense[];
@@ -27,6 +34,7 @@ export type ChatContext = {
   categoryNames: string[];
   creditCards: CreditCardForChat[];
   incomeEntries?: Income[];
+  savingsSources?: SavingsSourceForChat[]; // goal + ad-hoc sources with available balances
 };
 
 // ============================================
@@ -34,7 +42,8 @@ export type ChatContext = {
 // ============================================
 
 const buildSystemPrompt = (ctx: ChatContext): string => {
-  const { profile, fixedExpenses, debts, savingsGoals, categoryNames, creditCards, incomeEntries } = ctx;
+  const { profile, fixedExpenses, debts, savingsGoals, categoryNames, creditCards, incomeEntries, savingsSources } =
+    ctx;
 
   return `You are FinAI, a friendly Indian personal finance assistant for a budgeting app.
 All monetary values are in Indian Rupees (₹). Use Indian number formatting (e.g., ₹1,50,000).
@@ -118,7 +127,19 @@ CAPABILITIES — what you CAN do:
     - If the user says ad-hoc or no goal matches, set "savingsGoalId" to null and "savingsType" to a valid type from: ${SAVINGS_TYPES.join(', ')}
     - Amount must always be > 0
 
-14. FINANCIAL PLANNING & ADVICE
+14. WITHDRAW SAVINGS
+    Triggered by: "withdraw from savings", "take money out of emergency fund", "pull from mutual funds", "withdraw 5000 from savings"
+    Available savings sources with balances: ${savingsSources && savingsSources.length > 0 ? JSON.stringify(savingsSources) : 'None'}
+    - Match the user's named source to one entry in the list above. Use its "id" as "sourceId".
+    - Set "sourceLabel" to the matching source's "label".
+    - Set "availableBalance" to the source's "availableBalance".
+    - If the source is a goal (id is a UUID-like string), set "savingsGoalId" to that id and derive "savingsType" from the source label or context.
+    - If the source is ad-hoc (id matches a savingsType string like "mutual_funds"), set "savingsGoalId" to null and "savingsType" to the id value.
+    - Amount must always be > 0.
+    - ⚠️ If the requested amount EXCEEDS the available balance for that source, you MUST warn the user in your "message" field. Example: "That amount exceeds your available ₹X,XXX balance. Please enter a lower amount."
+    - Even when the amount exceeds the balance, still return the intent so the user can adjust the amount in the confirmation form.
+
+15. FINANCIAL PLANNING & ADVICE
     - Analyze their ACTUAL financial picture — cite real ₹ amounts from their data
     - Recommend debt payoff strategies aligned with their preference (${profile.debtPayoffPreference})
     - Factor in Indian-specific instruments (PPF, NPS, ELSS, FD rates)
@@ -177,6 +198,12 @@ Log savings deposit (goal-linked — savingsGoalId matched from active goals):
 Log savings deposit (ad-hoc — no goal matched or user said ad-hoc):
 { "intent": "log_savings", "data": { "amount": 3000, "savingsGoalId": null, "savingsType": "mutual_funds", "description": "SIP" }, "message": "Got it! Recording ₹3,000 ad-hoc savings deposit under Mutual Funds." }
 
+Withdraw savings (goal source):
+{ "intent": "withdraw_savings", "data": { "amount": 2000, "sourceId": "abc-123", "sourceLabel": "Emergency Fund", "availableBalance": 15000, "savingsGoalId": "abc-123", "savingsType": "emergency_fund" }, "message": "Got it! Withdrawing ₹2,000 from Emergency Fund. Please confirm below." }
+
+Withdraw savings (ad-hoc source):
+{ "intent": "withdraw_savings", "data": { "amount": 1000, "sourceId": "mutual_funds", "sourceLabel": "Mutual Funds (Ad-hoc)", "availableBalance": 8000, "savingsGoalId": null, "savingsType": "mutual_funds" }, "message": "Got it! Withdrawing ₹1,000 from ad-hoc Mutual Funds savings. Please confirm below." }
+
 General / advice:
 { "intent": "general", "message": "..." }
 
@@ -234,6 +261,15 @@ const chatSavingsDataSchema = z.object({
   description: z.string().optional(),
 });
 
+const chatWithdrawalDataSchema = z.object({
+  amount: z.number().positive(),
+  sourceId: z.string().min(1),
+  sourceLabel: z.string().min(1),
+  availableBalance: z.number().min(0),
+  savingsGoalId: z.string().nullable(),
+  savingsType: z.enum(SAVINGS_TYPES as [string, ...string[]]).nullable(),
+});
+
 /**
  * Post-process the raw AI response. Validates intent-specific data through
  * Zod schemas and normalises fields (e.g. bad date strings → today's YYYY-MM-DD).
@@ -254,6 +290,14 @@ const normaliseResponse = (raw: ChatResponse): ChatResponse => {
     }
     // Log the violation but still return so the caller can show the form with a safe fallback
     console.warn('[chatService] log_savings data failed schema validation:', parsed.error.flatten());
+  }
+  if (raw.intent === ChatIntentEnum.WITHDRAW_SAVINGS) {
+    const parsed = chatWithdrawalDataSchema.safeParse(raw.data);
+    if (parsed.success) {
+      return { ...raw, data: parsed.data } as ChatResponse;
+    }
+    // Log the violation but still return so the caller can show the form with a safe fallback
+    console.warn('[chatService] withdraw_savings data failed schema validation:', parsed.error.flatten());
   }
   return raw;
 };
