@@ -4,6 +4,7 @@ import type {
   ChatIntentEnum,
   DebtType,
   FixedExpenseType,
+  IncomeType,
   ProfileFieldType,
   SavingsType,
 } from '@/db/types';
@@ -58,6 +59,30 @@ export type ChatSavingsGoalData = {
   existingName?: string;
 };
 
+export type ChatIncomeData = {
+  amount: number;
+  type: IncomeType;
+  customType?: string;
+  description?: string;
+  date: string;
+};
+
+export type ChatSavingsData = {
+  amount: number;
+  savingsGoalId: string | null; // null = ad-hoc
+  savingsType: SavingsType; // required; for ad-hoc must be a valid SavingsType
+  description?: string;
+};
+
+export type ChatWithdrawalData = {
+  amount: number;
+  sourceId: string; // goal id or savingsType string (for ad-hoc)
+  sourceLabel: string; // human-readable label shown in the form
+  availableBalance: number;
+  savingsGoalId: string | null; // null for ad-hoc withdrawals
+  savingsType: SavingsType | null; // null only if unresolvable (should not happen)
+};
+
 export type ChatDeleteData = {
   existingName: string; // name of the entity to delete — always required
 };
@@ -77,7 +102,10 @@ export type ChatResponse =
   | { intent: typeof ChatIntentEnum.ADD_DEBT; message: string; data: ChatDebtData }
   | { intent: typeof ChatIntentEnum.UPDATE_DEBT; message: string; data: ChatDebtData }
   | { intent: typeof ChatIntentEnum.DELETE_DEBT; message: string; data: ChatDeleteData }
-  | { intent: typeof ChatIntentEnum.ADD_SAVINGS_GOAL; message: string; data: ChatSavingsGoalData }
-  | { intent: typeof ChatIntentEnum.UPDATE_SAVINGS_GOAL; message: string; data: ChatSavingsGoalData }
-  | { intent: typeof ChatIntentEnum.DELETE_SAVINGS_GOAL; message: string; data: ChatDeleteData }
+  | { intent: typeof ChatIntentEnum.ADD_MONTHLY_SAVINGS; message: string; data: ChatSavingsGoalData }
+  | { intent: typeof ChatIntentEnum.UPDATE_MONTHLY_SAVINGS; message: string; data: ChatSavingsGoalData }
+  | { intent: typeof ChatIntentEnum.DELETE_MONTHLY_SAVINGS; message: string; data: ChatDeleteData }
+  | { intent: typeof ChatIntentEnum.ADD_INCOME; message: string; data: ChatIncomeData }
+  | { intent: typeof ChatIntentEnum.LOG_SAVINGS; message: string; data: ChatSavingsData }
+  | { intent: typeof ChatIntentEnum.WITHDRAW_SAVINGS; message: string; data: ChatWithdrawalData }
   | { intent: typeof ChatIntentEnum.GENERAL; message: string; data?: undefined };

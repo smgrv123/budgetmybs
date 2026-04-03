@@ -10,6 +10,7 @@ import type {
   DebtPayoffPreference,
   DebtType,
   FixedExpenseType,
+  IncomeType,
   RecurringSourceType,
   SavingsType,
 } from './types';
@@ -189,6 +190,8 @@ export const expensesTable = sqliteTable('expenses', {
   isSaving: integer('is_saving').notNull().default(0), // 1 = one-off saving, 0 = expense
   savingsType: text('savings_type').$type<SavingsType>(), // Only if isSaving = 1
   customSavingsType: text('custom_savings_type'), // Only if savingsType = "other"
+  savingsGoalId: text('savings_goal_id'), // FK to savings_goals; null for ad-hoc savings or non-savings
+  isWithdrawal: integer('is_withdrawal').notNull().default(0), // 1 = withdrawal from savings; only valid when isSaving = 1
   createdAt: text('created_at')
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
@@ -298,6 +301,26 @@ export const monthlySnapshotsTable = sqliteTable('monthly_snapshots', {
 });
 
 // ============================================
+// ADDITIONAL INCOME TABLE
+// ============================================
+
+export const additionalIncomeTable = sqliteTable('additional_income', {
+  id: text('id')
+    .primaryKey()
+    .$default(() => generateUUID()),
+  amount: real('amount').notNull(),
+  type: text('type').$type<IncomeType>().notNull(),
+  customType: text('custom_type'), // Only if type = "other"
+  date: text('date')
+    .notNull()
+    .default(sql`(date('now'))`), // YYYY-MM-DD; month is derived from this field
+  description: text('description'),
+  createdAt: text('created_at')
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
+// ============================================
 // CHAT MESSAGES TABLE
 // ============================================
 
@@ -329,9 +352,17 @@ export const expensesRelations = relations(expensesTable, ({ one }) => ({
     fields: [expensesTable.creditCardId],
     references: [creditCardsTable.id],
   }),
+  savingsGoal: one(savingsGoalsTable, {
+    fields: [expensesTable.savingsGoalId],
+    references: [savingsGoalsTable.id],
+  }),
 }));
 
 export const categoriesRelations = relations(categoriesTable, ({ many }) => ({
+  expenses: many(expensesTable),
+}));
+
+export const savingsGoalsRelations = relations(savingsGoalsTable, ({ many }) => ({
   expenses: many(expensesTable),
 }));
 

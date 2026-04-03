@@ -139,11 +139,41 @@ export const OnboardingStrings = {
     },
   },
 
+  income: {
+    screenTitle: 'Additional Income',
+    heading: 'Additional Income',
+    subheading: 'Add bonuses, freelance income, cashback, and more',
+    addButton: 'Add Income',
+    skipButton: 'Skip for now',
+    continueButton: 'Continue',
+    form: {
+      amount: {
+        placeholder: 'Amount',
+      },
+      type: {
+        placeholder: 'Select type',
+      },
+      description: {
+        placeholder: 'Description (optional)',
+      },
+      addButton: 'Add',
+      cancelButton: 'Cancel',
+      saveButton: 'Save',
+      cancelEditButton: 'Cancel',
+    },
+    customTypeModal: {
+      title: 'Add Custom Income Type',
+      placeholder: 'Enter income type',
+      addButton: 'Add',
+      cancelButton: 'Cancel',
+    },
+  },
+
   savings: {
-    screenTitle: 'Savings Goals',
+    screenTitle: 'Monthly Savings',
     heading: 'Your Savings',
     subheading: 'Add your savings and investment goals',
-    addButton: 'Add Savings Goal',
+    addButton: 'Add Monthly Savings',
     skipButton: 'Skip for now',
     continueButton: 'Continue',
     form: {
@@ -188,7 +218,7 @@ export const OnboardingStrings = {
       title: 'Debts & Loans',
     },
     savingsSection: {
-      title: 'Savings Goals',
+      title: 'Monthly Savings',
     },
     overviewSection: {
       title: 'Monthly Overview',

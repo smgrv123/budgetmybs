@@ -1,6 +1,16 @@
 // Re-export all UI components
 export * from './ui';
 
+// Re-export shared components
+export { default as DetailRow } from './DetailRow';
+export { default as DetailsCard, Divider as DetailsCardDivider } from './DetailsCard';
+
+// Re-export income components
+export * from './income';
+
+// Re-export savings components
+export * from './savings';
+
 // Re-export transaction components
 export * from './transaction';
 

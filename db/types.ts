@@ -139,6 +139,29 @@ export type CreditCardTxnType = (typeof CreditCardTxnTypeEnum)[keyof typeof Cred
 
 export const CREDIT_CARD_TXN_TYPES = Object.values(CreditCardTxnTypeEnum);
 
+/**
+ * Income types
+ */
+export const IncomeTypeEnum = {
+  BONUS: 'bonus',
+  INTEREST: 'interest',
+  CASHBACK: 'cashback',
+  GIFT: 'gift',
+  FREELANCE: 'freelance',
+  REFUND: 'refund',
+  SAVINGS_WITHDRAWAL: 'savings_withdrawal',
+  OTHER: 'other',
+} as const;
+
+export type IncomeType = (typeof IncomeTypeEnum)[keyof typeof IncomeTypeEnum];
+
+export const INCOME_TYPES = Object.values(IncomeTypeEnum);
+
+/**
+ * Income types available for user-facing dropdowns (excludes system-only types)
+ */
+export const USER_INCOME_TYPES = INCOME_TYPES.filter((t) => t !== IncomeTypeEnum.SAVINGS_WITHDRAWAL);
+
 // ============================================
 // DISPLAY LABELS (for UI)
 // ============================================
@@ -195,6 +218,21 @@ export const SavingsLabels: Record<SavingsType, string> = {
   other: 'Other',
 };
 
+/**
+ * Display labels for all income types.
+ * Use USER_INCOME_TYPES to filter out system-only types (e.g. savings_withdrawal) in dropdowns.
+ */
+export const IncomeLabels: Record<IncomeType, string> = {
+  bonus: 'Bonus',
+  interest: 'Interest',
+  cashback: 'Cashback',
+  gift: 'Gift',
+  freelance: 'Freelance',
+  refund: 'Refund',
+  savings_withdrawal: 'Savings Withdrawal',
+  other: 'Other',
+};
+
 // ============================================
 // CHAT TYPES
 // ============================================
@@ -216,9 +254,12 @@ export const ChatActionTypeEnum = {
   ADD_DEBT: 'add_debt',
   UPDATE_DEBT: 'update_debt',
   DELETE_DEBT: 'delete_debt',
-  ADD_SAVINGS_GOAL: 'add_savings_goal',
-  UPDATE_SAVINGS_GOAL: 'update_savings_goal',
-  DELETE_SAVINGS_GOAL: 'delete_savings_goal',
+  ADD_MONTHLY_SAVINGS: 'add_monthly_savings',
+  UPDATE_MONTHLY_SAVINGS: 'update_monthly_savings',
+  DELETE_MONTHLY_SAVINGS: 'delete_monthly_savings',
+  ADD_INCOME: 'add_income',
+  LOG_SAVINGS: 'log_savings',
+  WITHDRAW_SAVINGS: 'withdraw_savings',
 } as const;
 export type ChatActionType = (typeof ChatActionTypeEnum)[keyof typeof ChatActionTypeEnum];
 export const CHAT_ACTION_TYPES = Object.values(ChatActionTypeEnum);
@@ -247,9 +288,12 @@ export const ChatIntentEnum = {
   ADD_DEBT: 'add_debt',
   UPDATE_DEBT: 'update_debt',
   DELETE_DEBT: 'delete_debt',
-  ADD_SAVINGS_GOAL: 'add_savings_goal',
-  UPDATE_SAVINGS_GOAL: 'update_savings_goal',
-  DELETE_SAVINGS_GOAL: 'delete_savings_goal',
+  ADD_MONTHLY_SAVINGS: 'add_monthly_savings',
+  UPDATE_MONTHLY_SAVINGS: 'update_monthly_savings',
+  DELETE_MONTHLY_SAVINGS: 'delete_monthly_savings',
+  ADD_INCOME: 'add_income',
+  LOG_SAVINGS: 'log_savings',
+  WITHDRAW_SAVINGS: 'withdraw_savings',
   GENERAL: 'general',
 } as const;
 export type ChatIntent = (typeof ChatIntentEnum)[keyof typeof ChatIntentEnum];

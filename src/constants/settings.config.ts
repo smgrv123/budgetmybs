@@ -51,6 +51,12 @@ export const createFinancialDataItems = (themeColors: ThemeColors): FinancialDat
 
 export const BUDGET_OVERVIEW_ITEMS: BudgetOverviewItem[] = [
   { key: 'income', label: 'Monthly Income', valueKey: BudgetValueKey.SALARY },
+  {
+    key: 'additionalIncome',
+    label: 'Additional Income',
+    valueKey: BudgetValueKey.ADDITIONAL_INCOME,
+    hideWhenZero: true,
+  },
   { key: 'fixed', label: 'Fixed Expenses', valueKey: BudgetValueKey.FIXED_EXPENSES, isNegative: true },
   { key: 'debt', label: 'Debt Payments', valueKey: BudgetValueKey.DEBT_PAYMENTS, isNegative: true },
 ];

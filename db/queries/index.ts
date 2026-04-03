@@ -82,8 +82,12 @@ export { getMonthsToProcess, processRecurringTransactions } from './recurring';
 export {
   createSavingsGoal,
   deleteSavingsGoal,
+  getAdHocSavingsBalances,
   getCompletedSavingsGoals,
   getIncompleteSavingsGoals,
+  getMonthlyDepositsByGoal,
+  getSavingsBalanceByGoal,
+  getSavingsBalancesByAllGoals,
   getSavingsGoalById,
   getSavingsGoals,
   getTotalMonthlySavingsTarget,
@@ -111,6 +115,16 @@ export {
   getActiveFinancialPlan,
   getAllFinancialPlans,
 } from './financialPlan';
+
+// Income queries
+export {
+  createIncome,
+  deleteIncome,
+  getIncomeById,
+  getIncomeByMonth,
+  getMonthlyIncomeSum,
+  updateIncome,
+} from './income';
 
 // Account queries (delete/reset)
 export { clearUserData } from './account';

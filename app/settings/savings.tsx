@@ -1,9 +1,10 @@
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert } from 'react-native';
+import { Alert, ScrollView } from 'react-native';
 
 import BListStep from '@/src/components/onboarding/listStep';
 import { BSafeAreaView, BText, BView, ScreenHeader } from '@/src/components/ui';
+import { SavingsSummary } from '@/src/components/savings';
 import { SavingsTypeOptions, OnboardingStepId as SettingId } from '@/src/constants/onboarding.config';
 import { SAVINGS_SETTINGS_STRINGS, SETTINGS_COMMON_STRINGS } from '@/src/constants/settings.strings';
 import {
@@ -14,6 +15,7 @@ import {
   SAVINGS_STEP_CONFIG,
 } from '@/src/constants/setup-form.config';
 import { useSavingsGoals } from '@/src/hooks';
+import { Spacing } from '@/src/constants/theme';
 import type { SavingsGoalData } from '@/src/types';
 import { formatIndianNumber } from '@/src/utils/format';
 import { generateUUID } from '@/src/utils/id';
@@ -26,6 +28,8 @@ export default function SavingsScreen() {
     createSavingsGoalAsync,
     updateSavingsGoalAsync,
     removeSavingsGoalAsync,
+    savingsBalancesAllGoals,
+    adHocSavingsBalances,
   } = useSavingsGoals();
 
   const [goals, setGoals] = useState<SavingsGoalData[]>([]);
@@ -137,33 +141,45 @@ export default function SavingsScreen() {
     <BSafeAreaView edges={['top', 'left', 'right']}>
       <ScreenHeader title={SAVINGS_SETTINGS_STRINGS.screenTitle} />
 
-      <BView flex padding="base">
-        <BListStep
-          stepId={SettingId.SAVINGS}
-          strings={SAVINGS_STEP_CONFIG.strings}
-          items={goals}
-          itemCardConfig={{
-            getTitle: (item) => item.name,
-            getSubtitle: (item) => getTypeLabel(item.type),
-            getAmount: (item) => item.targetAmount,
-            toFormData: (item) => ({
-              name: item.name,
-              type: item.type,
-              targetAmount: formatIndianNumber(item.targetAmount),
-            }),
-          }}
-          onRemoveItem={handleRemoveItem}
-          onEditItem={(tempId, data) => updateGoal(tempId, data)}
-          formFields={formFields}
-          initialFormData={SAVINGS_STEP_CONFIG.initialFormData}
-          validationSchema={SAVINGS_STEP_CONFIG.validationSchema}
-          onAddItem={addGoal}
-          parseFormData={parseSavingsFormData}
-          onNext={handleSaveChanges}
-          nextButtonLabel={SETTINGS_COMMON_STRINGS.saveChangesButton}
-          customTypeModal={SAVINGS_STEP_CONFIG.customTypeModal}
-        />
-      </BView>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: Spacing['2xl'] }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Savings Summary */}
+        <BView paddingX="base" marginY="md">
+          <SavingsSummary goalBalances={savingsBalancesAllGoals} adHocBalances={adHocSavingsBalances} />
+        </BView>
+
+        {/* Goals Management */}
+        <BView flex padding="base">
+          <BListStep
+            stepId={SettingId.SAVINGS}
+            strings={SAVINGS_STEP_CONFIG.strings}
+            items={goals}
+            itemCardConfig={{
+              getTitle: (item) => item.name,
+              getSubtitle: (item) => getTypeLabel(item.type),
+              getAmount: (item) => item.targetAmount,
+              toFormData: (item) => ({
+                name: item.name,
+                type: item.type,
+                targetAmount: formatIndianNumber(item.targetAmount),
+              }),
+            }}
+            onRemoveItem={handleRemoveItem}
+            onEditItem={(tempId, data) => updateGoal(tempId, data)}
+            formFields={formFields}
+            initialFormData={SAVINGS_STEP_CONFIG.initialFormData}
+            validationSchema={SAVINGS_STEP_CONFIG.validationSchema}
+            onAddItem={addGoal}
+            parseFormData={parseSavingsFormData}
+            onNext={handleSaveChanges}
+            nextButtonLabel={SETTINGS_COMMON_STRINGS.saveChangesButton}
+            customTypeModal={SAVINGS_STEP_CONFIG.customTypeModal}
+          />
+        </BView>
+      </ScrollView>
     </BSafeAreaView>
   );
 }

@@ -1,4 +1,4 @@
-import { asc, desc, eq } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 
 import { db } from '../client';
 import { chatMessagesTable } from '../schema';
@@ -10,7 +10,13 @@ import type { ChatActionStatus } from '../types';
 // ============================================
 
 export const getChatMessages = async (limit = 50, offset = 0) => {
-  return db.select().from(chatMessagesTable).orderBy(asc(chatMessagesTable.createdAt)).limit(limit).offset(offset);
+  const rows = await db
+    .select()
+    .from(chatMessagesTable)
+    .orderBy(desc(chatMessagesTable.createdAt))
+    .limit(limit)
+    .offset(offset);
+  return rows.reverse();
 };
 
 // ============================================

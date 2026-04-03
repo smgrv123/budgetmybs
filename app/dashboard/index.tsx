@@ -8,13 +8,16 @@ import {
   AddTransactionModal,
   BButton,
   BCard,
-  BFAB,
   BIcon,
   BLink,
+  BModal,
   BSafeAreaView,
   BText,
   BToast,
   BView,
+  ExtraIncomeSection,
+  IncomeForm,
+  QuickActionsSection,
   QuickStatSheet,
 } from '@/src/components';
 import { CreditCardPreviewCard } from '@/src/components/credit-cards';
@@ -27,6 +30,7 @@ import {
   CREDIT_CARD_PROVIDER_OPTIONS,
 } from '@/src/constants/credit-cards.config';
 import { createQuickStats, createStatCards, QuickStatType } from '@/src/constants/dashboardData';
+import { INCOME_FORM_STRINGS } from '@/src/constants/income.strings';
 import { BUDGET_ALERT_STRINGS } from '@/src/constants/notifications.strings';
 import { CREDIT_CARDS_SETTINGS_STRINGS } from '@/src/constants/settings.strings';
 import { BorderRadius, ButtonVariant, Spacing, SpacingValue, TextVariant, ToastVariant } from '@/src/constants/theme';
@@ -35,6 +39,7 @@ import {
   useDebts,
   useExpenses,
   useFixedExpenses,
+  useIncome,
   useMonthlyBudget,
   useProfile,
   useRecurringStatus,
@@ -54,12 +59,12 @@ export default function DashboardScreen() {
   const { profile, isProfileLoading, isProfileError, refetchProfile } = useProfile();
   const { fixedExpenses, isFixedExpensesLoading } = useFixedExpenses();
   const { debts, isDebtsLoading } = useDebts();
-  const { savingsGoals, completedGoals, incompleteGoals, isSavingsGoalsLoading, markGoalAsCompleted } =
-    useSavingsGoals();
+  const { savingsGoals, isSavingsGoalsLoading } = useSavingsGoals();
   const { expenses, totalSpent, totalSaved: totalOneOffSavings, oneOffSavings } = useExpenses();
+  const { income } = useIncome();
   const { creditCards, creditCardSummaries } = useCreditCards();
   const { isItemProcessed } = useRecurringStatus();
-  const { snapshot, rollover, resetRollover, isResettingRollover } = useMonthlyBudget();
+  const { snapshot, rollover, additionalIncome, resetRollover, isResettingRollover } = useMonthlyBudget();
 
   // Gradient colors (theme-aware)
   const HEADER_GRADIENT: [string, string, string] = [
@@ -80,7 +85,8 @@ export default function DashboardScreen() {
   );
 
   const handleExpenseCreated = (amount: number) => {
-    const totalFrivolousBudget = (snapshot?.frivolousBudget ?? 0) + (snapshot?.rolloverFromPrevious ?? 0);
+    const totalFrivolousBudget =
+      (snapshot?.frivolousBudget ?? 0) + (snapshot?.rolloverFromPrevious ?? 0) + additionalIncome;
     const newTotalSpent = totalSpent + amount;
     const alert = computeFrivolousBudgetAlert(newTotalSpent, totalFrivolousBudget);
 
@@ -99,6 +105,7 @@ export default function DashboardScreen() {
 
   // Modal states
   const [isAddTransactionModalVisible, setIsAddTransactionModalVisible] = useState(false);
+  const [isIncomeModalVisible, setIsIncomeModalVisible] = useState(false);
   const [quickStatSheetVisible, setQuickStatSheetVisible] = useState(false);
   const [selectedQuickStat, setSelectedQuickStat] = useState<QuickStatTypeValue | null>(null);
   const [activeCardIndex, setActiveCardIndex] = useState(0);
@@ -109,7 +116,7 @@ export default function DashboardScreen() {
   const totalFixedExpenses = calculateTotalFixedExpenses(fixedExpenses ?? []);
   const totalEMI = calculateTotalEMI(debts ?? []);
   const monthlyIncome = profile?.salary ?? 0;
-  const totalMonthlySavings = completedGoals.reduce((sum, s) => sum + s.targetAmount, 0);
+  const totalMonthlySavings = savingsGoals.reduce((sum, g) => sum + g.targetAmount, 0);
 
   // Real spending data from DB
   const spentThisMonth = totalSpent;
@@ -117,7 +124,7 @@ export default function DashboardScreen() {
 
   // Calculate budget remaining
   const totalCommitments = savedThisMonth + spentThisMonth;
-  const effectiveBudget = monthlyIncome + rollover;
+  const effectiveBudget = monthlyIncome + rollover + additionalIncome;
   const budgetRemaining = effectiveBudget - totalCommitments;
   const budgetUsedPercent = effectiveBudget > 0 ? Math.round((totalCommitments / effectiveBudget) * 100) : 0;
   const carouselCardWidth = Math.max(0, screenWidth - Spacing.lg * 2);
@@ -131,8 +138,8 @@ export default function DashboardScreen() {
     fixedExpenses?.length ?? 0,
     totalEMI,
     debts?.length ?? 0,
-    completedGoals?.length ?? 0,
-    incompleteGoals?.length ?? 0,
+    totalMonthlySavings,
+    savingsGoals.length,
     themeColors
   );
 
@@ -143,10 +150,8 @@ export default function DashboardScreen() {
         return 'Fixed Expenses';
       case QuickStatType.EMIS:
         return 'EMI Payments';
-      case QuickStatType.COMPLETED:
-        return 'Completed Goals';
-      case QuickStatType.INCOMPLETE:
-        return 'Savings Goals';
+      case QuickStatType.GOALS:
+        return 'Monthly Savings';
       default:
         return 'Goals';
     }
@@ -217,10 +222,12 @@ export default function DashboardScreen() {
   // ! this should be removed. single query should be triggered for this. again to be picked in a revamp. let go for now
   const combinedTransactions = [...expenses, ...oneOffSavings];
 
-  return (
-    <BSafeAreaView edges={[]}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Gradient Header */}
+  const dashboardSections = [
+    {
+      key: 'header',
+      rank: 0,
+      enabled: true,
+      component: (
         <LinearGradient colors={HEADER_GRADIENT} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.header}>
           <BView paddingY={SpacingValue.MD}>
             <BText variant={TextVariant.BODY} color={themeColors.white} muted style={{ marginBottom: Spacing.xs }}>
@@ -231,8 +238,13 @@ export default function DashboardScreen() {
             </BText>
           </BView>
         </LinearGradient>
-
-        {/* Budget + Credit Card Carousel */}
+      ),
+    },
+    {
+      key: 'carousel',
+      rank: 1,
+      enabled: true,
+      component: (
         <BView style={styles.budgetCardWrapper}>
           <ScrollView
             horizontal
@@ -246,6 +258,7 @@ export default function DashboardScreen() {
             <DashboardHeroCard
               carouselCardWidth={carouselCardWidth}
               rollover={rollover}
+              additionalIncome={additionalIncome}
               handleResetRollover={handleResetRollover}
               isResettingRollover={isResettingRollover}
               budgetRemaining={budgetRemaining}
@@ -301,8 +314,13 @@ export default function DashboardScreen() {
             </BView>
           )}
         </BView>
-
-        {/* Spent/Saved Cards */}
+      ),
+    },
+    {
+      key: 'stat-cards',
+      rank: 2,
+      enabled: true,
+      component: (
         <BView row gap={SpacingValue.MD} paddingX={SpacingValue.LG} marginY={SpacingValue.MD}>
           {statCards.map((item) => (
             <BCard key={item.id} variant="default" style={{ flex: 1, padding: Spacing.md }}>
@@ -317,8 +335,25 @@ export default function DashboardScreen() {
             </BCard>
           ))}
         </BView>
-
-        {/* Quick Stats */}
+      ),
+    },
+    {
+      key: 'quick-actions',
+      rank: 3,
+      enabled: true,
+      component: (
+        <QuickActionsSection
+          onLogTransactionPress={() => setIsAddTransactionModalVisible(true)}
+          onLogIncomePress={() => setIsIncomeModalVisible(true)}
+          onManageSavingsPress={() => router.push('/savings')}
+        />
+      ),
+    },
+    {
+      key: 'quick-stats',
+      rank: 4,
+      enabled: true,
+      component: (
         <BView paddingX={SpacingValue.LG} marginY={SpacingValue.SM}>
           <BText variant={TextVariant.SUBHEADING} style={{ marginBottom: Spacing.md }}>
             Quick Stats
@@ -333,7 +368,7 @@ export default function DashboardScreen() {
                 style={[
                   item.count === 0 && styles.quickStatCardDisabled,
                   styles.statsCards,
-                  { shadowColor: themeColors.text },
+                  { shadowColor: themeColors.text, width: `${Math.floor(96 / quickStats.length)}%` as any },
                 ]}
               >
                 <BCard variant="default" style={{ padding: Spacing.md, width: '100%' }}>
@@ -351,8 +386,19 @@ export default function DashboardScreen() {
             ))}
           </BView>
         </BView>
-
-        {/* Recent Transactions */}
+      ),
+    },
+    {
+      key: 'extra-income',
+      rank: 5,
+      enabled: income.length > 0,
+      component: <ExtraIncomeSection incomeEntries={income} />,
+    },
+    {
+      key: 'recent-transactions',
+      rank: 6,
+      enabled: true,
+      component: (
         <BView paddingX={SpacingValue.LG} marginY={SpacingValue.LG}>
           <BView row justify="space-between" align="center" style={{ marginBottom: Spacing.md }}>
             <BText variant={TextVariant.SUBHEADING}>Recent Transactions</BText>
@@ -407,10 +453,20 @@ export default function DashboardScreen() {
             })
           )}
         </BView>
-      </ScrollView>
+      ),
+    },
+  ];
 
-      {/* FAB */}
-      <BFAB onPress={() => setIsAddTransactionModalVisible(true)} />
+  return (
+    <BSafeAreaView edges={[]}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {dashboardSections
+          .filter((s) => s.enabled)
+          .sort((a, b) => a.rank - b.rank)
+          .map(({ key, component }) => (
+            <BView key={key}>{component}</BView>
+          ))}
+      </ScrollView>
 
       {/* Add Transaction Modal */}
       <AddTransactionModal
@@ -418,6 +474,16 @@ export default function DashboardScreen() {
         onClose={() => setIsAddTransactionModalVisible(false)}
         onExpenseCreated={handleExpenseCreated}
       />
+
+      {/* Log Income Modal */}
+      <BModal
+        isVisible={isIncomeModalVisible}
+        onClose={() => setIsIncomeModalVisible(false)}
+        title={INCOME_FORM_STRINGS.modalTitle}
+        position="bottom"
+      >
+        <IncomeForm onSuccess={() => setIsIncomeModalVisible(false)} />
+      </BModal>
 
       {/* Budget threshold toast */}
       <BToast
@@ -438,10 +504,6 @@ export default function DashboardScreen() {
         )}
         debts={debts?.map((d) => mapDebtToSheet(d, isItemProcessed(RecurringSourceTypeEnum.DEBT_EMI, d.id)))}
         savingsGoals={savingsGoals?.map(mapSavingsGoalToSheet)}
-        onMarkGoalComplete={(goalId) => {
-          markGoalAsCompleted(goalId);
-          setQuickStatSheetVisible(false);
-        }}
       />
     </BSafeAreaView>
   );

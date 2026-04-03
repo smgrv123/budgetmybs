@@ -9,19 +9,26 @@ budgetmybs/
 │   ├── index.tsx                 # Entry — redirects to dashboard or onboarding
 │   ├── dashboard/                # Dashboard screens
 │   ├── onboarding/               # Onboarding flow screens
-│   ├── settings/                 # Settings screens
+│   ├── settings/                 # Settings screens (fixed-expenses, debts, savings, credit-cards)
 │   ├── transaction-detail.tsx    # Modal screen
-│   └── all-transactions.tsx      # Modal screen
+│   ├── all-transactions.tsx      # Modal screen
+│   ├── all-income.tsx            # All income entries for the current month
+│   ├── income-detail.tsx         # Income entry detail (view/edit/delete)
+│   └── savings.tsx               # Dedicated savings screen (gradient header + tabs)
 │
 ├── src/                          # Application source code
 │   ├── components/
 │   │   ├── ui/                   # B* primitives (BButton, BText, BView, etc.)
 │   │   ├── {feature}/            # Feature-scoped components (transaction/, dashboard/, chat/)
+│   │   ├── chat/                 # Chat components (ChatBubble, ChatHeader, ChatInput, InlineExpenseForm, InlineIncomeForm, InlineSavingsForm, InlineWithdrawalForm, InlineProfileUpdate, InlineDeleteConfirm)
+│   │   ├── dashboard/            # Dashboard components (QuickActionsSection, QuickStatSheet, heroCard, ExtraIncomeSection, SavingsChecklistCard)
+│   │   ├── income/               # Income components (IncomeForm)
+│   │   ├── savings/              # Savings components (SavingsDepositForm, SavingsDepositTab, SavingsSummary, SavingsWithdrawalForm, SavingsWithdrawTab, SavingsGoalCard, AdHocSavingsAccordion, SavingsOverviewTab)
 │   │   ├── {SharedName}.tsx      # Shared non-primitive components (used across features)
 │   │   └── index.ts              # Barrel exports
 │   │
 │   ├── hooks/                    # TanStack Query hooks
-│   │   ├── use{Domain}.ts        # One hook per domain (useExpenses, useProfile, etc.)
+│   │   ├── use{Domain}.ts        # One hook per domain (useExpenses, useProfile, useIncome, etc.)
 │   │   ├── theme-hooks/          # Theme-related hooks
 │   │   └── index.ts              # Barrel exports with query keys
 │   │
@@ -35,16 +42,25 @@ budgetmybs/
 │   │   └── financialPlanService.ts
 │   │
 │   ├── types/                    # TypeScript type definitions
+│   │   ├── income.ts             # IncomeEntryData type for income settings screen
 │   │   ├── {domain}.ts
 │   │   └── index.ts
 │   │
 │   ├── constants/
 │   │   ├── theme/                # Theme system (colors, spacing, variants, typography, layout)
 │   │   ├── {feature}.strings.ts  # User-facing text
+│   │   ├── dashboard.strings.ts  # Strings for dashboard Quick Actions section
+│   │   ├── income.strings.ts     # Strings for income settings screen, income log form, all-income and income-detail screens
+│   │   ├── savings-deposit.strings.ts  # Strings for savings deposit form and summary
+│   │   ├── savings-icons.config.ts     # SavingsType → Ionicons icon name mapping
+│   │   ├── savings-screen.strings.ts   # Strings for the dedicated savings screen (header, tabs, overview)
 │   │   ├── {feature}.config.ts   # Structural configuration
 │   │   └── asyncStorageKeys.ts   # AsyncStorage key constants
 │   │
 │   ├── validation/               # Zod schemas
+│   │   ├── income.ts             # Zod schema for income log form
+│   │   ├── savings-deposit.ts    # Zod schema for savings deposit form
+│   │   ├── savings-withdrawal.ts # Zod schema for savings withdrawal form
 │   │   └── {feature}.ts
 │   │
 │   ├── utils/                    # Pure utility functions
@@ -68,6 +84,7 @@ budgetmybs/
 │   ├── seed.ts                   # Seed data (categories)
 │   ├── queries/                  # One file per domain
 │   │   ├── expenses.ts
+│   │   ├── income.ts             # Income CRUD + monthly sum
 │   │   ├── profile.ts
 │   │   ├── categories.ts
 │   │   └── ...

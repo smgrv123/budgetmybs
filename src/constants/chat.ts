@@ -19,6 +19,35 @@ export const CHAT_STRINGS = {
   DELETE_CONFIRM_SUFFIX: '? This cannot be undone.',
   DELETE_CONFIRM_PREFIX: 'Are you sure you want to delete',
   DELETE_BUTTON: 'Delete',
+  FORM_INCOME_TITLE: 'Confirm Income',
+  FORM_INCOME_SUBMIT: 'Add Income',
+  FORM_INCOME_AMOUNT_LABEL: 'Amount (₹)',
+  FORM_INCOME_TYPE_LABEL: 'Income Type',
+  FORM_INCOME_TYPE_MODAL_TITLE: 'Select Income Type',
+  FORM_INCOME_CUSTOM_TYPE_LABEL: 'Custom Type',
+  FORM_INCOME_CUSTOM_TYPE_PLACEHOLDER: 'e.g. Dividend',
+  FORM_INCOME_DESCRIPTION_LABEL: 'Description (optional)',
+  FORM_INCOME_DESCRIPTION_PLACEHOLDER: 'e.g. Year-end bonus',
+  FORM_INCOME_DATE_LABEL: 'Date',
+  FORM_SAVINGS_TITLE: 'Confirm Savings Deposit',
+  FORM_SAVINGS_SUBMIT: 'Add Deposit',
+  FORM_SAVINGS_AMOUNT_LABEL: 'Amount (₹)',
+  FORM_SAVINGS_DEPOSIT_TO_LABEL: 'Deposit To',
+  FORM_SAVINGS_DEPOSIT_TO_MODAL_TITLE: 'Select Destination',
+  FORM_SAVINGS_ADHOC_OPTION: 'Ad-hoc',
+  FORM_SAVINGS_CATEGORY_LABEL: 'Savings Category',
+  FORM_SAVINGS_CATEGORY_MODAL_TITLE: 'Select Category',
+  FORM_SAVINGS_DESCRIPTION_LABEL: 'Description (optional)',
+  FORM_SAVINGS_DESCRIPTION_PLACEHOLDER: 'e.g. Monthly SIP',
+  FORM_WITHDRAWAL_TITLE: 'Confirm Savings Withdrawal',
+  FORM_WITHDRAWAL_SUBMIT: 'Withdraw',
+  FORM_WITHDRAWAL_SOURCE_LABEL: 'Withdraw From',
+  FORM_WITHDRAWAL_BALANCE_LABEL: 'Available Balance',
+  FORM_WITHDRAWAL_AMOUNT_LABEL: 'Amount (₹)',
+  FORM_WITHDRAWAL_REASON_LABEL: 'Reason (optional)',
+  FORM_WITHDRAWAL_REASON_PLACEHOLDER: 'e.g. Medical expense',
+  FORM_WITHDRAWAL_AMOUNT_ERROR: 'Please enter a valid amount greater than 0.',
+  FORM_WITHDRAWAL_EXCEEDS_BALANCE_ERROR: 'Amount exceeds available balance.',
 } as const;
 
 export const CHAT_MESSAGE_STRINGS = {
@@ -30,9 +59,17 @@ export const CHAT_MESSAGE_STRINGS = {
   expenseSaveFailedReply: "Couldn't save the expense. Please try again.",
   updateSaveFailedReply: "Couldn't save the changes. Please try again.",
   deleteFailedReply: "Couldn't delete. Please try again.",
+  incomeSaveFailedReply: "Couldn't save the income entry. Please try again.",
   updateSuccessReply: '✅ Done! Your data has been updated.',
   expenseAddedReply: (amount: number) => `✅ Expense of ₹${amount.toLocaleString('en-IN')} added successfully!`,
+  incomeAddedReply: (amount: number) => `✅ Income of ₹${amount.toLocaleString('en-IN')} logged successfully!`,
   deleteSuccessReply: (name: string) => `✅ ${name} has been deleted.`,
+  savingsSaveFailedReply: "Couldn't save the savings deposit. Please try again.",
+  savingsAddedReply: (amount: number) =>
+    `✅ Savings deposit of ₹${amount.toLocaleString('en-IN')} recorded successfully!`,
+  withdrawalSaveFailedReply: "Couldn't process the withdrawal. Please try again.",
+  withdrawalSuccessReply: (amount: number) =>
+    `✅ Savings withdrawal of ₹${amount.toLocaleString('en-IN')} processed successfully!`,
 } as const;
 
 export const CHAT_ALERT_STRINGS = {
@@ -59,12 +96,15 @@ export const CHAT_LOG_STRINGS = {
   deleteFixedExpenseError: 'Failed to delete fixed expense:',
   deleteDebtError: 'Failed to delete debt:',
   deleteSavingsGoalError: 'Failed to delete savings goal:',
+  addIncomeError: 'Failed to add income entry:',
+  addSavingsDepositError: 'Failed to add savings deposit:',
+  addSavingsWithdrawalError: 'Failed to process savings withdrawal:',
 } as const;
 
 export const DeleteEntityType = {
   FIXED_EXPENSE: 'Fixed Expense',
   DEBT: 'Debt',
-  SAVINGS_GOAL: 'Savings Goal',
+  SAVINGS_GOAL: 'Monthly Savings',
 } as const;
 export type DeleteEntityTypeValue = (typeof DeleteEntityType)[keyof typeof DeleteEntityType];
 
@@ -75,8 +115,8 @@ export const CHAT_FORM_TITLES = {
   update_fixed_expense: 'Update Fixed Expense',
   add_debt: 'Add Debt',
   update_debt: 'Update Debt',
-  add_savings_goal: 'Add Savings Goal',
-  update_savings_goal: 'Update Savings Goal',
+  add_monthly_savings: 'Add Monthly Savings',
+  update_monthly_savings: 'Update Monthly Savings',
 } as const;
 
 /** Profile field labels for the inline update form */

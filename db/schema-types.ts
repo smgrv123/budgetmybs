@@ -17,6 +17,7 @@ import type {
   expensesTable,
   financialPlansTable,
   fixedExpensesTable,
+  additionalIncomeTable,
   monthlySnapshotsTable,
   profileTable,
   savingsGoalsTable,
@@ -43,6 +44,8 @@ export type Category = typeof categoriesTable.$inferSelect;
 export type Expense = typeof expensesTable.$inferSelect;
 
 export type SavingsGoal = typeof savingsGoalsTable.$inferSelect;
+
+export type Income = typeof additionalIncomeTable.$inferSelect;
 
 export type MonthlySnapshot = typeof monthlySnapshotsTable.$inferSelect;
 
@@ -90,6 +93,11 @@ export type UpdateExpenseInput = Partial<Omit<Expense, 'id' | 'createdAt'>>;
 export type CreateOneOffSavingInput = Pick<Expense, 'amount' | 'savingsType'> &
   Partial<Pick<Expense, 'description' | 'date' | 'customSavingsType'>>;
 
+// Income
+export type CreateIncomeInput = Pick<Income, 'amount' | 'type'> &
+  Partial<Pick<Income, 'customType' | 'date' | 'description'>>;
+export type UpdateIncomeInput = Partial<Omit<Income, 'id' | 'createdAt'>>;
+
 // Savings Goals
 export type CreateSavingsGoalInput = Pick<SavingsGoal, 'name' | 'type' | 'targetAmount'> &
   Partial<Pick<SavingsGoal, 'customType' | 'icon'>>;
@@ -123,6 +131,31 @@ export type CreditCardSummary = Pick<CreditCard, 'creditLimit' | 'usedAmount'> &
   utilizationPercent: number;
   amountDue: AmountDue;
   dueDate: string | null;
+};
+
+// ============================================
+// SAVINGS BALANCE QUERY RESULT TYPES
+// ============================================
+
+export type SavingsBalance = {
+  deposited: number;
+  withdrawn: number;
+  net: number;
+};
+
+export type GoalSavingsBalance = SavingsBalance & {
+  goalId: string;
+  goalName: string;
+  goalType: string;
+};
+
+export type AdHocSavingsBalance = SavingsBalance & {
+  savingsType: string;
+};
+
+export type MonthlyGoalDeposit = {
+  goalId: string;
+  totalDeposited: number;
 };
 
 // ============================================

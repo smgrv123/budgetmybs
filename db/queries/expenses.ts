@@ -311,6 +311,8 @@ export const buildExpenseValues = (data: CreateExpenseInput) => {
     isSaving: data.isSaving ?? 0,
     savingsType: data.savingsType ?? null,
     customSavingsType: data.customSavingsType ?? null,
+    savingsGoalId: data.savingsGoalId ?? null,
+    isWithdrawal: data.isWithdrawal ?? 0,
     sourceType: data.sourceType ?? null,
     sourceId: data.sourceId ?? null,
     sourceMonth: data.sourceMonth ?? computedSourceMonth,

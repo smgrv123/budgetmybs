@@ -12,6 +12,7 @@ export const BudgetValueKey = {
   SALARY: 'salary',
   FIXED_EXPENSES: 'fixedExpenses',
   DEBT_PAYMENTS: 'debtPayments',
+  ADDITIONAL_INCOME: 'additionalIncome',
 } as const;
 export type BudgetValueKeyType = (typeof BudgetValueKey)[keyof typeof BudgetValueKey];
 
@@ -30,4 +31,5 @@ export type BudgetOverviewItem = {
   label: string;
   valueKey: BudgetValueKeyType;
   isNegative?: boolean;
+  hideWhenZero?: boolean;
 };

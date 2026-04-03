@@ -6,6 +6,7 @@ import { getCurrentMonth, getNextMonth } from '../utils';
 import { getTotalMonthlyEmi } from './debts';
 import { getTotalSavedByMonth, getTotalSpentByMonth } from './expenses';
 import { getTotalFixedExpenses } from './fixed-expenses';
+import { getMonthlyIncomeSum } from './income';
 import { getTotalMonthlySavingsTarget } from './savings';
 
 const MAX_AUTO_BACKFILL_MONTHS = 6;
@@ -110,8 +111,9 @@ export const initializeCurrentMonth = async (salary: number, options?: { allowEx
       getTotalSavedByMonth(previousSnapshot.month),
     ]);
     const prevBudgetBase = previousSnapshot.salary > 0 ? previousSnapshot.salary : previousSnapshot.frivolousBudget;
-    const prevBudget = prevBudgetBase + previousSnapshot.rolloverFromPrevious;
-    const rollover = Math.max(0, prevBudget - prevSpent - prevSaved);
+    const prevIncome = await getMonthlyIncomeSum(previousSnapshot.month);
+    const prevBudget = prevBudgetBase + previousSnapshot.rolloverFromPrevious + prevIncome;
+    const rollover = prevBudget - prevSpent - prevSaved;
 
     await closeMonth(previousSnapshot.month);
 
@@ -154,8 +156,11 @@ export const getRemainingFrivolousBudget = async (month?: string) => {
     return null;
   }
 
-  const spent = await getTotalSpentByMonth(targetMonth);
-  const totalBudget = snapshot.frivolousBudget + snapshot.rolloverFromPrevious;
+  const [spent, additionalIncome] = await Promise.all([
+    getTotalSpentByMonth(targetMonth),
+    getMonthlyIncomeSum(targetMonth),
+  ]);
+  const totalBudget = snapshot.frivolousBudget + snapshot.rolloverFromPrevious + additionalIncome;
 
   return {
     totalBudget,
@@ -163,6 +168,7 @@ export const getRemainingFrivolousBudget = async (month?: string) => {
     remaining: totalBudget - spent,
     isOverBudget: spent > totalBudget,
     rollover: snapshot.rolloverFromPrevious,
+    additionalIncome,
   };
 };
 
@@ -173,23 +179,25 @@ export const getRemainingFrivolousBudget = async (month?: string) => {
 export const getMonthlySummary = async (month?: string) => {
   const targetMonth = month ?? getCurrentMonth();
 
-  const [snapshot, variableSpent, fixedTotal, emiTotal, savingsTarget] = await Promise.all([
+  const [snapshot, variableSpent, fixedTotal, emiTotal, savingsTarget, additionalIncome] = await Promise.all([
     getMonthlySnapshot(targetMonth),
     getTotalSpentByMonth(targetMonth),
     getTotalFixedExpenses(),
     getTotalMonthlyEmi(),
     getTotalMonthlySavingsTarget(),
+    getMonthlyIncomeSum(targetMonth),
   ]);
 
   const frivolousBudget = snapshot?.frivolousBudget ?? 0;
   const rollover = snapshot?.rolloverFromPrevious ?? 0;
-  const totalFrivolousBudget = frivolousBudget + rollover;
+  const totalFrivolousBudget = frivolousBudget + rollover + additionalIncome;
   const totalOutflow = fixedTotal + emiTotal + savingsTarget + variableSpent;
 
   return {
     month: targetMonth,
     frivolousBudget,
     rollover,
+    additionalIncome,
     totalFrivolousBudget,
     variableSpent,
     remainingFrivolous: totalFrivolousBudget - variableSpent,
