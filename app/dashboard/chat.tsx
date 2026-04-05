@@ -12,6 +12,7 @@ import {
   ChatBubble,
   ChatHeader,
   ChatInput,
+  GenericInlineForm,
   InlineDeleteConfirm,
   InlineExpenseForm,
   InlineIncomeForm,
@@ -33,6 +34,7 @@ import {
   ProfileUpdateFieldKey,
   SavingsGoalFieldKey,
 } from '@/src/constants/chat';
+import { INTENT_REGISTRY } from '@/src/constants/chatRegistry.config';
 import { ButtonVariant, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
 import {
   ADHOC_SAVINGS_BALANCES_QUERY_KEY,
@@ -42,6 +44,7 @@ import {
   SAVINGS_BALANCES_ALL_GOALS_QUERY_KEY,
   SAVINGS_GOALS_QUERY_KEY,
   useCategories,
+  useChatActionHandler,
   useChat,
   useCreditCards,
   useDebts,
@@ -62,12 +65,13 @@ import type {
 } from '@/src/types/chat';
 import { checkNetworkConnection, NetworkError } from '@/src/utils/network';
 import { useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert, FlatList, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type PendingAction =
+  | { kind: 'registry'; intent: string; messageId: string; actionData: Record<string, unknown> }
   | { kind: 'expense'; messageId: string; data: ChatExpenseData }
   | { kind: 'income'; messageId: string; data: ChatIncomeData }
   | { kind: 'savings'; messageId: string; data: ChatSavingsData }
@@ -84,7 +88,7 @@ export default function ChatScreen() {
   const [isNetworkAvailable, setIsNetworkAvailable] = useState(true);
   const [isCheckingNetwork, setIsCheckingNetwork] = useState(false);
 
-  const verifyNetwork = useCallback(async (): Promise<void> => {
+  const verifyNetwork = async (): Promise<void> => {
     setIsCheckingNetwork(true);
     try {
       const isConnected = await checkNetworkConnection();
@@ -95,7 +99,7 @@ export default function ChatScreen() {
     } finally {
       setIsCheckingNetwork(false);
     }
-  }, []);
+  };
 
   useEffect(() => {
     verifyNetwork();
@@ -136,6 +140,29 @@ export default function ChatScreen() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [quotedMessage, setQuotedMessage] = useState<ChatMessage | null>(null);
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
+
+  // ── Registry-based action handler ─────────────────────────────────────────
+
+  const registryPendingAction =
+    pendingAction?.kind === 'registry'
+      ? { intent: pendingAction.intent, messageId: pendingAction.messageId, actionData: pendingAction.actionData }
+      : null;
+
+  const {
+    handleConfirm: handleRegistryConfirm,
+    handleCancel: handleRegistryCancel,
+    isSubmitting: isRegistrySubmitting,
+  } = useChatActionHandler(registryPendingAction);
+
+  const onRegistryCancel = async () => {
+    await handleRegistryCancel();
+    setPendingAction(null);
+  };
+
+  const onRegistryConfirm = async (formValues: Record<string, string>) => {
+    await handleRegistryConfirm(formValues);
+    setPendingAction(null);
+  };
 
   // Tracks whether the welcome message has been sent for this screen instance.
   // useRef (not module-level) so it resets on remount but doesn't cause re-renders.
@@ -297,9 +324,18 @@ export default function ChatScreen() {
 
     if (requiresAction && assistantMsg) {
       switch (response.intent) {
+        // ── Registry-based intents (migrated) ───────────────���───────────────
         case ChatIntentEnum.ADD_EXPENSE:
-          setPendingAction({ kind: 'expense', messageId: assistantMsg.id, data: response.data });
+        case ChatIntentEnum.ADD_INCOME:
+        case ChatIntentEnum.DELETE_FIXED_EXPENSE:
+          setPendingAction({
+            kind: 'registry',
+            intent: response.intent,
+            messageId: assistantMsg.id,
+            actionData: (response.data ?? {}) as Record<string, unknown>,
+          });
           break;
+        // ── Legacy intents (not yet migrated) ──────────────────────────────
         case ChatIntentEnum.UPDATE_PROFILE:
           setPendingAction({
             kind: 'update',
@@ -313,14 +349,6 @@ export default function ChatScreen() {
             kind: 'update',
             messageId: assistantMsg.id,
             payload: { intent: response.intent, data: response.data },
-          });
-          break;
-        case ChatIntentEnum.DELETE_FIXED_EXPENSE:
-          setPendingAction({
-            kind: 'delete',
-            messageId: assistantMsg.id,
-            entityType: DeleteEntityType.FIXED_EXPENSE,
-            data: response.data,
           });
           break;
         case ChatIntentEnum.ADD_DEBT:
@@ -354,9 +382,6 @@ export default function ChatScreen() {
             entityType: DeleteEntityType.SAVINGS_GOAL,
             data: response.data,
           });
-          break;
-        case ChatIntentEnum.ADD_INCOME:
-          setPendingAction({ kind: 'income', messageId: assistantMsg.id, data: response.data });
           break;
         case ChatIntentEnum.LOG_SAVINGS:
           setPendingAction({ kind: 'savings', messageId: assistantMsg.id, data: response.data });
@@ -979,6 +1004,29 @@ export default function ChatScreen() {
           onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
         />
 
+        {pendingAction?.kind === 'registry' &&
+          (() => {
+            const entry = INTENT_REGISTRY[pendingAction.intent];
+            if (!entry) return null;
+            const context = {
+              profile: profile ?? null,
+              fixedExpenses,
+              debts,
+              savingsGoals,
+              categories: allCategories,
+              creditCards,
+            };
+            const initialValues = entry.getInitialValues(pendingAction.actionData, context);
+            return (
+              <GenericInlineForm
+                intent={pendingAction.intent}
+                initialValues={initialValues}
+                onConfirm={onRegistryConfirm}
+                onCancel={onRegistryCancel}
+                isSubmitting={isRegistrySubmitting}
+              />
+            );
+          })()}
         {pendingAction?.kind === 'expense' && (
           <InlineExpenseForm
             initialData={pendingAction.data}

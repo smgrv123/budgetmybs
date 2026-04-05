@@ -16,13 +16,15 @@ import { getCurrentMonth } from '@/db/utils';
 import { CREDIT_CARDS_SETTINGS_STRINGS } from '@/src/constants/settings.strings';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert } from 'react-native';
-import { CREDIT_CARDS_QUERY_KEY, CREDIT_CARD_SUMMARIES_QUERY_KEY } from './useCreditCards';
-
-export const EXPENSES_QUERY_KEY = ['expenses'] as const;
-export const EXPENSE_BY_ID_QUERY_KEY = ['expenses', 'byId'] as const;
-export const ONE_OFF_SAVINGS_QUERY_KEY = ['oneOffSavings'] as const;
-export const TOTAL_SPENT_QUERY_KEY = ['expenses', 'totalSpent'] as const;
-export const TOTAL_SAVED_QUERY_KEY = ['savings', 'totalSaved'] as const;
+import {
+  CREDIT_CARDS_QUERY_KEY,
+  CREDIT_CARD_SUMMARIES_QUERY_KEY,
+  EXPENSES_QUERY_KEY,
+  EXPENSE_BY_ID_QUERY_KEY,
+  ONE_OFF_SAVINGS_QUERY_KEY,
+  TOTAL_SPENT_QUERY_KEY,
+  TOTAL_SAVED_QUERY_KEY,
+} from './queryKeys';
 
 /**
  * Fetches a single expense by ID with its category join.

@@ -11,10 +11,12 @@ import {
 } from '@/db';
 import type { CreateCreditCardPaymentInput, UpdateCreditCardInput } from '@/db/schema-types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { EXPENSES_QUERY_KEY, TOTAL_SPENT_QUERY_KEY } from './useExpenses';
-
-export const CREDIT_CARDS_QUERY_KEY = ['creditCards'] as const;
-export const CREDIT_CARD_SUMMARIES_QUERY_KEY = ['creditCards', 'summaries'] as const;
+import {
+  EXPENSES_QUERY_KEY,
+  TOTAL_SPENT_QUERY_KEY,
+  CREDIT_CARDS_QUERY_KEY,
+  CREDIT_CARD_SUMMARIES_QUERY_KEY,
+} from './queryKeys';
 
 export const useCreditCards = (activeOnly = true) => {
   const queryClient = useQueryClient();
