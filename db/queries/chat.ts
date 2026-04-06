@@ -60,6 +60,24 @@ export const updateChatMessageAction = async (id: string, actionStatus: ChatActi
 };
 
 // ============================================
+// REPLACE CHAT MESSAGE CONTENT
+// Updates content + actionStatus in one write — used for the single-message pattern.
+// ============================================
+
+export const replaceChatMessageContent = async (
+  id: string,
+  content: string,
+  actionStatus: ChatActionStatus
+) => {
+  const result = await db
+    .update(chatMessagesTable)
+    .set({ content, actionStatus })
+    .where(eq(chatMessagesTable.id, id))
+    .returning();
+  return result[0];
+};
+
+// ============================================
 // CLEAR CHAT HISTORY
 // ============================================
 

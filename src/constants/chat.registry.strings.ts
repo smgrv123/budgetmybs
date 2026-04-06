@@ -178,6 +178,7 @@ export const CHAT_REGISTRY_STRINGS = {
   WITHDRAW_SAVINGS_CANCELLED: 'Withdrawal cancelled.',
 
   // Validation errors
+
   VALIDATION_AMOUNT_REQUIRED: 'Please enter a valid amount greater than 0.',
   VALIDATION_CATEGORY_REQUIRED: 'Please select a category.',
   VALIDATION_INCOME_TYPE_REQUIRED: 'Please select an income type.',
@@ -195,3 +196,236 @@ export const CHAT_REGISTRY_STRINGS = {
   VALIDATION_SAVINGS_TYPE_REQUIRED: 'Please select a savings category.',
   VALIDATION_EXCEEDS_BALANCE: 'Amount exceeds available balance.',
 } as const;
+
+// ============================================
+// ROTATING MESSAGE POOLS — single-message pattern
+// ============================================
+
+export type IntentCategory = 'expense' | 'income' | 'savings' | 'debt' | 'fixed_expense' | 'profile' | 'general';
+
+export const INTENT_CATEGORY_MAP: Record<string, IntentCategory> = {
+  add_expense: 'expense',
+  add_income: 'income',
+  log_savings: 'savings',
+  withdraw_savings: 'savings',
+  add_monthly_savings: 'savings',
+  update_monthly_savings: 'savings',
+  delete_monthly_savings: 'savings',
+  add_debt: 'debt',
+  update_debt: 'debt',
+  delete_debt: 'debt',
+  add_fixed_expense: 'fixed_expense',
+  update_fixed_expense: 'fixed_expense',
+  delete_fixed_expense: 'fixed_expense',
+  update_profile: 'profile',
+  general: 'general',
+};
+
+export const CHAT_ACTION_MESSAGE_POOLS: Record<IntentCategory, { success: string[]; failure: string[]; cancel: string[] }> = {
+  expense: {
+    success: [
+      'Got it — expense logged.',
+      'Noted. Your spending is up to date.',
+      'Expense added.',
+      'Done. That expense is in.',
+      'Logged.',
+      'All set, expense saved.',
+      'Added to your expenses.',
+      'Expense recorded.',
+      'Saved.',
+      'Budget updated.',
+    ],
+    failure: [
+      "Couldn't save that expense. Try again.",
+      'Something went wrong. Give it another shot.',
+      "Hmm, that didn't go through. Try once more.",
+      "Failed to log the expense. Try again.",
+      "No luck there — try again.",
+    ],
+    cancel: [
+      'No worries, skipped.',
+      'OK, nothing was saved.',
+      'Cancelled.',
+      'Sure, cancelled.',
+      'No problem.',
+      'Got it — nothing logged.',
+    ],
+  },
+  income: {
+    success: [
+      'Income logged.',
+      'Got it — income recorded.',
+      'Added to your income.',
+      'Nice one. Income saved.',
+      'Income updated.',
+      'Earnings logged.',
+      'Done. Income is in.',
+      'Saved your income entry.',
+      'Logged.',
+      'Income recorded.',
+    ],
+    failure: [
+      "Couldn't save that income entry. Try again.",
+      'Something went wrong. Give it another shot.',
+      "Hmm, that didn't go through. Try once more.",
+      "Failed to log income. Try again.",
+      "No luck there — try again.",
+    ],
+    cancel: [
+      'No worries, skipped.',
+      'OK, nothing was saved.',
+      'Cancelled.',
+      'Sure, cancelled.',
+      'No problem.',
+      'Got it — nothing logged.',
+    ],
+  },
+  savings: {
+    success: [
+      'Savings updated.',
+      "Done — savings logged.",
+      'Got it, savings recorded.',
+      'Savings up to date.',
+      'Added to your savings.',
+      'Saved.',
+      'Your savings are in.',
+      'Savings logged.',
+      'Done.',
+      'Savings entry recorded.',
+    ],
+    failure: [
+      "Couldn't update savings. Try again.",
+      'Something went wrong. Give it another shot.',
+      "Hmm, that didn't go through. Try once more.",
+      "Failed to save that. Try again.",
+      "No luck there — try again.",
+    ],
+    cancel: [
+      'No worries, skipped.',
+      'OK, nothing was saved.',
+      'Cancelled.',
+      'Sure, cancelled.',
+      'No problem.',
+      'Got it — nothing logged.',
+    ],
+  },
+  debt: {
+    success: [
+      'Debt updated.',
+      'Got it — debt recorded.',
+      'Done. Your debt entries are updated.',
+      'Debt log updated.',
+      'Saved.',
+      'Debt entry recorded.',
+      'Logged.',
+      'Your debt is up to date.',
+      'Done — debt saved.',
+      'Debt updated.',
+    ],
+    failure: [
+      "Couldn't update debt. Try again.",
+      'Something went wrong. Give it another shot.',
+      "Hmm, that didn't go through. Try once more.",
+      "Failed to save that. Try again.",
+      "No luck there — try again.",
+    ],
+    cancel: [
+      'No worries, skipped.',
+      'OK, nothing was saved.',
+      'Cancelled.',
+      'Sure, cancelled.',
+      'No problem.',
+      'Got it — nothing logged.',
+    ],
+  },
+  fixed_expense: {
+    success: [
+      'Fixed expense updated.',
+      'Done — recurring expense saved.',
+      'Got it. Fixed expense recorded.',
+      'Saved your fixed expense.',
+      'Fixed expense logged.',
+      'Recurring entry updated.',
+      'Done.',
+      'Fixed expense is up to date.',
+      'Logged.',
+      'Recurring expense saved.',
+    ],
+    failure: [
+      "Couldn't update that fixed expense. Try again.",
+      'Something went wrong. Give it another shot.',
+      "Hmm, that didn't go through. Try once more.",
+      "Failed to save that. Try again.",
+      "No luck there — try again.",
+    ],
+    cancel: [
+      'No worries, skipped.',
+      'OK, nothing was saved.',
+      'Cancelled.',
+      'Sure, cancelled.',
+      'No problem.',
+      'Got it — nothing changed.',
+    ],
+  },
+  profile: {
+    success: [
+      'Profile updated.',
+      'Got it — profile saved.',
+      'Done. Your profile is current.',
+      'Saved.',
+      'Profile is up to date.',
+      'Updated your profile.',
+      'Done — profile saved.',
+      'Got it.',
+      'Your details are updated.',
+      'Profile saved.',
+    ],
+    failure: [
+      "Couldn't update your profile. Try again.",
+      'Something went wrong. Give it another shot.',
+      "Hmm, that didn't go through. Try once more.",
+      "Failed to save that. Try again.",
+      "No luck there — try again.",
+    ],
+    cancel: [
+      'No worries, skipped.',
+      'OK, nothing was changed.',
+      'Cancelled.',
+      'Sure, cancelled.',
+      'No problem.',
+      'Got it — profile unchanged.',
+    ],
+  },
+  general: {
+    success: [
+      'Done.',
+      'Got it.',
+      'Noted.',
+      'Saved.',
+      'All set.',
+      'Logged.',
+      'All good.',
+      'Done — records updated.',
+      'Saved that.',
+      'Recorded.',
+    ],
+    failure: [
+      "Couldn't complete that. Try again.",
+      'Something went wrong. Give it another shot.',
+      "Hmm, that didn't go through. Try once more.",
+      "Failed. Try again.",
+      "No luck — try again.",
+    ],
+    cancel: [
+      'No worries, skipped.',
+      'OK, nothing was saved.',
+      'Cancelled.',
+      'Sure, cancelled.',
+      'No problem.',
+      'Got it.',
+    ],
+  },
+};
+
+export const pickMessage = (pool: string[]): string =>
+  pool[Math.floor(Math.random() * pool.length)] ?? pool[0] ?? '';

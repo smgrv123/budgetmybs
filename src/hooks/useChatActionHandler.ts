@@ -11,6 +11,11 @@
  *  6. Invalidates the relevant query keys
  */
 import { INTENT_REGISTRY } from '@/src/constants/chatRegistry.config';
+import {
+  CHAT_ACTION_MESSAGE_POOLS,
+  INTENT_CATEGORY_MAP,
+  pickMessage,
+} from '@/src/constants/chat.registry.strings';
 import { useCategories } from './useCategories';
 import { useChat } from './useChat';
 import { useCreditCards } from './useCreditCards';
@@ -19,7 +24,7 @@ import { useFixedExpenses } from './useFixedExpenses';
 import { useProfile } from './useProfile';
 import { useSavingsGoals } from './useSavingsGoals';
 import { useMutationMap } from './useMutationMap';
-import { ChatActionStatusEnum, ChatRoleEnum } from '@/db/types';
+import { ChatActionStatusEnum } from '@/db/types';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 
@@ -47,7 +52,7 @@ export const useChatActionHandler = (pendingAction: RegistryPendingAction | null
 
   const mutationMap = useMutationMap();
 
-  const { sendMessage, updateActionAsync } = useChat();
+  const { replaceMessageAsync } = useChat();
 
   const handleConfirm = async (formValues: Record<string, string>) => {
     if (!pendingAction) return;
@@ -94,8 +99,11 @@ export const useChatActionHandler = (pendingAction: RegistryPendingAction | null
       }
     }
 
+    const category = INTENT_CATEGORY_MAP[pendingAction.intent] ?? 'general';
+
     if (!allSucceeded) {
-      sendMessage({ role: ChatRoleEnum.ASSISTANT, content: entry.messages.failure }, { onError: console.error });
+      const failureMsg = pickMessage(CHAT_ACTION_MESSAGE_POOLS[category].failure);
+      await replaceMessageAsync({ id: pendingAction.messageId, content: failureMsg, actionStatus: ChatActionStatusEnum.CANCELLED });
       setIsSubmitting(false);
       return;
     }
@@ -105,26 +113,13 @@ export const useChatActionHandler = (pendingAction: RegistryPendingAction | null
       queryClient.invalidateQueries({ queryKey: key });
     }
 
-    // Mark action as completed
+    // Replace original message with success text — single message per action
+    const successMsg = pickMessage(CHAT_ACTION_MESSAGE_POOLS[category].success);
     try {
-      await updateActionAsync(
-        { id: pendingAction.messageId, actionStatus: ChatActionStatusEnum.COMPLETED },
-        { onError: (error) => console.error('Failed to complete action:', error) }
-      );
+      await replaceMessageAsync({ id: pendingAction.messageId, content: successMsg, actionStatus: ChatActionStatusEnum.COMPLETED });
     } catch (err) {
-      console.error('Failed to complete action:', err);
-      sendMessage({ role: ChatRoleEnum.ASSISTANT, content: entry.messages.failure }, { onError: console.error });
-      setIsSubmitting(false);
-      return;
+      console.error('Failed to replace message with success:', err);
     }
-
-    // Send success message
-    const successMsg =
-      typeof entry.messages.success === 'function'
-        ? entry.messages.success(formValues, context)
-        : entry.messages.success;
-
-    sendMessage({ role: ChatRoleEnum.ASSISTANT, content: successMsg }, { onError: console.error });
 
     setIsSubmitting(false);
   };
@@ -132,19 +127,13 @@ export const useChatActionHandler = (pendingAction: RegistryPendingAction | null
   const handleCancel = async () => {
     if (!pendingAction) return;
 
-    const entry = INTENT_REGISTRY[pendingAction.intent];
+    const category = INTENT_CATEGORY_MAP[pendingAction.intent] ?? 'general';
+    const cancelMsg = pickMessage(CHAT_ACTION_MESSAGE_POOLS[category].cancel);
 
     try {
-      await updateActionAsync(
-        { id: pendingAction.messageId, actionStatus: ChatActionStatusEnum.CANCELLED },
-        { onError: console.error }
-      );
+      await replaceMessageAsync({ id: pendingAction.messageId, content: cancelMsg, actionStatus: ChatActionStatusEnum.CANCELLED });
     } catch (err) {
-      console.error('Failed to cancel action:', err);
-    }
-
-    if (entry) {
-      sendMessage({ role: ChatRoleEnum.ASSISTANT, content: entry.messages.cancelled }, { onError: console.error });
+      console.error('Failed to replace message on cancel:', err);
     }
   };
 

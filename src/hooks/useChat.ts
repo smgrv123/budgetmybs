@@ -1,4 +1,4 @@
-import { clearChatHistory, createChatMessage, getChatMessages, updateChatMessageAction } from '@/db';
+import { clearChatHistory, createChatMessage, getChatMessages, replaceChatMessageContent, updateChatMessageAction } from '@/db';
 import type { CreateChatMessageInput } from '@/db/schema-types';
 import type { ChatActionStatus } from '@/db/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -36,6 +36,17 @@ export const useChat = (limit = 50) => {
     },
   });
 
+  const replaceMessageMutation = useMutation({
+    mutationFn: ({ id, content, actionStatus }: { id: string; content: string; actionStatus: ChatActionStatus }) =>
+      replaceChatMessageContent(id, content, actionStatus),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CHAT_MESSAGES_QUERY_KEY });
+    },
+    onError: (error) => {
+      console.error('Failed to replace message:', error);
+    },
+  });
+
   const clearHistoryMutation = useMutation({
     mutationFn: clearChatHistory,
     onSuccess: () => {
@@ -64,6 +75,11 @@ export const useChat = (limit = 50) => {
     updateActionAsync: updateActionMutation.mutateAsync,
     isUpdatingAction: updateActionMutation.isPending,
     updateActionError: updateActionMutation.error,
+
+    // Replace message content + status in one write (single-message pattern)
+    replaceMessage: replaceMessageMutation.mutate,
+    replaceMessageAsync: replaceMessageMutation.mutateAsync,
+    isReplacingMessage: replaceMessageMutation.isPending,
 
     // Clear all history
     clearHistory: clearHistoryMutation.mutate,
