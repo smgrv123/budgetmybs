@@ -20,7 +20,7 @@ Durable decisions that apply across all phases:
 
 ---
 
-## Phase 1: Intent Registry + Generic Form (Foundation)
+## Phase 1: Intent Registry + Generic Form (Foundation) ✅
 
 **User stories**: 16, 17, 18
 
@@ -42,19 +42,19 @@ Keep old form components for un-migrated intents. The chat screen should support
 
 ### Acceptance criteria
 
-- [ ] Intent registry module exists with config entries for ADD_EXPENSE, ADD_INCOME, DELETE_FIXED_EXPENSE
-- [ ] Generic inline form renders correctly for all 3 migrated intents (text, number, picker, date, conditional fields, delete confirmation)
-- [ ] `useFormOptionSources()` provides categories, credit cards, and other option sources by string key
-- [ ] `useMutationMap()` provides all mutation hooks by string key
-- [ ] Generic `handleConfirm` hook executes mutations, handles success/failure, updates action status, invalidates queries
-- [ ] Migrated intents work end-to-end: user message -> AI response -> form rendered -> user confirms -> mutation executed -> queries refreshed
-- [ ] Un-migrated intents still work via old form components (no regressions)
-- [ ] No lint errors (`pnpm run lint`)
-- [ ] No type errors (`pnpm run typecheck`)
+- [x] Intent registry module exists with config entries for ADD_EXPENSE, ADD_INCOME, DELETE_FIXED_EXPENSE
+- [x] Generic inline form renders correctly for all 3 migrated intents (text, number, picker, date, conditional fields, delete confirmation)
+- [x] `useFormOptionSources()` provides categories, credit cards, and other option sources by string key
+- [x] `useMutationMap()` provides all mutation hooks by string key
+- [x] Generic `handleConfirm` hook executes mutations, handles success/failure, updates action status, invalidates queries
+- [x] Migrated intents work end-to-end: user message -> AI response -> form rendered -> user confirms -> mutation executed -> queries refreshed
+- [x] Un-migrated intents still work via old form components (no regressions)
+- [x] No lint errors (`pnpm run lint`)
+- [x] No type errors (`pnpm run typecheck`)
 
 ---
 
-## Phase 2: Migrate Remaining Existing Intents
+## Phase 2: Migrate Remaining Existing Intents ✅
 
 **User stories**: 16, 17, 18
 
@@ -75,20 +75,20 @@ Remove all per-intent handler functions and switch statements from chat.tsx. The
 
 ### Acceptance criteria
 
-- [ ] All 14 existing intents (excluding GENERAL) are defined in the intent registry
-- [ ] All old inline form components are deleted
-- [ ] Barrel exports updated — only ChatBubble, ChatHeader, ChatInput, and the new GenericInlineForm exported
-- [ ] Multi-step mutation works for WITHDRAW_SAVINGS (createExpense then createIncome, bail on first failure)
-- [ ] Update intents correctly resolve entity IDs via context lookups (fixedExpenses.find, debts.find, savingsGoals.find)
-- [ ] UPDATE_PROFILE correctly merges with existing profile data
-- [ ] chat.tsx reduced significantly — no per-intent handlers or switch statements remain
-- [ ] All intents work end-to-end with no regressions
-- [ ] No lint errors (`pnpm run lint`)
-- [ ] No type errors (`pnpm run typecheck`)
+- [x] All 14 existing intents (excluding GENERAL) are defined in the intent registry
+- [x] All old inline form components are deleted
+- [x] Barrel exports updated — only ChatBubble, ChatHeader, ChatInput, and the new GenericInlineForm exported
+- [x] Multi-step mutation works for WITHDRAW_SAVINGS (createExpense then createIncome, bail on first failure)
+- [x] Update intents correctly resolve entity IDs via context lookups (fixedExpenses.find, debts.find, savingsGoals.find)
+- [x] UPDATE_PROFILE correctly merges with existing profile data
+- [x] chat.tsx reduced significantly — no per-intent handlers or switch statements remain
+- [x] All intents work end-to-end with no regressions
+- [x] No lint errors (`pnpm run lint`)
+- [x] No type errors (`pnpm run typecheck`)
 
 ---
 
-## Phase 3: Message Flow — Single Message Per Action
+## Phase 3: Message Flow — Single Message Per Action ✅
 
 **User stories**: 9, 10, 15
 
@@ -107,17 +107,17 @@ Update the generic confirm handler and cancel handler to implement this flow.
 
 ### Acceptance criteria
 
-- [ ] Only one assistant message appears per action (not two)
-- [ ] Success messages rotate through a pool of 10-12 variants per intent category
-- [ ] Failure messages rotate through a pool of variants
-- [ ] Cancel shows a cancellation message (not a success message)
-- [ ] Message pool strings live in constants (following existing pattern in chat.strings or chat.ts)
-- [ ] No lint errors (`pnpm run lint`)
-- [ ] No type errors (`pnpm run typecheck`)
+- [x] Only one assistant message appears per action (not two)
+- [x] Success messages rotate through a pool of 10-12 variants per intent category
+- [x] Failure messages rotate through a pool of variants
+- [x] Cancel shows a cancellation message (not a success message)
+- [x] Message pool strings live in constants (following existing pattern in chat.strings or chat.ts)
+- [x] No lint errors (`pnpm run lint`)
+- [x] No type errors (`pnpm run typecheck`)
 
 ---
 
-## Phase 4: Prompt Optimization
+## Phase 4: Prompt Optimization ✅
 
 **User stories**: 14, 19
 
@@ -143,17 +143,17 @@ Verify AI response quality is maintained after prompt changes — the AI should 
 
 ### Acceptance criteria
 
-- [ ] All context data uses terse pipe-delimited format (no JSON dumps)
-- [ ] One example JSON response per intent in the prompt
-- [ ] Profile data in compact single-line format
-- [ ] AI correctly classifies intents and extracts data with the optimized prompt (manual verification)
-- [ ] All existing intents work end-to-end with the new prompt format
-- [ ] No lint errors (`pnpm run lint`)
-- [ ] No type errors (`pnpm run typecheck`)
+- [x] All context data uses terse pipe-delimited format (no JSON dumps)
+- [x] One example JSON response per intent in the prompt
+- [x] Profile data in compact single-line format
+- [x] AI correctly classifies intents and extracts data with the optimized prompt (manual verification)
+- [x] All existing intents work end-to-end with the new prompt format
+- [x] No lint errors (`pnpm run lint`)
+- [x] No type errors (`pnpm run typecheck`)
 
 ---
 
-## Phase 5: Conversational Extraction Rule + Quoted Messages
+## Phase 5: Conversational Extraction Rule + Quoted Messages ✅
 
 **User stories**: 12, 13
 
@@ -171,13 +171,13 @@ Update the `sendChatMessage` function signature or the chat screen to pass the q
 
 ### Acceptance criteria
 
-- [ ] Three-tier extraction rule is in the system prompt, replacing the strict single-message rule
-- [ ] Quoted message content is passed to the AI when the user replies to a specific message
-- [ ] Multi-turn flows work: user gives partial info -> AI asks for more -> user provides it -> AI combines everything into the correct intent
-- [ ] Quoting an old message gives the AI context from that specific message
-- [ ] New requests (no quote, no follow-up) still extract only from current message (no hallucinations from old history)
-- [ ] No lint errors (`pnpm run lint`)
-- [ ] No type errors (`pnpm run typecheck`)
+- [x] Three-tier extraction rule is in the system prompt, replacing the strict single-message rule
+- [x] Quoted message content is passed to the AI when the user replies to a specific message
+- [x] Multi-turn flows work: user gives partial info -> AI asks for more -> user provides it -> AI combines everything into the correct intent
+- [x] Quoting an old message gives the AI context from that specific message
+- [x] New requests (no quote, no follow-up) still extract only from current message (no hallucinations from old history)
+- [x] No lint errors (`pnpm run lint`)
+- [x] No type errors (`pnpm run typecheck`)
 
 ---
 
