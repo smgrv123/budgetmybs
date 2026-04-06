@@ -1,4 +1,5 @@
 import type { ChatMessage } from '@/db/schema-types';
+import type { ChatResponse } from '@/src/types';
 import { ChatIntentEnum, ChatRoleEnum, DebtPayoffPreferenceEnum, SavingsLabels } from '@/db/types';
 import { ChatBubble, ChatHeader, ChatInput, GenericInlineForm } from '@/src/components/chat';
 import { BButton, BIcon, BSafeAreaView, BText, BView } from '@/src/components/ui';
@@ -204,9 +205,10 @@ export default function ChatScreen() {
         last4: c.last4,
       })),
       savingsSources: [...goalSources, ...adHocSources],
+      quotedMessageContent: quotedMessage?.content ?? undefined,
     };
 
-    let response: Awaited<ReturnType<typeof sendChatMessage>> | null = null;
+    let response: ChatResponse | null = null;
     try {
       response = await sendChatMessage(text, context);
     } catch (err) {
