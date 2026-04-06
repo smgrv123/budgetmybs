@@ -87,6 +87,35 @@ export type ChatDeleteData = {
   existingName: string; // name of the entity to delete — always required
 };
 
+export type ChatUpdateExpenseData = {
+  expenseId: string;
+  amount?: number;
+  categoryId?: string;
+  description?: string;
+  creditCard?: string | null;
+  date?: string;
+};
+
+export type ChatDeleteExpenseData = {
+  expenseId: string;
+  description?: string;
+  amount?: number;
+};
+
+export type ChatUpdateIncomeData = {
+  incomeId: string;
+  amount?: number;
+  type?: IncomeType;
+  description?: string;
+  date?: string;
+};
+
+export type ChatDeleteIncomeData = {
+  incomeId: string;
+  type?: string;
+  amount?: number;
+};
+
 // ============================================
 // DISCRIMINATED UNION
 // Keyed on `intent` using ChatIntentEnum values so consumers can
@@ -108,4 +137,8 @@ export type ChatResponse =
   | { intent: typeof ChatIntentEnum.ADD_INCOME; message: string; data: ChatIncomeData }
   | { intent: typeof ChatIntentEnum.LOG_SAVINGS; message: string; data: ChatSavingsData }
   | { intent: typeof ChatIntentEnum.WITHDRAW_SAVINGS; message: string; data: ChatWithdrawalData }
+  | { intent: typeof ChatIntentEnum.UPDATE_EXPENSE; message: string; data: ChatUpdateExpenseData }
+  | { intent: typeof ChatIntentEnum.DELETE_EXPENSE; message: string; data: ChatDeleteExpenseData }
+  | { intent: typeof ChatIntentEnum.UPDATE_INCOME; message: string; data: ChatUpdateIncomeData }
+  | { intent: typeof ChatIntentEnum.DELETE_INCOME; message: string; data: ChatDeleteIncomeData }
   | { intent: typeof ChatIntentEnum.GENERAL; message: string; data?: undefined };

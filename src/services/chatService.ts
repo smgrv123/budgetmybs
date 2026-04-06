@@ -12,6 +12,15 @@ import { z } from 'zod';
 // CONTEXT TYPES
 // ============================================
 
+/** Minimal expense shape used by the AI context (matches getExpensesWithCategory return). */
+export type ExpenseForChat = {
+  id: string;
+  amount: number;
+  description: string | null;
+  date: string;
+  category: { id: string | null; name: string | null } | null;
+};
+
 export type CreditCardForChat = {
   nickname: string;
   bank: string;
@@ -34,6 +43,7 @@ export type ChatContext = {
   categoryNames: string[];
   creditCards: CreditCardForChat[];
   incomeEntries?: Income[];
+  expenses?: ExpenseForChat[];
   savingsSources?: SavingsSourceForChat[]; // goal + ad-hoc sources with available balances
   quotedMessageContent?: string; // content of the message the user is replying to
 };
@@ -43,7 +53,7 @@ export type ChatContext = {
 // ============================================
 
 const buildSystemPrompt = (ctx: ChatContext): string => {
-  const { profile, fixedExpenses, debts, savingsGoals, categoryNames, creditCards, incomeEntries, savingsSources } =
+  const { profile, fixedExpenses, debts, savingsGoals, categoryNames, creditCards, incomeEntries, expenses, savingsSources } =
     ctx;
 
   return `You are FinAI, a friendly Indian personal finance assistant for a budgeting app.
@@ -151,6 +161,25 @@ CAPABILITIES — what you CAN do:
     - Consider inflation (~6% for India) for long-term planning
     - Proactively suggest follow-ups
 
+16. UPDATE EXPENSE
+    Triggered by: "update that coffee expense", "change the 500 rupee expense to 600", "edit my last food expense"
+    - Use expenseId from the Expenses list below to identify the target
+    - Only include fields the user explicitly mentions changing
+    - If multiple expenses match, respond as GENERAL listing candidates
+
+17. DELETE EXPENSE
+    Triggered by: "delete that coffee expense", "remove the 500 rupee food expense"
+    - Use expenseId from the Expenses list below
+    - If multiple expenses match, respond as GENERAL listing candidates
+
+18. UPDATE INCOME
+    Triggered by: "update my bonus to 60000", "change the freelance income description"
+    - Use incomeId from the Income Entries list below
+
+19. DELETE INCOME
+    Triggered by: "delete that bonus entry", "remove the freelance income"
+    - Use incomeId from the Income Entries list below
+
 ══════════════════════════════════
 RESPONSE FORMAT — ALWAYS valid JSON:
 ══════════════════════════════════
@@ -197,6 +226,18 @@ Log savings deposit:
 Withdraw savings:
 { "intent": "withdraw_savings", "data": { "amount": 2000, "sourceId": "abc-123", "sourceLabel": "Emergency Fund", "availableBalance": 15000, "savingsGoalId": "abc-123", "savingsType": "emergency_fund" }, "message": "Got it! Withdrawing ₹2,000 from Emergency Fund. Please confirm below." }
 
+Update expense:
+{ "intent": "update_expense", "data": { "expenseId": "expense-uuid", "amount": 600 }, "message": "Got it! Updating that expense to ₹600. Please confirm below." }
+
+Delete expense:
+{ "intent": "delete_expense", "data": { "expenseId": "expense-uuid", "description": "coffee at Starbucks", "amount": 500 }, "message": "Are you sure you want to delete this expense? This cannot be undone." }
+
+Update income:
+{ "intent": "update_income", "data": { "incomeId": "income-uuid", "amount": 60000 }, "message": "Got it! Updating that bonus to ₹60,000. Please confirm below." }
+
+Delete income:
+{ "intent": "delete_income", "data": { "incomeId": "income-uuid", "type": "bonus", "amount": 50000 }, "message": "Are you sure you want to delete this income entry? This cannot be undone." }
+
 General / advice:
 { "intent": "general", "message": "..." }
 
@@ -209,7 +250,8 @@ CURRENT USER CONTEXT:
 - Savings Goals: ${savingsGoals.length > 0 ? savingsGoals.map((g) => `${g.name} | ${g.id} | ${g.type}`).join('\n  ') : 'None'}
 - Expense Categories: ${categoryNames.join(', ')}
 - Credit Cards: ${creditCards.length > 0 ? creditCards.map((c) => `${c.nickname} | ${c.bank} | ${c.provider}`).join('\n  ') : 'None'}
-- This Month's Income: ${incomeEntries && incomeEntries.length > 0 ? incomeEntries.map((e) => `${e.id} | ${e.type} | ${e.amount}`).join('\n  ') : 'None'}`;
+- This Month's Income: ${incomeEntries && incomeEntries.length > 0 ? incomeEntries.map((e) => `${e.id} | ${e.type} | ${e.amount}`).join('\n  ') : 'None'}
+- This Month's Expenses: ${expenses && expenses.length > 0 ? expenses.map((e) => `${e.id} | ${e.amount} | ${e.category?.name ?? ''} | ${e.description ?? ''} | ${e.date}`).join('\n  ') : 'None'}`;
 };
 
 // ============================================

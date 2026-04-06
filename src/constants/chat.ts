@@ -1,5 +1,6 @@
 /** Chat-related UI string constants */
 export const CHAT_STRINGS = {
+  LOADING_OLDER_MESSAGES: 'Loading older messages...',
   HEADER_TITLE: 'FinAI Assistant',
   HEADER_STATUS: '● Online',
   INPUT_PLACEHOLDER: 'Type a message...',

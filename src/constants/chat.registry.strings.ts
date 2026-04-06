@@ -108,6 +108,42 @@ export const CHAT_REGISTRY_STRINGS = {
   LOG_SAVINGS_DESCRIPTION_PLACEHOLDER: 'e.g. Monthly SIP',
   LOG_SAVINGS_SUBMIT: 'Log Deposit',
 
+  // UPDATE_EXPENSE intent
+  UPDATE_EXPENSE_TITLE: 'Update Expense',
+  UPDATE_EXPENSE_ID_LABEL: 'Expense ID',
+  UPDATE_EXPENSE_AMOUNT_LABEL: 'New Amount (₹)',
+  UPDATE_EXPENSE_AMOUNT_PLACEHOLDER: '0',
+  UPDATE_EXPENSE_CATEGORY_LABEL: 'Category',
+  UPDATE_EXPENSE_CATEGORY_MODAL_TITLE: 'Select Category',
+  UPDATE_EXPENSE_DESCRIPTION_LABEL: 'Description',
+  UPDATE_EXPENSE_DESCRIPTION_PLACEHOLDER: 'e.g. coffee at Starbucks',
+  UPDATE_EXPENSE_DATE_LABEL: 'Date',
+  UPDATE_EXPENSE_SUBMIT: 'Update Expense',
+
+  // DELETE_EXPENSE intent
+  DELETE_EXPENSE_TITLE: 'Delete Expense',
+  DELETE_EXPENSE_DESCRIPTION_LABEL: 'Description',
+  DELETE_EXPENSE_AMOUNT_LABEL: 'Amount',
+  DELETE_EXPENSE_SUBMIT: 'Delete',
+
+  // UPDATE_INCOME intent
+  UPDATE_INCOME_TITLE: 'Update Income',
+  UPDATE_INCOME_ID_LABEL: 'Income ID',
+  UPDATE_INCOME_AMOUNT_LABEL: 'New Amount (₹)',
+  UPDATE_INCOME_AMOUNT_PLACEHOLDER: '0',
+  UPDATE_INCOME_TYPE_LABEL: 'Income Type',
+  UPDATE_INCOME_TYPE_MODAL_TITLE: 'Select Income Type',
+  UPDATE_INCOME_DESCRIPTION_LABEL: 'Description',
+  UPDATE_INCOME_DESCRIPTION_PLACEHOLDER: 'e.g. Year-end bonus',
+  UPDATE_INCOME_DATE_LABEL: 'Date',
+  UPDATE_INCOME_SUBMIT: 'Update Income',
+
+  // DELETE_INCOME intent
+  DELETE_INCOME_TITLE: 'Delete Income',
+  DELETE_INCOME_TYPE_LABEL: 'Income Type',
+  DELETE_INCOME_AMOUNT_LABEL: 'Amount',
+  DELETE_INCOME_SUBMIT: 'Delete',
+
   // WITHDRAW_SAVINGS intent
   WITHDRAW_SAVINGS_TITLE: 'Confirm Withdrawal',
   WITHDRAW_SAVINGS_SOURCE_LABEL: 'Withdraw From',
@@ -177,6 +213,22 @@ export const CHAT_REGISTRY_STRINGS = {
   WITHDRAW_SAVINGS_FAILURE: "Couldn't process the withdrawal. Please try again.",
   WITHDRAW_SAVINGS_CANCELLED: 'Withdrawal cancelled.',
 
+  UPDATE_EXPENSE_SUCCESS: 'Expense updated successfully.',
+  UPDATE_EXPENSE_FAILURE: "Couldn't update the expense. Please try again.",
+  UPDATE_EXPENSE_CANCELLED: 'Expense update cancelled.',
+
+  DELETE_EXPENSE_SUCCESS: 'Expense deleted successfully.',
+  DELETE_EXPENSE_FAILURE: "Couldn't delete the expense. Please try again.",
+  DELETE_EXPENSE_CANCELLED: 'Expense deletion cancelled.',
+
+  UPDATE_INCOME_SUCCESS: 'Income entry updated successfully.',
+  UPDATE_INCOME_FAILURE: "Couldn't update the income entry. Please try again.",
+  UPDATE_INCOME_CANCELLED: 'Income update cancelled.',
+
+  DELETE_INCOME_SUCCESS: 'Income entry deleted successfully.',
+  DELETE_INCOME_FAILURE: "Couldn't delete the income entry. Please try again.",
+  DELETE_INCOME_CANCELLED: 'Income deletion cancelled.',
+
   // Validation errors
 
   VALIDATION_AMOUNT_REQUIRED: 'Please enter a valid amount greater than 0.',
@@ -205,7 +257,11 @@ export type IntentCategory = 'expense' | 'income' | 'savings' | 'debt' | 'fixed_
 
 export const INTENT_CATEGORY_MAP: Record<string, IntentCategory> = {
   add_expense: 'expense',
+  update_expense: 'expense',
+  delete_expense: 'expense',
   add_income: 'income',
+  update_income: 'income',
+  delete_income: 'income',
   log_savings: 'savings',
   withdraw_savings: 'savings',
   add_monthly_savings: 'savings',

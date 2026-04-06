@@ -621,12 +621,19 @@ const updateFixedExpenseEntry: IntentRegistryEntry = {
     })
   ),
 
-  getInitialValues: (actionData, _context) => ({
-    [FixedExpenseRegistryFieldKey.EXISTING_NAME]:
-      typeof actionData['existingName'] === 'string' ? actionData['existingName'] : '',
-    [FixedExpenseRegistryFieldKey.NAME]: typeof actionData['name'] === 'string' ? actionData['name'] : '',
-    [FixedExpenseRegistryFieldKey.AMOUNT]: String(actionData['amount'] ?? ''),
-  }),
+  getInitialValues: (actionData, context) => {
+    const existingName = typeof actionData['existingName'] === 'string' ? actionData['existingName'] : '';
+    const existing = context.fixedExpenses.find((fe) => fe.name === existingName);
+    return {
+      [FixedExpenseRegistryFieldKey.EXISTING_NAME]: existingName,
+      [FixedExpenseRegistryFieldKey.NAME]: typeof actionData['name'] === 'string' ? actionData['name'] : '',
+      [FixedExpenseRegistryFieldKey.AMOUNT]: String(
+        actionData['amount'] !== undefined && actionData['amount'] !== null
+          ? actionData['amount']
+          : (existing?.amount ?? '')
+      ),
+    };
+  },
 };
 
 // ============================================
@@ -836,15 +843,20 @@ const updateDebtEntry: IntentRegistryEntry = {
 
   validate: validateWithSchema(z.object({}).loose()),
 
-  getInitialValues: (actionData, _context) => ({
-    [DebtRegistryFieldKey.EXISTING_NAME]:
-      typeof actionData['existingName'] === 'string' ? actionData['existingName'] : '',
-    [DebtRegistryFieldKey.NAME]: typeof actionData['name'] === 'string' ? actionData['name'] : '',
-    [DebtRegistryFieldKey.PRINCIPAL]: String(actionData['principal'] ?? ''),
-    [DebtRegistryFieldKey.INTEREST_RATE]: String(actionData['interestRate'] ?? ''),
-    [DebtRegistryFieldKey.EMI_AMOUNT]: String(actionData['emiAmount'] ?? ''),
-    [DebtRegistryFieldKey.TENURE_MONTHS]: String(actionData['tenureMonths'] ?? ''),
-  }),
+  getInitialValues: (actionData, context) => {
+    const existingName = typeof actionData['existingName'] === 'string' ? actionData['existingName'] : '';
+    const existing = context.debts.find((d) => d.name === existingName);
+    const val = (key: string, fallback: unknown) =>
+      actionData[key] !== undefined && actionData[key] !== null ? String(actionData[key]) : String(fallback ?? '');
+    return {
+      [DebtRegistryFieldKey.EXISTING_NAME]: existingName,
+      [DebtRegistryFieldKey.NAME]: typeof actionData['name'] === 'string' ? actionData['name'] : '',
+      [DebtRegistryFieldKey.PRINCIPAL]: val('principal', existing?.principal),
+      [DebtRegistryFieldKey.INTEREST_RATE]: val('interestRate', existing?.interestRate),
+      [DebtRegistryFieldKey.EMI_AMOUNT]: val('emiAmount', existing?.emiAmount),
+      [DebtRegistryFieldKey.TENURE_MONTHS]: val('tenureMonths', existing?.tenureMonths),
+    };
+  },
 };
 
 const deleteDebtEntry: IntentRegistryEntry = {
@@ -1027,12 +1039,19 @@ const updateMonthlySavingsEntry: IntentRegistryEntry = {
 
   validate: validateWithSchema(z.object({}).loose()),
 
-  getInitialValues: (actionData, _context) => ({
-    [SavingsGoalRegistryFieldKey.EXISTING_NAME]:
-      typeof actionData['existingName'] === 'string' ? actionData['existingName'] : '',
-    [SavingsGoalRegistryFieldKey.NAME]: typeof actionData['name'] === 'string' ? actionData['name'] : '',
-    [SavingsGoalRegistryFieldKey.TARGET_AMOUNT]: String(actionData['targetAmount'] ?? ''),
-  }),
+  getInitialValues: (actionData, context) => {
+    const existingName = typeof actionData['existingName'] === 'string' ? actionData['existingName'] : '';
+    const existing = context.savingsGoals.find((g) => g.name === existingName);
+    return {
+      [SavingsGoalRegistryFieldKey.EXISTING_NAME]: existingName,
+      [SavingsGoalRegistryFieldKey.NAME]: typeof actionData['name'] === 'string' ? actionData['name'] : '',
+      [SavingsGoalRegistryFieldKey.TARGET_AMOUNT]: String(
+        actionData['targetAmount'] !== undefined && actionData['targetAmount'] !== null
+          ? actionData['targetAmount']
+          : (existing?.targetAmount ?? '')
+      ),
+    };
+  },
 };
 
 const deleteMonthlySavingsEntry: IntentRegistryEntry = {
@@ -1334,6 +1353,371 @@ const withdrawSavingsEntry: IntentRegistryEntry = {
 };
 
 // ============================================
+// UPDATE_EXPENSE / DELETE_EXPENSE
+// ============================================
+
+export const UpdateExpenseFieldKey = {
+  EXPENSE_ID: '_expenseId',
+  AMOUNT: 'amount',
+  CATEGORY_ID: 'categoryId',
+  DESCRIPTION: 'description',
+  DATE: 'date',
+} as const;
+
+export const DeleteExpenseFieldKey = {
+  EXPENSE_ID: '_expenseId',
+  DESCRIPTION: 'description',
+  AMOUNT: 'amount',
+} as const;
+
+const updateExpenseEntry: IntentRegistryEntry = {
+  intent: ChatIntentEnum.UPDATE_EXPENSE,
+  title: CHAT_REGISTRY_STRINGS.UPDATE_EXPENSE_TITLE,
+  formType: 'default',
+  buttonVariant: ButtonVariant.PRIMARY,
+  submitLabel: CHAT_REGISTRY_STRINGS.UPDATE_EXPENSE_SUBMIT,
+
+  fields: [
+    {
+      key: UpdateExpenseFieldKey.AMOUNT,
+      type: 'number',
+      label: CHAT_REGISTRY_STRINGS.UPDATE_EXPENSE_AMOUNT_LABEL,
+      placeholder: CHAT_REGISTRY_STRINGS.UPDATE_EXPENSE_AMOUNT_PLACEHOLDER,
+      required: false,
+    },
+    {
+      key: UpdateExpenseFieldKey.CATEGORY_ID,
+      type: 'picker',
+      label: CHAT_REGISTRY_STRINGS.UPDATE_EXPENSE_CATEGORY_LABEL,
+      optionsSource: 'categories',
+      modalTitle: CHAT_REGISTRY_STRINGS.UPDATE_EXPENSE_CATEGORY_MODAL_TITLE,
+      required: false,
+    },
+    {
+      key: UpdateExpenseFieldKey.DESCRIPTION,
+      type: 'text',
+      label: CHAT_REGISTRY_STRINGS.UPDATE_EXPENSE_DESCRIPTION_LABEL,
+      placeholder: CHAT_REGISTRY_STRINGS.UPDATE_EXPENSE_DESCRIPTION_PLACEHOLDER,
+      required: false,
+    },
+    {
+      key: UpdateExpenseFieldKey.DATE,
+      type: 'date',
+      label: CHAT_REGISTRY_STRINGS.UPDATE_EXPENSE_DATE_LABEL,
+      required: false,
+    },
+  ],
+
+  mutations: [
+    {
+      key: 'updateExpense',
+      transformData: (formValues, _context) => {
+        const id = formValues[UpdateExpenseFieldKey.EXPENSE_ID] ?? '';
+        const data: Record<string, unknown> = {};
+        if (formValues[UpdateExpenseFieldKey.AMOUNT]) {
+          const v = parseFloat(formValues[UpdateExpenseFieldKey.AMOUNT]);
+          if (!isNaN(v) && v > 0) data['amount'] = v;
+        }
+        if (formValues[UpdateExpenseFieldKey.CATEGORY_ID]) {
+          data['categoryId'] = formValues[UpdateExpenseFieldKey.CATEGORY_ID];
+        }
+        if (formValues[UpdateExpenseFieldKey.DESCRIPTION]?.trim()) {
+          data['description'] = formValues[UpdateExpenseFieldKey.DESCRIPTION].trim();
+        }
+        if (formValues[UpdateExpenseFieldKey.DATE] && isISODateString(formValues[UpdateExpenseFieldKey.DATE])) {
+          data['date'] = formValues[UpdateExpenseFieldKey.DATE];
+        }
+        return { id, data };
+      },
+      errorLog: 'Failed to update expense:',
+    },
+  ],
+
+  messages: {
+    success: CHAT_REGISTRY_STRINGS.UPDATE_EXPENSE_SUCCESS,
+    failure: CHAT_REGISTRY_STRINGS.UPDATE_EXPENSE_FAILURE,
+    cancelled: CHAT_REGISTRY_STRINGS.UPDATE_EXPENSE_CANCELLED,
+  },
+
+  invalidations: [EXPENSES_QUERY_KEY],
+
+  validate: (formValues) => {
+    const filledFields = [
+      UpdateExpenseFieldKey.AMOUNT,
+      UpdateExpenseFieldKey.CATEGORY_ID,
+      UpdateExpenseFieldKey.DESCRIPTION,
+      UpdateExpenseFieldKey.DATE,
+    ].filter((k) => formValues[k]?.trim());
+    if (filledFields.length === 0) {
+      return { [UpdateExpenseFieldKey.AMOUNT]: 'Please update at least one field.' };
+    }
+    return null;
+  },
+
+  getInitialValues: (actionData, context) => {
+    const expenseId = typeof actionData['expenseId'] === 'string' ? actionData['expenseId'] : '';
+    const existing = context.expenses?.find((e) => e.id === expenseId);
+
+    const rawDate = typeof actionData['date'] === 'string'
+      ? actionData['date']
+      : (existing?.date ?? '');
+
+    return {
+      [UpdateExpenseFieldKey.EXPENSE_ID]: expenseId,
+      [UpdateExpenseFieldKey.AMOUNT]: String(
+        actionData['amount'] !== undefined && actionData['amount'] !== null
+          ? actionData['amount']
+          : (existing?.amount ?? '')
+      ),
+      [UpdateExpenseFieldKey.CATEGORY_ID]:
+        typeof actionData['categoryId'] === 'string' && actionData['categoryId']
+          ? actionData['categoryId']
+          : (existing?.category?.id ?? ''),
+      [UpdateExpenseFieldKey.DESCRIPTION]:
+        typeof actionData['description'] === 'string' && actionData['description']
+          ? actionData['description']
+          : (existing?.description ?? ''),
+      [UpdateExpenseFieldKey.DATE]: isISODateString(rawDate) ? rawDate : '',
+    };
+  },
+};
+
+const deleteExpenseEntry: IntentRegistryEntry = {
+  intent: ChatIntentEnum.DELETE_EXPENSE,
+  title: CHAT_REGISTRY_STRINGS.DELETE_EXPENSE_TITLE,
+  formType: 'deleteConfirm',
+  buttonVariant: ButtonVariant.DANGER,
+  submitLabel: CHAT_REGISTRY_STRINGS.DELETE_EXPENSE_SUBMIT,
+
+  fields: [
+    {
+      key: DeleteExpenseFieldKey.DESCRIPTION,
+      type: 'static',
+      label: CHAT_REGISTRY_STRINGS.DELETE_EXPENSE_DESCRIPTION_LABEL,
+      required: false,
+    },
+    {
+      key: DeleteExpenseFieldKey.AMOUNT,
+      type: 'static',
+      label: CHAT_REGISTRY_STRINGS.DELETE_EXPENSE_AMOUNT_LABEL,
+      required: false,
+    },
+  ],
+
+  mutations: [
+    {
+      key: 'removeExpense',
+      transformData: (formValues, _context) => formValues[DeleteExpenseFieldKey.EXPENSE_ID] ?? '',
+      errorLog: 'Failed to delete expense:',
+    },
+  ],
+
+  messages: {
+    success: CHAT_REGISTRY_STRINGS.DELETE_EXPENSE_SUCCESS,
+    failure: CHAT_REGISTRY_STRINGS.DELETE_EXPENSE_FAILURE,
+    cancelled: CHAT_REGISTRY_STRINGS.DELETE_EXPENSE_CANCELLED,
+  },
+
+  invalidations: [EXPENSES_QUERY_KEY],
+
+  validate: (formValues) => {
+    if (!formValues[DeleteExpenseFieldKey.EXPENSE_ID]) {
+      return { [DeleteExpenseFieldKey.EXPENSE_ID]: 'Expense ID is required.' };
+    }
+    return null;
+  },
+
+  getInitialValues: (actionData, _context) => ({
+    [DeleteExpenseFieldKey.EXPENSE_ID]: typeof actionData['expenseId'] === 'string' ? actionData['expenseId'] : '',
+    [DeleteExpenseFieldKey.DESCRIPTION]:
+      typeof actionData['description'] === 'string' ? actionData['description'] : '',
+    [DeleteExpenseFieldKey.AMOUNT]: String(actionData['amount'] ?? ''),
+  }),
+};
+
+// ============================================
+// UPDATE_INCOME / DELETE_INCOME
+// ============================================
+
+export const UpdateIncomeFieldKey = {
+  INCOME_ID: '_incomeId',
+  AMOUNT: 'amount',
+  TYPE: 'type',
+  DESCRIPTION: 'description',
+  DATE: 'date',
+} as const;
+
+export const DeleteIncomeFieldKey = {
+  INCOME_ID: '_incomeId',
+  TYPE: 'type',
+  AMOUNT: 'amount',
+} as const;
+
+const updateIncomeEntry: IntentRegistryEntry = {
+  intent: ChatIntentEnum.UPDATE_INCOME,
+  title: CHAT_REGISTRY_STRINGS.UPDATE_INCOME_TITLE,
+  formType: 'default',
+  buttonVariant: ButtonVariant.PRIMARY,
+  submitLabel: CHAT_REGISTRY_STRINGS.UPDATE_INCOME_SUBMIT,
+
+  fields: [
+    {
+      key: UpdateIncomeFieldKey.AMOUNT,
+      type: 'number',
+      label: CHAT_REGISTRY_STRINGS.UPDATE_INCOME_AMOUNT_LABEL,
+      placeholder: CHAT_REGISTRY_STRINGS.UPDATE_INCOME_AMOUNT_PLACEHOLDER,
+      required: false,
+    },
+    {
+      key: UpdateIncomeFieldKey.TYPE,
+      type: 'picker',
+      label: CHAT_REGISTRY_STRINGS.UPDATE_INCOME_TYPE_LABEL,
+      optionsSource: 'incomeTypes',
+      modalTitle: CHAT_REGISTRY_STRINGS.UPDATE_INCOME_TYPE_MODAL_TITLE,
+      required: false,
+    },
+    {
+      key: UpdateIncomeFieldKey.DESCRIPTION,
+      type: 'text',
+      label: CHAT_REGISTRY_STRINGS.UPDATE_INCOME_DESCRIPTION_LABEL,
+      placeholder: CHAT_REGISTRY_STRINGS.UPDATE_INCOME_DESCRIPTION_PLACEHOLDER,
+      required: false,
+    },
+    {
+      key: UpdateIncomeFieldKey.DATE,
+      type: 'date',
+      label: CHAT_REGISTRY_STRINGS.UPDATE_INCOME_DATE_LABEL,
+      required: false,
+    },
+  ],
+
+  mutations: [
+    {
+      key: 'updateIncome',
+      transformData: (formValues, _context) => {
+        const id = formValues[UpdateIncomeFieldKey.INCOME_ID] ?? '';
+        const data: Record<string, unknown> = {};
+        if (formValues[UpdateIncomeFieldKey.AMOUNT]) {
+          const v = parseFloat(formValues[UpdateIncomeFieldKey.AMOUNT]);
+          if (!isNaN(v) && v > 0) data['amount'] = v;
+        }
+        if (formValues[UpdateIncomeFieldKey.TYPE]) {
+          data['type'] = formValues[UpdateIncomeFieldKey.TYPE];
+        }
+        if (formValues[UpdateIncomeFieldKey.DESCRIPTION]?.trim()) {
+          data['description'] = formValues[UpdateIncomeFieldKey.DESCRIPTION].trim();
+        }
+        if (formValues[UpdateIncomeFieldKey.DATE] && isISODateString(formValues[UpdateIncomeFieldKey.DATE])) {
+          data['date'] = formValues[UpdateIncomeFieldKey.DATE];
+        }
+        return { id, data };
+      },
+      errorLog: 'Failed to update income entry:',
+    },
+  ],
+
+  messages: {
+    success: CHAT_REGISTRY_STRINGS.UPDATE_INCOME_SUCCESS,
+    failure: CHAT_REGISTRY_STRINGS.UPDATE_INCOME_FAILURE,
+    cancelled: CHAT_REGISTRY_STRINGS.UPDATE_INCOME_CANCELLED,
+  },
+
+  invalidations: [INCOME_QUERY_KEY, MONTHLY_INCOME_SUM_QUERY_KEY],
+
+  validate: (formValues) => {
+    const filledFields = [
+      UpdateIncomeFieldKey.AMOUNT,
+      UpdateIncomeFieldKey.TYPE,
+      UpdateIncomeFieldKey.DESCRIPTION,
+      UpdateIncomeFieldKey.DATE,
+    ].filter((k) => formValues[k]?.trim());
+    if (filledFields.length === 0) {
+      return { [UpdateIncomeFieldKey.AMOUNT]: 'Please update at least one field.' };
+    }
+    return null;
+  },
+
+  getInitialValues: (actionData, context) => {
+    const incomeId = typeof actionData['incomeId'] === 'string' ? actionData['incomeId'] : '';
+    const existing = context.incomeEntries?.find((e) => e.id === incomeId);
+
+    const rawType = typeof actionData['type'] === 'string' ? actionData['type'] : (existing?.type ?? '');
+    const resolvedType = (USER_INCOME_TYPES as readonly string[]).includes(rawType) ? rawType : '';
+
+    const rawDate = typeof actionData['date'] === 'string'
+      ? actionData['date']
+      : (existing?.date ?? '');
+
+    return {
+      [UpdateIncomeFieldKey.INCOME_ID]: incomeId,
+      [UpdateIncomeFieldKey.AMOUNT]: String(
+        actionData['amount'] !== undefined && actionData['amount'] !== null
+          ? actionData['amount']
+          : (existing?.amount ?? '')
+      ),
+      [UpdateIncomeFieldKey.TYPE]: resolvedType,
+      [UpdateIncomeFieldKey.DESCRIPTION]:
+        typeof actionData['description'] === 'string' && actionData['description']
+          ? actionData['description']
+          : (existing?.description ?? ''),
+      [UpdateIncomeFieldKey.DATE]: isISODateString(rawDate) ? rawDate : '',
+    };
+  },
+};
+
+const deleteIncomeEntry: IntentRegistryEntry = {
+  intent: ChatIntentEnum.DELETE_INCOME,
+  title: CHAT_REGISTRY_STRINGS.DELETE_INCOME_TITLE,
+  formType: 'deleteConfirm',
+  buttonVariant: ButtonVariant.DANGER,
+  submitLabel: CHAT_REGISTRY_STRINGS.DELETE_INCOME_SUBMIT,
+
+  fields: [
+    {
+      key: DeleteIncomeFieldKey.TYPE,
+      type: 'static',
+      label: CHAT_REGISTRY_STRINGS.DELETE_INCOME_TYPE_LABEL,
+      required: false,
+    },
+    {
+      key: DeleteIncomeFieldKey.AMOUNT,
+      type: 'static',
+      label: CHAT_REGISTRY_STRINGS.DELETE_INCOME_AMOUNT_LABEL,
+      required: false,
+    },
+  ],
+
+  mutations: [
+    {
+      key: 'removeIncome',
+      transformData: (formValues, _context) => formValues[DeleteIncomeFieldKey.INCOME_ID] ?? '',
+      errorLog: 'Failed to delete income entry:',
+    },
+  ],
+
+  messages: {
+    success: CHAT_REGISTRY_STRINGS.DELETE_INCOME_SUCCESS,
+    failure: CHAT_REGISTRY_STRINGS.DELETE_INCOME_FAILURE,
+    cancelled: CHAT_REGISTRY_STRINGS.DELETE_INCOME_CANCELLED,
+  },
+
+  invalidations: [INCOME_QUERY_KEY, MONTHLY_INCOME_SUM_QUERY_KEY],
+
+  validate: (formValues) => {
+    if (!formValues[DeleteIncomeFieldKey.INCOME_ID]) {
+      return { [DeleteIncomeFieldKey.INCOME_ID]: 'Income ID is required.' };
+    }
+    return null;
+  },
+
+  getInitialValues: (actionData, _context) => ({
+    [DeleteIncomeFieldKey.INCOME_ID]: typeof actionData['incomeId'] === 'string' ? actionData['incomeId'] : '',
+    [DeleteIncomeFieldKey.TYPE]: typeof actionData['type'] === 'string' ? actionData['type'] : '',
+    [DeleteIncomeFieldKey.AMOUNT]: String(actionData['amount'] ?? ''),
+  }),
+};
+
+// ============================================
 // REGISTRY MAP
 // ============================================
 
@@ -1352,6 +1736,10 @@ export const INTENT_REGISTRY: Readonly<Record<string, IntentRegistryEntry>> = {
   [ChatIntentEnum.DELETE_MONTHLY_SAVINGS]: deleteMonthlySavingsEntry,
   [ChatIntentEnum.LOG_SAVINGS]: logSavingsEntry,
   [ChatIntentEnum.WITHDRAW_SAVINGS]: withdrawSavingsEntry,
+  [ChatIntentEnum.UPDATE_EXPENSE]: updateExpenseEntry,
+  [ChatIntentEnum.DELETE_EXPENSE]: deleteExpenseEntry,
+  [ChatIntentEnum.UPDATE_INCOME]: updateIncomeEntry,
+  [ChatIntentEnum.DELETE_INCOME]: deleteIncomeEntry,
 };
 
 /** The set of intent values that have been migrated to the registry. */

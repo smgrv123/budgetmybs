@@ -1,22 +1,27 @@
 import { clearChatHistory, createChatMessage, getChatMessages, replaceChatMessageContent, updateChatMessageAction } from '@/db';
 import type { CreateChatMessageInput } from '@/db/schema-types';
 import type { ChatActionStatus } from '@/db/types';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 export const CHAT_MESSAGES_QUERY_KEY = ['chat', 'messages'] as const;
 
+const PAGE_SIZE = 30;
+
 /**
  * Hook for chat message queries and mutations.
- * Follows the same pattern as useExpenses, useDebts, etc.
+ * Uses useInfiniteQuery for paginated loading of message history.
  */
-export const useChat = (limit = 50) => {
+export const useChat = () => {
   const queryClient = useQueryClient();
 
   // ── Queries ─────────────────────────────────────────────────────────────
 
-  const messagesQuery = useQuery({
-    queryKey: [...CHAT_MESSAGES_QUERY_KEY, { limit }],
-    queryFn: () => getChatMessages(limit),
+  const messagesQuery = useInfiniteQuery({
+    queryKey: CHAT_MESSAGES_QUERY_KEY,
+    queryFn: ({ pageParam = 0 }) => getChatMessages(PAGE_SIZE, pageParam),
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.length === PAGE_SIZE ? allPages.length * PAGE_SIZE : undefined,
+    initialPageParam: 0,
   });
 
   // ── Mutations ────────────────────────────────────────────────────────────
@@ -26,6 +31,9 @@ export const useChat = (limit = 50) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CHAT_MESSAGES_QUERY_KEY });
     },
+    onError: (error) => {
+      console.error('Failed to send message:', error);
+    },
   });
 
   const updateActionMutation = useMutation({
@@ -33,6 +41,9 @@ export const useChat = (limit = 50) => {
       updateChatMessageAction(id, actionStatus),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CHAT_MESSAGES_QUERY_KEY });
+    },
+    onError: (error) => {
+      console.error('Failed to update action:', error);
     },
   });
 
@@ -52,17 +63,27 @@ export const useChat = (limit = 50) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: CHAT_MESSAGES_QUERY_KEY });
     },
+    onError: (error) => {
+      console.error('Failed to clear history:', error);
+    },
   });
 
   // ── Return ───────────────────────────────────────────────────────────────
 
   return {
-    // Query state
-    messages: messagesQuery.data ?? [],
+    // Each page comes back ascending (oldest→newest). Reverse each page individually
+    // so newest message is at index 0 (required for inverted FlatList), then concat pages
+    // in order so older pages follow newer ones: [newest…30th, 31st…60th, …]
+    messages: messagesQuery.data?.pages.flatMap((page) => [...page].reverse()) ?? [],
     isMessagesLoading: messagesQuery.isLoading,
     isMessagesError: messagesQuery.isError,
     messagesError: messagesQuery.error,
     refetchMessages: messagesQuery.refetch,
+
+    // Pagination
+    fetchNextPage: messagesQuery.fetchNextPage,
+    hasNextPage: messagesQuery.hasNextPage ?? false,
+    isFetchingNextPage: messagesQuery.isFetchingNextPage,
 
     // Send a message (user or assistant)
     sendMessage: sendMessageMutation.mutate,

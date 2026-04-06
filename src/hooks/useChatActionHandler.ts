@@ -20,7 +20,9 @@ import { useCategories } from './useCategories';
 import { useChat } from './useChat';
 import { useCreditCards } from './useCreditCards';
 import { useDebts } from './useDebts';
+import { useExpenses } from './useExpenses';
 import { useFixedExpenses } from './useFixedExpenses';
+import { useIncome } from './useIncome';
 import { useProfile } from './useProfile';
 import { useSavingsGoals } from './useSavingsGoals';
 import { useMutationMap } from './useMutationMap';
@@ -49,6 +51,8 @@ export const useChatActionHandler = (pendingAction: RegistryPendingAction | null
   const { savingsGoals } = useSavingsGoals();
   const { allCategories } = useCategories();
   const { creditCards } = useCreditCards();
+  const { expenses } = useExpenses();
+  const { income: incomeEntries } = useIncome();
 
   const mutationMap = useMutationMap();
 
@@ -69,6 +73,8 @@ export const useChatActionHandler = (pendingAction: RegistryPendingAction | null
       savingsGoals,
       categories: allCategories,
       creditCards,
+      expenses,
+      incomeEntries,
     };
 
     // Run mutations sequentially; bail on first failure

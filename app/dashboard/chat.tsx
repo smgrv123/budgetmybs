@@ -17,7 +17,9 @@ import {
   useChat,
   useCreditCards,
   useDebts,
+  useExpenses,
   useFixedExpenses,
+  useIncome,
   useProfile,
   useSavingsGoals,
 } from '@/src/hooks';
@@ -39,7 +41,6 @@ type PendingAction = {
 // ── Screen ────────────────────────────────────────────────────────────────────
 
 export default function ChatScreen() {
-  const flatListRef = useRef<FlatList>(null);
   const themeColors = useThemeColors();
 
   const [isNetworkAvailable, setIsNetworkAvailable] = useState(true);
@@ -73,13 +74,25 @@ export default function ChatScreen() {
 
   const { debts } = useDebts();
 
+  const { expenses } = useExpenses();
+  const { income: incomeEntries } = useIncome();
+
   const {
     savingsGoals,
     savingsBalancesAllGoals,
     adHocSavingsBalances,
   } = useSavingsGoals();
 
-  const { messages, isMessagesLoading, sendMessage, sendMessageAsync, clearHistory } = useChat();
+  const {
+    messages,
+    isMessagesLoading,
+    sendMessage,
+    sendMessageAsync,
+    clearHistory,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useChat();
 
   // ── Local state ───────────────────────────────────────────────────────────
 
@@ -130,14 +143,6 @@ export default function ChatScreen() {
       }
     );
   }, [isMessagesLoading, messages.length, profile?.name, sendMessage]);
-
-  // ── Auto-scroll ───────────────────────────────────────────────────────────
-
-  useEffect(() => {
-    if (messages.length > 0) {
-      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
-    }
-  }, [messages.length]);
 
   // ── Send handler ──────────────────────────────────────────────────────────
 
@@ -205,6 +210,7 @@ export default function ChatScreen() {
         last4: c.last4,
       })),
       savingsSources: [...goalSources, ...adHocSources],
+      expenses,
       quotedMessageContent: quotedMessage?.content ?? undefined,
     };
 
@@ -327,14 +333,28 @@ export default function ChatScreen() {
         keyboardVerticalOffset={0}
       >
         <FlatList
-          ref={flatListRef}
           data={messages}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
           style={styles.list}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
-          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
+          inverted
+          onEndReached={() => {
+            if (hasNextPage && !isFetchingNextPage) {
+              fetchNextPage();
+            }
+          }}
+          onEndReachedThreshold={0.3}
+          ListFooterComponent={
+            isFetchingNextPage ? (
+              <BView padding="sm" center>
+                <BText variant={TextVariant.CAPTION} muted>
+                  {CHAT_STRINGS.LOADING_OLDER_MESSAGES}
+                </BText>
+              </BView>
+            ) : null
+          }
         />
 
         {pendingAction?.kind === 'registry' &&
@@ -348,6 +368,8 @@ export default function ChatScreen() {
               savingsGoals,
               categories: allCategories,
               creditCards,
+              expenses,
+              incomeEntries,
             };
             const initialValues = entry.getInitialValues(pendingAction.actionData, registryContext);
             return (
@@ -378,8 +400,6 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingVertical: Spacing.sm,
-    flexGrow: 1,
-    justifyContent: 'flex-end',
   },
   keyboardAvoid: {
     flex: 1,

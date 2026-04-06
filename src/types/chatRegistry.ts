@@ -1,6 +1,6 @@
 import type { ChatIntent } from '@/db/types';
 import type { ButtonVariantType } from '@/src/constants/theme';
-import type { Category, CreditCard, Debt, FixedExpense, Profile, SavingsGoal } from '@/db/schema-types';
+import type { Category, CreditCard, Debt, FixedExpense, Income, Profile, SavingsGoal } from '@/db/schema-types';
 
 // ============================================
 // OPTION SOURCES
@@ -34,6 +34,15 @@ export type FormOptionSources = {
  * Rich context provided to each intent's transformData function.
  * All ID lookups (category, credit card, fixed expense, etc.) happen here.
  */
+/** Minimal expense shape for registry lookups — compatible with both base Expense and the joined getExpensesWithCategory result */
+export type ExpenseForRegistry = {
+  id: string;
+  amount: number;
+  description: string | null;
+  date: string;
+  category?: { id: string } | null;
+};
+
 export type RegistryContext = {
   profile: Profile | null;
   fixedExpenses: FixedExpense[];
@@ -41,6 +50,8 @@ export type RegistryContext = {
   savingsGoals: SavingsGoal[];
   categories: Category[];
   creditCards: CreditCard[];
+  expenses?: ExpenseForRegistry[];
+  incomeEntries?: Income[];
 };
 
 // ============================================
