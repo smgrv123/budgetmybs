@@ -20,6 +20,8 @@ export type FormOptionSources = {
   categories: FormOption[];
   creditCards: FormOption[];
   savingsGoals: FormOption[];
+  /** Savings goals + an "Ad-hoc" sentinel option at the end (used by LOG_SAVINGS) */
+  savingsGoalsWithAdhoc: FormOption[];
   incomeTypes: FormOption[];
   savingsTypes: FormOption[];
 };
