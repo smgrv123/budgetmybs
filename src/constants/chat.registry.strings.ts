@@ -229,6 +229,45 @@ export const CHAT_REGISTRY_STRINGS = {
   DELETE_INCOME_FAILURE: "Couldn't delete the income entry. Please try again.",
   DELETE_INCOME_CANCELLED: 'Income deletion cancelled.',
 
+  // ADD_CREDIT_CARD intent
+  ADD_CREDIT_CARD_TITLE: 'Add Credit Card',
+  ADD_CREDIT_CARD_NICKNAME_LABEL: 'Nickname',
+  ADD_CREDIT_CARD_NICKNAME_PLACEHOLDER: 'e.g. HDFC Millennia',
+  ADD_CREDIT_CARD_BANK_LABEL: 'Bank',
+  ADD_CREDIT_CARD_BANK_PLACEHOLDER: 'e.g. HDFC',
+  ADD_CREDIT_CARD_PROVIDER_LABEL: 'Provider',
+  ADD_CREDIT_CARD_PROVIDER_PLACEHOLDER: 'e.g. Visa',
+  ADD_CREDIT_CARD_LAST4_LABEL: 'Last 4 Digits',
+  ADD_CREDIT_CARD_LAST4_PLACEHOLDER: '1234',
+  ADD_CREDIT_CARD_LIMIT_LABEL: 'Credit Limit (₹)',
+  ADD_CREDIT_CARD_LIMIT_PLACEHOLDER: '0',
+  ADD_CREDIT_CARD_STATEMENT_DAY_LABEL: 'Statement Day of Month',
+  ADD_CREDIT_CARD_STATEMENT_DAY_PLACEHOLDER: 'e.g. 15',
+  ADD_CREDIT_CARD_BUFFER_DAYS_LABEL: 'Payment Buffer Days',
+  ADD_CREDIT_CARD_BUFFER_DAYS_PLACEHOLDER: 'e.g. 5',
+  ADD_CREDIT_CARD_SUBMIT: 'Add Credit Card',
+
+  // UPDATE_CREDIT_CARD intent
+  UPDATE_CREDIT_CARD_TITLE: 'Update Credit Card',
+  UPDATE_CREDIT_CARD_SUBMIT: 'Update',
+
+  // DELETE_CREDIT_CARD intent
+  DELETE_CREDIT_CARD_TITLE: 'Delete Credit Card',
+  DELETE_CREDIT_CARD_SUBMIT: 'Delete',
+
+  // Credit card success/failure/cancelled messages
+  ADD_CREDIT_CARD_SUCCESS: (nickname: string) => `Credit card "${nickname}" has been added.`,
+  ADD_CREDIT_CARD_FAILURE: "Couldn't add the credit card. Please try again.",
+  ADD_CREDIT_CARD_CANCELLED: 'Credit card entry cancelled.',
+
+  UPDATE_CREDIT_CARD_SUCCESS: (nickname: string) => `Credit card "${nickname}" has been updated.`,
+  UPDATE_CREDIT_CARD_FAILURE: "Couldn't update the credit card. Please try again.",
+  UPDATE_CREDIT_CARD_CANCELLED: 'Credit card update cancelled.',
+
+  DELETE_CREDIT_CARD_SUCCESS: (nickname: string) => `${nickname} has been deleted.`,
+  DELETE_CREDIT_CARD_FAILURE: "Couldn't delete the credit card. Please try again.",
+  DELETE_CREDIT_CARD_CANCELLED: 'Deletion cancelled.',
+
   // Validation errors
 
   VALIDATION_AMOUNT_REQUIRED: 'Please enter a valid amount greater than 0.',
@@ -247,13 +286,21 @@ export const CHAT_REGISTRY_STRINGS = {
   VALIDATION_DESTINATION_REQUIRED: 'Please select a destination.',
   VALIDATION_SAVINGS_TYPE_REQUIRED: 'Please select a savings category.',
   VALIDATION_EXCEEDS_BALANCE: 'Amount exceeds available balance.',
+  VALIDATION_NICKNAME_REQUIRED: 'Nickname is required.',
+  VALIDATION_BANK_REQUIRED: 'Bank name is required.',
+  VALIDATION_PROVIDER_REQUIRED: 'Provider is required.',
+  VALIDATION_LAST4_REQUIRED: 'Please enter a valid 4-digit card number.',
+  VALIDATION_CREDIT_LIMIT_INVALID: 'Credit limit must be greater than 0.',
+  VALIDATION_STATEMENT_DAY_INVALID: 'Statement day must be between 1 and 31.',
+  VALIDATION_BUFFER_DAYS_INVALID: 'Payment buffer days must be 0 or greater.',
+  VALIDATION_AT_LEAST_ONE_FIELD: 'Please update at least one field.',
 } as const;
 
 // ============================================
 // ROTATING MESSAGE POOLS — single-message pattern
 // ============================================
 
-export type IntentCategory = 'expense' | 'income' | 'savings' | 'debt' | 'fixed_expense' | 'profile' | 'general';
+export type IntentCategory = 'expense' | 'income' | 'savings' | 'debt' | 'fixed_expense' | 'profile' | 'credit_card' | 'general';
 
 export const INTENT_CATEGORY_MAP: Record<string, IntentCategory> = {
   add_expense: 'expense',
@@ -274,6 +321,9 @@ export const INTENT_CATEGORY_MAP: Record<string, IntentCategory> = {
   update_fixed_expense: 'fixed_expense',
   delete_fixed_expense: 'fixed_expense',
   update_profile: 'profile',
+  add_credit_card: 'credit_card',
+  update_credit_card: 'credit_card',
+  delete_credit_card: 'credit_card',
   general: 'general',
 };
 
@@ -450,6 +500,36 @@ export const CHAT_ACTION_MESSAGE_POOLS: Record<IntentCategory, { success: string
       'Sure, cancelled.',
       'No problem.',
       'Got it — profile unchanged.',
+    ],
+  },
+  credit_card: {
+    success: [
+      'Credit card updated.',
+      'Got it — card saved.',
+      'Done. Your card details are up to date.',
+      'Card saved.',
+      'Credit card recorded.',
+      'Done — card updated.',
+      'Card entry saved.',
+      'Saved.',
+      'Your card is up to date.',
+      'Credit card details saved.',
+      'Done.',
+    ],
+    failure: [
+      "Couldn't update the credit card. Try again.",
+      'Something went wrong. Give it another shot.',
+      "Hmm, that didn't go through. Try once more.",
+      "Failed to save the card. Try again.",
+      "No luck there — try again.",
+    ],
+    cancel: [
+      'No worries, skipped.',
+      'OK, nothing was changed.',
+      'Cancelled.',
+      'Sure, cancelled.',
+      'No problem.',
+      'Got it — card unchanged.',
     ],
   },
   general: {

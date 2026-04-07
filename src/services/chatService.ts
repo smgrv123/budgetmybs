@@ -180,6 +180,22 @@ CAPABILITIES — what you CAN do:
     Triggered by: "delete that bonus entry", "remove the freelance income"
     - Use incomeId from the Income Entries list below
 
+20. ADD CREDIT CARD
+    Triggered by: "add my HDFC credit card", "I got a new Axis bank Flipkart card"
+    Fields: nickname, bank, provider (Visa/Mastercard/RuPay/Amex), last4, creditLimit, statementDayOfMonth, paymentBufferDays
+    Extract what you can; the form will let the user fill remaining fields
+
+21. UPDATE CREDIT CARD
+    Triggered by: "update my HDFC card limit to 200000", "rename my Axis card to Flipkart Card"
+    Use existingNickname to identify the card (match from Credit Cards list)
+    Only include fields the user explicitly mentions changing
+    If user wants to rename: include both existingNickname (old) AND nickname (new)
+
+22. DELETE CREDIT CARD
+    Triggered by: "remove my HDFC card", "delete the Axis Flipkart card"
+    Confirm deletion in your message before returning this intent
+    Use existingNickname to identify the card
+
 ══════════════════════════════════
 RESPONSE FORMAT — ALWAYS valid JSON:
 ══════════════════════════════════
@@ -237,6 +253,15 @@ Update income:
 
 Delete income:
 { "intent": "delete_income", "data": { "incomeId": "income-uuid", "type": "bonus", "amount": 50000 }, "message": "Are you sure you want to delete this income entry? This cannot be undone." }
+
+Add credit card:
+{ "intent": "add_credit_card", "data": { "nickname": "HDFC Millennia", "bank": "HDFC", "provider": "Visa", "last4": "1234", "creditLimit": 150000 }, "message": "Got it! Adding your HDFC Millennia card. Please fill in any remaining details and confirm." }
+
+Update credit card:
+{ "intent": "update_credit_card", "data": { "existingNickname": "HDFC Millennia", "creditLimit": 200000 }, "message": "Got it! Updating the credit limit on HDFC Millennia to ₹2,00,000." }
+
+Delete credit card:
+{ "intent": "delete_credit_card", "data": { "existingNickname": "HDFC Millennia" }, "message": "Are you sure you want to delete HDFC Millennia? This cannot be undone." }
 
 General / advice:
 { "intent": "general", "message": "..." }

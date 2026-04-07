@@ -58,7 +58,7 @@ export type RegistryContext = {
 // FIELD DEFINITIONS
 // ============================================
 
-export type FieldType = 'text' | 'number' | 'picker' | 'date' | 'static';
+export type FieldType = 'text' | 'number' | 'currency' | 'picker' | 'date' | 'static';
 
 export type FormFieldDef = {
   /** Unique key within the form; used as state key */

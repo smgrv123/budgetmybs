@@ -16,7 +16,7 @@ import {
 } from '@/db/types';
 import { formatDate as formatDbDate } from '@/db/utils';
 import { DEBTS_QUERY_KEY } from '@/src/hooks/useDebts';
-import { EXPENSES_QUERY_KEY } from '@/src/hooks/queryKeys';
+import { CREDIT_CARDS_QUERY_KEY, EXPENSES_QUERY_KEY } from '@/src/hooks/queryKeys';
 import { FIXED_EXPENSES_QUERY_KEY } from '@/src/hooks/useFixedExpenses';
 import { INCOME_QUERY_KEY, MONTHLY_INCOME_SUM_QUERY_KEY } from '@/src/hooks/useIncome';
 import { PROFILE_QUERY_KEY } from '@/src/hooks/useProfile';
@@ -153,7 +153,7 @@ const addExpenseEntry: IntentRegistryEntry = {
   fields: [
     {
       key: ExpenseFieldKey.AMOUNT,
-      type: 'number',
+      type: 'currency',
       label: CHAT_REGISTRY_STRINGS.ADD_EXPENSE_AMOUNT_LABEL,
       placeholder: CHAT_REGISTRY_STRINGS.ADD_EXPENSE_AMOUNT_PLACEHOLDER,
       required: true,
@@ -251,7 +251,7 @@ const addIncomeEntry: IntentRegistryEntry = {
   fields: [
     {
       key: IncomeFieldKey.AMOUNT,
-      type: 'number',
+      type: 'currency',
       label: CHAT_REGISTRY_STRINGS.ADD_INCOME_AMOUNT_LABEL,
       placeholder: CHAT_REGISTRY_STRINGS.ADD_INCOME_AMOUNT_PLACEHOLDER,
       required: true,
@@ -420,7 +420,7 @@ const updateProfileEntry: IntentRegistryEntry = {
     },
     {
       key: ProfileUpdateFieldKey.VALUE,
-      type: 'number',
+      type: 'currency',
       label: 'Value (₹)',
       placeholder: CHAT_REGISTRY_STRINGS.UPDATE_PROFILE_VALUE_PLACEHOLDER,
       required: true,
@@ -497,7 +497,7 @@ const addFixedExpenseEntry: IntentRegistryEntry = {
     },
     {
       key: FixedExpenseRegistryFieldKey.AMOUNT,
-      type: 'number',
+      type: 'currency',
       label: CHAT_REGISTRY_STRINGS.ADD_FIXED_EXPENSE_AMOUNT_LABEL,
       placeholder: CHAT_REGISTRY_STRINGS.ADD_FIXED_EXPENSE_AMOUNT_PLACEHOLDER,
       required: true,
@@ -566,7 +566,7 @@ const updateFixedExpenseEntry: IntentRegistryEntry = {
     },
     {
       key: FixedExpenseRegistryFieldKey.AMOUNT,
-      type: 'number',
+      type: 'currency',
       label: CHAT_REGISTRY_STRINGS.ADD_FIXED_EXPENSE_AMOUNT_LABEL,
       placeholder: CHAT_REGISTRY_STRINGS.ADD_FIXED_EXPENSE_AMOUNT_PLACEHOLDER,
       required: false,
@@ -657,7 +657,7 @@ const addDebtEntry: IntentRegistryEntry = {
     },
     {
       key: DebtRegistryFieldKey.PRINCIPAL,
-      type: 'number',
+      type: 'currency',
       label: CHAT_REGISTRY_STRINGS.ADD_DEBT_PRINCIPAL_LABEL,
       placeholder: CHAT_REGISTRY_STRINGS.ADD_DEBT_PRINCIPAL_PLACEHOLDER,
       required: true,
@@ -671,7 +671,7 @@ const addDebtEntry: IntentRegistryEntry = {
     },
     {
       key: DebtRegistryFieldKey.EMI_AMOUNT,
-      type: 'number',
+      type: 'currency',
       label: CHAT_REGISTRY_STRINGS.ADD_DEBT_EMI_LABEL,
       placeholder: CHAT_REGISTRY_STRINGS.ADD_DEBT_EMI_PLACEHOLDER,
       required: true,
@@ -769,7 +769,7 @@ const updateDebtEntry: IntentRegistryEntry = {
     },
     {
       key: DebtRegistryFieldKey.PRINCIPAL,
-      type: 'number',
+      type: 'currency',
       label: CHAT_REGISTRY_STRINGS.ADD_DEBT_PRINCIPAL_LABEL,
       placeholder: CHAT_REGISTRY_STRINGS.ADD_DEBT_PRINCIPAL_PLACEHOLDER,
       required: false,
@@ -783,7 +783,7 @@ const updateDebtEntry: IntentRegistryEntry = {
     },
     {
       key: DebtRegistryFieldKey.EMI_AMOUNT,
-      type: 'number',
+      type: 'currency',
       label: CHAT_REGISTRY_STRINGS.ADD_DEBT_EMI_LABEL,
       placeholder: CHAT_REGISTRY_STRINGS.ADD_DEBT_EMI_PLACEHOLDER,
       required: false,
@@ -929,7 +929,7 @@ const addMonthlySavingsEntry: IntentRegistryEntry = {
     },
     {
       key: SavingsGoalRegistryFieldKey.TARGET_AMOUNT,
-      type: 'number',
+      type: 'currency',
       label: CHAT_REGISTRY_STRINGS.ADD_MONTHLY_SAVINGS_TARGET_LABEL,
       placeholder: CHAT_REGISTRY_STRINGS.ADD_MONTHLY_SAVINGS_TARGET_PLACEHOLDER,
       required: true,
@@ -998,7 +998,7 @@ const updateMonthlySavingsEntry: IntentRegistryEntry = {
     },
     {
       key: SavingsGoalRegistryFieldKey.TARGET_AMOUNT,
-      type: 'number',
+      type: 'currency',
       label: CHAT_REGISTRY_STRINGS.ADD_MONTHLY_SAVINGS_TARGET_LABEL,
       placeholder: CHAT_REGISTRY_STRINGS.ADD_MONTHLY_SAVINGS_TARGET_PLACEHOLDER,
       required: false,
@@ -1117,7 +1117,7 @@ const logSavingsEntry: IntentRegistryEntry = {
   fields: [
     {
       key: LogSavingsFieldKey.AMOUNT,
-      type: 'number',
+      type: 'currency',
       label: CHAT_REGISTRY_STRINGS.LOG_SAVINGS_AMOUNT_LABEL,
       placeholder: CHAT_REGISTRY_STRINGS.LOG_SAVINGS_AMOUNT_PLACEHOLDER,
       required: true,
@@ -1260,7 +1260,7 @@ const withdrawSavingsEntry: IntentRegistryEntry = {
     },
     {
       key: WithdrawSavingsFieldKey.AMOUNT,
-      type: 'number',
+      type: 'currency',
       label: CHAT_REGISTRY_STRINGS.WITHDRAW_SAVINGS_AMOUNT_LABEL,
       placeholder: CHAT_REGISTRY_STRINGS.WITHDRAW_SAVINGS_AMOUNT_PLACEHOLDER,
       required: true,
@@ -1380,7 +1380,7 @@ const updateExpenseEntry: IntentRegistryEntry = {
   fields: [
     {
       key: UpdateExpenseFieldKey.AMOUNT,
-      type: 'number',
+      type: 'currency',
       label: CHAT_REGISTRY_STRINGS.UPDATE_EXPENSE_AMOUNT_LABEL,
       placeholder: CHAT_REGISTRY_STRINGS.UPDATE_EXPENSE_AMOUNT_PLACEHOLDER,
       required: false,
@@ -1563,7 +1563,7 @@ const updateIncomeEntry: IntentRegistryEntry = {
   fields: [
     {
       key: UpdateIncomeFieldKey.AMOUNT,
-      type: 'number',
+      type: 'currency',
       label: CHAT_REGISTRY_STRINGS.UPDATE_INCOME_AMOUNT_LABEL,
       placeholder: CHAT_REGISTRY_STRINGS.UPDATE_INCOME_AMOUNT_PLACEHOLDER,
       required: false,
@@ -1718,6 +1718,340 @@ const deleteIncomeEntry: IntentRegistryEntry = {
 };
 
 // ============================================
+// ADD_CREDIT_CARD / UPDATE_CREDIT_CARD / DELETE_CREDIT_CARD
+// ============================================
+
+export const CreditCardRegistryFieldKey = {
+  NICKNAME: 'nickname',
+  BANK: 'bank',
+  PROVIDER: 'provider',
+  LAST4: 'last4',
+  CREDIT_LIMIT: 'creditLimit',
+  STATEMENT_DAY: 'statementDayOfMonth',
+  BUFFER_DAYS: 'paymentBufferDays',
+  EXISTING_NICKNAME: 'existingNickname',
+} as const;
+
+const addCreditCardEntry: IntentRegistryEntry = {
+  intent: ChatIntentEnum.ADD_CREDIT_CARD,
+  title: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_TITLE,
+  formType: 'default',
+  buttonVariant: ButtonVariant.PRIMARY,
+  submitLabel: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_SUBMIT,
+
+  fields: [
+    {
+      key: CreditCardRegistryFieldKey.NICKNAME,
+      type: 'text',
+      label: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_NICKNAME_LABEL,
+      placeholder: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_NICKNAME_PLACEHOLDER,
+      required: true,
+    },
+    {
+      key: CreditCardRegistryFieldKey.BANK,
+      type: 'text',
+      label: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_BANK_LABEL,
+      placeholder: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_BANK_PLACEHOLDER,
+      required: true,
+    },
+    {
+      key: CreditCardRegistryFieldKey.PROVIDER,
+      type: 'text',
+      label: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_PROVIDER_LABEL,
+      placeholder: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_PROVIDER_PLACEHOLDER,
+      required: true,
+    },
+    {
+      key: CreditCardRegistryFieldKey.LAST4,
+      type: 'text',
+      label: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_LAST4_LABEL,
+      placeholder: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_LAST4_PLACEHOLDER,
+      required: true,
+    },
+    {
+      key: CreditCardRegistryFieldKey.CREDIT_LIMIT,
+      type: 'currency',
+      label: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_LIMIT_LABEL,
+      placeholder: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_LIMIT_PLACEHOLDER,
+      required: true,
+    },
+    {
+      key: CreditCardRegistryFieldKey.STATEMENT_DAY,
+      type: 'number',
+      label: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_STATEMENT_DAY_LABEL,
+      placeholder: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_STATEMENT_DAY_PLACEHOLDER,
+      required: true,
+    },
+    {
+      key: CreditCardRegistryFieldKey.BUFFER_DAYS,
+      type: 'number',
+      label: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_BUFFER_DAYS_LABEL,
+      placeholder: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_BUFFER_DAYS_PLACEHOLDER,
+      required: true,
+    },
+  ],
+
+  mutations: [
+    {
+      key: 'createCreditCard',
+      transformData: (formValues, _context) => ({
+        nickname: formValues[CreditCardRegistryFieldKey.NICKNAME] ?? '',
+        bank: formValues[CreditCardRegistryFieldKey.BANK] ?? '',
+        provider: formValues[CreditCardRegistryFieldKey.PROVIDER]?.toLowerCase() ?? 'other',
+        last4: formValues[CreditCardRegistryFieldKey.LAST4] ?? '',
+        creditLimit: parseFloat(formValues[CreditCardRegistryFieldKey.CREDIT_LIMIT] ?? '0'),
+        statementDayOfMonth: parseInt(formValues[CreditCardRegistryFieldKey.STATEMENT_DAY] ?? '1', 10),
+        paymentBufferDays: parseInt(formValues[CreditCardRegistryFieldKey.BUFFER_DAYS] ?? '0', 10),
+      }),
+      errorLog: 'Failed to add credit card:',
+    },
+  ],
+
+  messages: {
+    success: (formValues) =>
+      CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_SUCCESS(formValues[CreditCardRegistryFieldKey.NICKNAME] ?? ''),
+    failure: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_FAILURE,
+    cancelled: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_CANCELLED,
+  },
+
+  invalidations: [CREDIT_CARDS_QUERY_KEY],
+
+  validate: validateWithSchema(
+    z.object({
+      [CreditCardRegistryFieldKey.NICKNAME]: z.string().min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_NICKNAME_REQUIRED }),
+      [CreditCardRegistryFieldKey.BANK]: z.string().min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_BANK_REQUIRED }),
+      [CreditCardRegistryFieldKey.PROVIDER]: z.string().min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_PROVIDER_REQUIRED }),
+      [CreditCardRegistryFieldKey.LAST4]: z
+        .string()
+        .regex(/^\d{4}$/, { message: CHAT_REGISTRY_STRINGS.VALIDATION_LAST4_REQUIRED }),
+      [CreditCardRegistryFieldKey.CREDIT_LIMIT]: z.coerce
+        .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_CREDIT_LIMIT_INVALID })
+        .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_CREDIT_LIMIT_INVALID }),
+      [CreditCardRegistryFieldKey.STATEMENT_DAY]: z.coerce
+        .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_STATEMENT_DAY_INVALID })
+        .int()
+        .min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_STATEMENT_DAY_INVALID })
+        .max(31, { message: CHAT_REGISTRY_STRINGS.VALIDATION_STATEMENT_DAY_INVALID }),
+      [CreditCardRegistryFieldKey.BUFFER_DAYS]: z.coerce
+        .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_BUFFER_DAYS_INVALID })
+        .int()
+        .min(0, { message: CHAT_REGISTRY_STRINGS.VALIDATION_BUFFER_DAYS_INVALID }),
+    }).loose()
+  ),
+
+  getInitialValues: (actionData, _context) => ({
+    [CreditCardRegistryFieldKey.NICKNAME]: typeof actionData['nickname'] === 'string' ? actionData['nickname'] : '',
+    [CreditCardRegistryFieldKey.BANK]: typeof actionData['bank'] === 'string' ? actionData['bank'] : '',
+    [CreditCardRegistryFieldKey.PROVIDER]: typeof actionData['provider'] === 'string' ? actionData['provider'] : '',
+    [CreditCardRegistryFieldKey.LAST4]: typeof actionData['last4'] === 'string' ? actionData['last4'] : '',
+    [CreditCardRegistryFieldKey.CREDIT_LIMIT]: String(actionData['creditLimit'] ?? ''),
+    [CreditCardRegistryFieldKey.STATEMENT_DAY]: String(actionData['statementDayOfMonth'] ?? ''),
+    [CreditCardRegistryFieldKey.BUFFER_DAYS]: String(actionData['paymentBufferDays'] ?? ''),
+  }),
+};
+
+const updateCreditCardEntry: IntentRegistryEntry = {
+  intent: ChatIntentEnum.UPDATE_CREDIT_CARD,
+  title: CHAT_REGISTRY_STRINGS.UPDATE_CREDIT_CARD_TITLE,
+  formType: 'default',
+  buttonVariant: ButtonVariant.PRIMARY,
+  submitLabel: CHAT_REGISTRY_STRINGS.UPDATE_CREDIT_CARD_SUBMIT,
+
+  fields: [
+    {
+      key: CreditCardRegistryFieldKey.EXISTING_NICKNAME,
+      type: 'static',
+      label: 'Updating',
+      required: false,
+    },
+    {
+      key: CreditCardRegistryFieldKey.NICKNAME,
+      type: 'text',
+      label: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_NICKNAME_LABEL,
+      placeholder: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_NICKNAME_PLACEHOLDER,
+      required: false,
+    },
+    {
+      key: CreditCardRegistryFieldKey.BANK,
+      type: 'text',
+      label: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_BANK_LABEL,
+      placeholder: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_BANK_PLACEHOLDER,
+      required: false,
+    },
+    {
+      key: CreditCardRegistryFieldKey.PROVIDER,
+      type: 'text',
+      label: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_PROVIDER_LABEL,
+      placeholder: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_PROVIDER_PLACEHOLDER,
+      required: false,
+    },
+    {
+      key: CreditCardRegistryFieldKey.LAST4,
+      type: 'text',
+      label: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_LAST4_LABEL,
+      placeholder: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_LAST4_PLACEHOLDER,
+      required: false,
+    },
+    {
+      key: CreditCardRegistryFieldKey.CREDIT_LIMIT,
+      type: 'currency',
+      label: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_LIMIT_LABEL,
+      placeholder: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_LIMIT_PLACEHOLDER,
+      required: false,
+    },
+    {
+      key: CreditCardRegistryFieldKey.STATEMENT_DAY,
+      type: 'number',
+      label: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_STATEMENT_DAY_LABEL,
+      placeholder: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_STATEMENT_DAY_PLACEHOLDER,
+      required: false,
+    },
+    {
+      key: CreditCardRegistryFieldKey.BUFFER_DAYS,
+      type: 'number',
+      label: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_BUFFER_DAYS_LABEL,
+      placeholder: CHAT_REGISTRY_STRINGS.ADD_CREDIT_CARD_BUFFER_DAYS_PLACEHOLDER,
+      required: false,
+    },
+  ],
+
+  mutations: [
+    {
+      key: 'updateCreditCard',
+      transformData: (formValues, context) => {
+        const existingNickname = formValues[CreditCardRegistryFieldKey.EXISTING_NICKNAME] ?? '';
+        const match = context.creditCards.find((c) => c.nickname === existingNickname);
+        if (!match) return null;
+        const data: Record<string, unknown> = {};
+        if (formValues[CreditCardRegistryFieldKey.NICKNAME]?.trim()) {
+          data['nickname'] = formValues[CreditCardRegistryFieldKey.NICKNAME];
+        }
+        if (formValues[CreditCardRegistryFieldKey.BANK]?.trim()) {
+          data['bank'] = formValues[CreditCardRegistryFieldKey.BANK];
+        }
+        if (formValues[CreditCardRegistryFieldKey.PROVIDER]?.trim()) {
+          data['provider'] = formValues[CreditCardRegistryFieldKey.PROVIDER]?.toLowerCase();
+        }
+        if (formValues[CreditCardRegistryFieldKey.LAST4]?.trim()) {
+          data['last4'] = formValues[CreditCardRegistryFieldKey.LAST4];
+        }
+        if (formValues[CreditCardRegistryFieldKey.CREDIT_LIMIT]) {
+          const v = parseFloat(formValues[CreditCardRegistryFieldKey.CREDIT_LIMIT]);
+          if (!isNaN(v) && v > 0) data['creditLimit'] = v;
+        }
+        if (formValues[CreditCardRegistryFieldKey.STATEMENT_DAY]) {
+          const v = parseInt(formValues[CreditCardRegistryFieldKey.STATEMENT_DAY], 10);
+          if (!isNaN(v) && v >= 1 && v <= 31) data['statementDayOfMonth'] = v;
+        }
+        if (formValues[CreditCardRegistryFieldKey.BUFFER_DAYS]) {
+          const v = parseInt(formValues[CreditCardRegistryFieldKey.BUFFER_DAYS], 10);
+          if (!isNaN(v) && v >= 0) data['paymentBufferDays'] = v;
+        }
+        return { id: match.id, data };
+      },
+      errorLog: 'Failed to update credit card:',
+    },
+  ],
+
+  messages: {
+    success: (formValues) =>
+      CHAT_REGISTRY_STRINGS.UPDATE_CREDIT_CARD_SUCCESS(
+        formValues[CreditCardRegistryFieldKey.NICKNAME] || formValues[CreditCardRegistryFieldKey.EXISTING_NICKNAME] || ''
+      ),
+    failure: CHAT_REGISTRY_STRINGS.UPDATE_CREDIT_CARD_FAILURE,
+    cancelled: CHAT_REGISTRY_STRINGS.UPDATE_CREDIT_CARD_CANCELLED,
+  },
+
+  invalidations: [CREDIT_CARDS_QUERY_KEY],
+
+  validate: (formValues) => {
+    const filledFields = [
+      CreditCardRegistryFieldKey.NICKNAME,
+      CreditCardRegistryFieldKey.BANK,
+      CreditCardRegistryFieldKey.PROVIDER,
+      CreditCardRegistryFieldKey.LAST4,
+      CreditCardRegistryFieldKey.CREDIT_LIMIT,
+      CreditCardRegistryFieldKey.STATEMENT_DAY,
+      CreditCardRegistryFieldKey.BUFFER_DAYS,
+    ].filter((k) => formValues[k]?.trim());
+    if (filledFields.length === 0) {
+      return { [CreditCardRegistryFieldKey.NICKNAME]: CHAT_REGISTRY_STRINGS.VALIDATION_AT_LEAST_ONE_FIELD };
+    }
+    return null;
+  },
+
+  getInitialValues: (actionData, context) => {
+    const existingNickname = typeof actionData['existingNickname'] === 'string' ? actionData['existingNickname'] : '';
+    const existing = context.creditCards.find((c) => c.nickname === existingNickname);
+    const val = (key: string, fallback: unknown) =>
+      actionData[key] !== undefined && actionData[key] !== null ? String(actionData[key]) : String(fallback ?? '');
+    return {
+      [CreditCardRegistryFieldKey.EXISTING_NICKNAME]: existingNickname,
+      [CreditCardRegistryFieldKey.NICKNAME]: typeof actionData['nickname'] === 'string' ? actionData['nickname'] : '',
+      [CreditCardRegistryFieldKey.BANK]: val('bank', existing?.bank),
+      [CreditCardRegistryFieldKey.PROVIDER]: val('provider', existing?.provider),
+      [CreditCardRegistryFieldKey.LAST4]: val('last4', existing?.last4),
+      [CreditCardRegistryFieldKey.CREDIT_LIMIT]: val('creditLimit', existing?.creditLimit),
+      [CreditCardRegistryFieldKey.STATEMENT_DAY]: val('statementDayOfMonth', existing?.statementDayOfMonth),
+      [CreditCardRegistryFieldKey.BUFFER_DAYS]: val('paymentBufferDays', existing?.paymentBufferDays),
+    };
+  },
+};
+
+const deleteCreditCardEntry: IntentRegistryEntry = {
+  intent: ChatIntentEnum.DELETE_CREDIT_CARD,
+  title: CHAT_REGISTRY_STRINGS.DELETE_CREDIT_CARD_TITLE,
+  formType: 'deleteConfirm',
+  buttonVariant: ButtonVariant.DANGER,
+  submitLabel: CHAT_REGISTRY_STRINGS.DELETE_CREDIT_CARD_SUBMIT,
+
+  fields: [
+    {
+      key: CreditCardRegistryFieldKey.EXISTING_NICKNAME,
+      type: 'static',
+      label: 'Nickname',
+      required: true,
+    },
+  ],
+
+  mutations: [
+    {
+      key: 'removeCreditCard',
+      transformData: (formValues, context) => {
+        const nickname = formValues[CreditCardRegistryFieldKey.EXISTING_NICKNAME] ?? '';
+        const match = context.creditCards.find((c) => c.nickname === nickname);
+        return match?.id ?? '';
+      },
+      errorLog: 'Failed to delete credit card:',
+    },
+  ],
+
+  messages: {
+    success: (formValues) =>
+      CHAT_REGISTRY_STRINGS.DELETE_CREDIT_CARD_SUCCESS(
+        formValues[CreditCardRegistryFieldKey.EXISTING_NICKNAME] ?? ''
+      ),
+    failure: CHAT_REGISTRY_STRINGS.DELETE_CREDIT_CARD_FAILURE,
+    cancelled: CHAT_REGISTRY_STRINGS.DELETE_CREDIT_CARD_CANCELLED,
+  },
+
+  invalidations: [CREDIT_CARDS_QUERY_KEY],
+
+  validate: validateWithSchema(
+    z.object({
+      [CreditCardRegistryFieldKey.EXISTING_NICKNAME]: z
+        .string()
+        .min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_ITEM_NOT_FOUND('') }),
+    }).loose()
+  ),
+
+  getInitialValues: (actionData, _context) => ({
+    [CreditCardRegistryFieldKey.EXISTING_NICKNAME]:
+      typeof actionData['existingNickname'] === 'string' ? actionData['existingNickname'] : '',
+  }),
+};
+
+// ============================================
 // REGISTRY MAP
 // ============================================
 
@@ -1740,6 +2074,9 @@ export const INTENT_REGISTRY: Readonly<Record<string, IntentRegistryEntry>> = {
   [ChatIntentEnum.DELETE_EXPENSE]: deleteExpenseEntry,
   [ChatIntentEnum.UPDATE_INCOME]: updateIncomeEntry,
   [ChatIntentEnum.DELETE_INCOME]: deleteIncomeEntry,
+  [ChatIntentEnum.ADD_CREDIT_CARD]: addCreditCardEntry,
+  [ChatIntentEnum.UPDATE_CREDIT_CARD]: updateCreditCardEntry,
+  [ChatIntentEnum.DELETE_CREDIT_CARD]: deleteCreditCardEntry,
 };
 
 /** The set of intent values that have been migrated to the registry. */

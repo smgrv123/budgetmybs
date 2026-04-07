@@ -5,13 +5,14 @@
  * Field types: text, number, picker, date, static.
  * Delete intents use formType: 'deleteConfirm' and render a danger confirmation.
  */
-import { INTENT_REGISTRY } from '@/src/constants/chatRegistry.config';
-import { CHAT_REGISTRY_STRINGS } from '@/src/constants/chat.registry.strings';
-import { ButtonVariant, SpacingValue, TextVariant } from '@/src/constants/theme';
-import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
-import { useFormOptionSources } from '@/src/hooks';
-import type { FormFieldDef } from '@/src/types';
 import { BButton, BDateField, BDropdown, BIcon, BInput, BText, BView } from '@/src/components/ui';
+import { CHAT_REGISTRY_STRINGS } from '@/src/constants/chat.registry.strings';
+import { INTENT_REGISTRY } from '@/src/constants/chatRegistry.config';
+import { ButtonVariant, SpacingValue, TextVariant } from '@/src/constants/theme';
+import { useFormOptionSources } from '@/src/hooks';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
+import type { FormFieldDef } from '@/src/types';
+import { formatIndianNumber, parseFormattedNumber } from '@/src/utils/format';
 import type { FC } from 'react';
 import { useEffect, useState } from 'react';
 
@@ -200,6 +201,17 @@ const FieldRenderer: FC<FieldRendererProps> = ({ field, value, allValues, option
             label={field.label}
             value={value}
             onChangeText={(val) => onChange(field.key, val)}
+            placeholder={field.placeholder ?? '0'}
+            keyboardType="numeric"
+          />
+        );
+
+      case 'currency':
+        return (
+          <BInput
+            label={field.label}
+            value={formatIndianNumber(value)}
+            onChangeText={(val) => onChange(field.key, val ? String(parseFormattedNumber(val)) : '')}
             placeholder={field.placeholder ?? '0'}
             keyboardType="numeric"
           />
