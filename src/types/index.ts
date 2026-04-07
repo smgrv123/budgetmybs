@@ -3,6 +3,7 @@ export * from './chatRegistry';
 export * from './expense';
 export * from './financialPlan';
 export * from './form';
+export * from './impulse';
 export * from './income';
 export * from './onboarding';
 export * from './theme';
