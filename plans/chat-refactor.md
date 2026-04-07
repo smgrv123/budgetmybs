@@ -181,7 +181,7 @@ Update the `sendChatMessage` function signature or the chat screen to pass the q
 
 ---
 
-## Phase 6: New CRUD Intents — Expenses & Income
+## Phase 6: New CRUD Intents — Expenses & Income ✅
 
 **User stories**: 1, 2, 3, 4, 5
 
@@ -202,21 +202,21 @@ Add registry entries for each new intent with appropriate fields, mutations (use
 
 ### Acceptance criteria
 
-- [ ] ChatIntentEnum includes UPDATE_EXPENSE, DELETE_EXPENSE, UPDATE_INCOME, DELETE_INCOME
-- [ ] ChatResponse type covers all new intents with appropriate data types
-- [ ] Registry entries exist for all 4 new intents
-- [ ] Recent expenses (current month) included in prompt context with IDs
-- [ ] Income entries included in prompt context with IDs
-- [ ] AI correctly identifies update/delete expense requests and returns the right intent with expense ID
-- [ ] AI correctly identifies update/delete income requests and returns the right intent with income ID
-- [ ] Disambiguation works: AI asks for clarification when multiple matches exist
-- [ ] Update/delete mutations execute correctly through the generic handler
-- [ ] No lint errors (`pnpm run lint`)
-- [ ] No type errors (`pnpm run typecheck`)
+- [x] ChatIntentEnum includes UPDATE_EXPENSE, DELETE_EXPENSE, UPDATE_INCOME, DELETE_INCOME
+- [x] ChatResponse type covers all new intents with appropriate data types
+- [x] Registry entries exist for all 4 new intents
+- [x] Recent expenses (current month) included in prompt context with IDs
+- [x] Income entries included in prompt context with IDs
+- [x] AI correctly identifies update/delete expense requests and returns the right intent with expense ID
+- [x] AI correctly identifies update/delete income requests and returns the right intent with income ID
+- [x] Disambiguation works: AI asks for clarification when multiple matches exist
+- [x] Update/delete mutations execute correctly through the generic handler
+- [x] No lint errors (`pnpm run lint`)
+- [x] No type errors (`pnpm run typecheck`)
 
 ---
 
-## Phase 7: New CRUD Intents — Credit Cards
+## Phase 7: New CRUD Intents — Credit Cards ✅
 
 **User stories**: 6, 7, 8
 
@@ -234,20 +234,20 @@ Add registry entries with fields, mutations (useCreateCreditCard, useUpdateCredi
 
 ### Acceptance criteria
 
-- [ ] ChatIntentEnum includes ADD_CREDIT_CARD, UPDATE_CREDIT_CARD, DELETE_CREDIT_CARD
-- [ ] ChatResponse type covers all new intents with appropriate data types
-- [ ] Registry entries exist for all 3 new intent
-- [ ] ADD_CREDIT_CARD form shows all credit card fields, pre-filled where AI extracted values, blank otherwise
-- [ ] UPDATE_CREDIT_CARD correctly identifies card by nickname and updates specified fields
-- [ ] DELETE_CREDIT_CARD shows delete confirmation with card nickname
-- [ ] System prompt includes credit card CRUD capabilities and examples
-- [ ] All mutations execute correctly through the generic handler
-- [ ] No lint errors (`pnpm run lint`)
-- [ ] No type errors (`pnpm run typecheck`)
+- [x] ChatIntentEnum includes ADD_CREDIT_CARD, UPDATE_CREDIT_CARD, DELETE_CREDIT_CARD
+- [x] ChatResponse type covers all new intents with appropriate data types
+- [x] Registry entries exist for all 3 new intents
+- [x] ADD_CREDIT_CARD form shows all credit card fields, pre-filled where AI extracted values, blank otherwise
+- [x] UPDATE_CREDIT_CARD correctly identifies card by nickname and updates specified fields
+- [x] DELETE_CREDIT_CARD shows delete confirmation with card nickname
+- [x] System prompt includes credit card CRUD capabilities and examples
+- [x] All mutations execute correctly through the generic handler
+- [x] No lint errors (`pnpm run lint`)
+- [x] No type errors (`pnpm run typecheck`)
 
 ---
 
-## Phase 8: Infinite Scroll Pagination
+## Phase 8: Infinite Scroll Pagination ✅
 
 **User stories**: 11
 
@@ -261,11 +261,11 @@ Remove the hard cap of 50 messages. Users can scroll back indefinitely.
 
 ### Acceptance criteria
 
-- [ ] Chat messages load in pages (e.g., 30 messages per page)
-- [ ] Scrolling to the top of the message list triggers loading the next page
-- [ ] Loading indicator shown while fetching older messages
-- [ ] No hard cap on how far back users can scroll
-- [ ] New messages still appear at the bottom in real-time
-- [ ] Scroll position maintained when older messages load (no jump)
-- [ ] No lint errors (`pnpm run lint`)
-- [ ] No type errors (`pnpm run typecheck`)
+- [x] Chat messages load in pages (e.g., 30 messages per page)
+- [x] Scrolling to the top of the message list triggers loading the next page
+- [x] Loading indicator shown while fetching older messages
+- [x] No hard cap on how far back users can scroll
+- [x] New messages still appear at the bottom in real-time
+- [x] Scroll position maintained when older messages load (no jump)
+- [x] No lint errors (`pnpm run lint`)
+- [x] No type errors (`pnpm run typecheck`)
