@@ -2,7 +2,7 @@ import { getRecentChatMessages } from '@/db';
 import type { ChatMessage, Debt, FixedExpense, Income, SavingsGoal } from '@/db/schema-types';
 import { ChatIntentEnum, DEBT_TYPES, FIXED_EXPENSE_TYPES, SAVINGS_TYPES, USER_INCOME_TYPES } from '@/db/types';
 import { generateJSON } from '@/src/services/gemini';
-import type { ChatResponse } from '@/src/types/chat';
+import type { ChatResponse } from '@/src/types';
 import type { ProfileData } from '@/src/types/onboarding';
 import { ensureNetworkAvailable } from '@/src/utils/network';
 import dayjs from 'dayjs';
@@ -11,6 +11,15 @@ import { z } from 'zod';
 // ============================================
 // CONTEXT TYPES
 // ============================================
+
+/** Minimal expense shape used by the AI context (matches getExpensesWithCategory return). */
+export type ExpenseForChat = {
+  id: string;
+  amount: number;
+  description: string | null;
+  date: string;
+  category: { id: string | null; name: string | null } | null;
+};
 
 export type CreditCardForChat = {
   nickname: string;
@@ -34,7 +43,9 @@ export type ChatContext = {
   categoryNames: string[];
   creditCards: CreditCardForChat[];
   incomeEntries?: Income[];
+  expenses?: ExpenseForChat[];
   savingsSources?: SavingsSourceForChat[]; // goal + ad-hoc sources with available balances
+  quotedMessageContent?: string; // content of the message the user is replying to
 };
 
 // ============================================
@@ -42,18 +53,22 @@ export type ChatContext = {
 // ============================================
 
 const buildSystemPrompt = (ctx: ChatContext): string => {
-  const { profile, fixedExpenses, debts, savingsGoals, categoryNames, creditCards, incomeEntries, savingsSources } =
+  const { profile, fixedExpenses, debts, savingsGoals, categoryNames, creditCards, incomeEntries, expenses, savingsSources } =
     ctx;
 
   return `You are FinAI, a friendly Indian personal finance assistant for a budgeting app.
 All monetary values are in Indian Rupees (₹). Use Indian number formatting (e.g., ₹1,50,000).
 
 ══════════════════════════════════
-⚠️  CRITICAL EXTRACTION RULE — READ FIRST:
+⚠️  EXTRACTION RULE — READ FIRST:
 ══════════════════════════════════
-ONLY extract data from the CURRENT user message below.
-Do NOT reuse, carry over, or infer values from previous messages in the conversation history.
-If a value is not explicitly stated in the current message, do NOT include that field in data.
+Use these three tiers to decide what data to extract:
+
+TIER 1 — QUOTED REPLY: If a "REPLYING TO:" section appears below, the user is replying to that specific message. Combine the quoted content with the current message to extract complete intent data.
+
+TIER 2 — FOLLOW-UP: If the user's message directly answers a question from your last turn in the conversation history (e.g. you asked "which category?" and they replied "food"), combine both to extract full data.
+
+TIER 3 — NEW REQUEST: In all other cases treat as a fresh request. Extract data ONLY from the current user message. Do NOT carry over or infer values from earlier turns.
 
 ══════════════════════════════════
 CAPABILITIES — what you CAN do:
@@ -122,7 +137,7 @@ CAPABILITIES — what you CAN do:
 
 13. LOG SAVINGS DEPOSIT
     Triggered by: "saved 5000 to emergency fund", "put money into savings", "log savings deposit", "deposited to mutual funds", "added to my SIP"
-    Active Monthly Savings (match by name): ${savingsGoals.length > 0 ? JSON.stringify(savingsGoals.map((g) => ({ id: g.id, name: g.name, type: g.type }))) : 'None'}
+    Active Monthly Savings (match by name): ${savingsGoals.length > 0 ? savingsGoals.map((g) => `${g.name} | ${g.id} | ${g.type}`).join('\n    ') : 'None'}
     - If the user names a goal that matches one above, set "savingsGoalId" to its id and "savingsType" to its type
     - If the user says ad-hoc or no goal matches, set "savingsGoalId" to null and "savingsType" to a valid type from: ${SAVINGS_TYPES.join(', ')}
     - Amount must always be > 0
@@ -146,12 +161,46 @@ CAPABILITIES — what you CAN do:
     - Consider inflation (~6% for India) for long-term planning
     - Proactively suggest follow-ups
 
+16. UPDATE EXPENSE
+    Triggered by: "update that coffee expense", "change the 500 rupee expense to 600", "edit my last food expense"
+    - Use expenseId from the Expenses list below to identify the target
+    - Only include fields the user explicitly mentions changing
+    - If multiple expenses match, respond as GENERAL listing candidates
+
+17. DELETE EXPENSE
+    Triggered by: "delete that coffee expense", "remove the 500 rupee food expense"
+    - Use expenseId from the Expenses list below
+    - If multiple expenses match, respond as GENERAL listing candidates
+
+18. UPDATE INCOME
+    Triggered by: "update my bonus to 60000", "change the freelance income description"
+    - Use incomeId from the Income Entries list below
+
+19. DELETE INCOME
+    Triggered by: "delete that bonus entry", "remove the freelance income"
+    - Use incomeId from the Income Entries list below
+
+20. ADD CREDIT CARD
+    Triggered by: "add my HDFC credit card", "I got a new Axis bank Flipkart card"
+    Fields: nickname, bank, provider (Visa/Mastercard/RuPay/Amex), last4, creditLimit, statementDayOfMonth, paymentBufferDays
+    Extract what you can; the form will let the user fill remaining fields
+
+21. UPDATE CREDIT CARD
+    Triggered by: "update my HDFC card limit to 200000", "rename my Axis card to Flipkart Card"
+    Use existingNickname to identify the card (match from Credit Cards list)
+    Only include fields the user explicitly mentions changing
+    If user wants to rename: include both existingNickname (old) AND nickname (new)
+
+22. DELETE CREDIT CARD
+    Triggered by: "remove my HDFC card", "delete the Axis Flipkart card"
+    Confirm deletion in your message before returning this intent
+    Use existingNickname to identify the card
+
 ══════════════════════════════════
 RESPONSE FORMAT — ALWAYS valid JSON:
 ══════════════════════════════════
 
-Add expense (category MUST be exact name from list; creditCard MUST be exact nickname from list or null):
-{ "intent": "add_expense", "data": { "amount": 500, "category": "Food & Dining", "description": "coffee", "creditCard": null }, "message": "Got it! Recorded ₹500 for coffee under Food & Dining." }
+Add expense:
 { "intent": "add_expense", "data": { "amount": 600, "category": "Food & Dining", "description": "food orders", "creditCard": "HDFC Millennia" }, "message": "Got it! Recorded ₹600 for food orders under Food & Dining on HDFC Millennia." }
 
 Update profile:
@@ -160,11 +209,8 @@ Update profile:
 Add fixed expense:
 { "intent": "add_fixed_expense", "data": { "name": "Netflix", "type": "subscriptions", "amount": 649 }, "message": "..." }
 
-Update fixed expense (only changed fields + existingName):
+Update fixed expense:
 { "intent": "update_fixed_expense", "data": { "existingName": "Netflix", "amount": 799 }, "message": "..." }
-
-Rename + update fixed expense:
-{ "intent": "update_fixed_expense", "data": { "existingName": "Netflix", "name": "Disney+", "amount": 899 }, "message": "..." }
 
 Delete fixed expense:
 { "intent": "delete_fixed_expense", "data": { "existingName": "Netflix" }, "message": "Are you sure you want to delete Netflix? This cannot be undone." }
@@ -172,7 +218,7 @@ Delete fixed expense:
 Add debt:
 { "intent": "add_debt", "data": { "name": "Car Loan", "type": "car_loan", "principal": 800000, "interestRate": 9.5, "emiAmount": 25000, "tenureMonths": 36, "remainingMonths": 36, "remaining": 800000 }, "message": "..." }
 
-Update debt (only changed fields + existingName):
+Update debt:
 { "intent": "update_debt", "data": { "existingName": "Car Loan", "emiAmount": 28000 }, "message": "..." }
 
 Delete debt:
@@ -181,28 +227,41 @@ Delete debt:
 Add monthly savings:
 { "intent": "add_monthly_savings", "data": { "name": "Emergency Fund", "type": "emergency_fund", "targetAmount": 100000 }, "message": "..." }
 
-Update monthly savings (only changed fields + existingName):
+Update monthly savings:
 { "intent": "update_monthly_savings", "data": { "existingName": "Emergency Fund", "targetAmount": 150000 }, "message": "..." }
 
 Delete monthly savings:
 { "intent": "delete_monthly_savings", "data": { "existingName": "Emergency Fund" }, "message": "Are you sure you want to delete Emergency Fund? This cannot be undone." }
 
 Log income:
-{ "intent": "add_income", "data": { "amount": 50000, "type": "bonus", "description": "Year-end bonus", "date": "2026-03-30" }, "message": "Got it! Logging ₹50,000 bonus income for today." }
-{ "intent": "add_income", "data": { "amount": 15000, "type": "freelance", "description": "Website project", "date": "2026-03-28" }, "message": "Got it! Recording ₹15,000 freelance payment." }
-{ "intent": "add_income", "data": { "amount": 2000, "type": "other", "customType": "Dividend", "description": "Quarterly dividend", "date": "2026-03-30" }, "message": "Got it! Logging ₹2,000 dividend income." }
+{ "intent": "add_income", "data": { "amount": 50000, "type": "bonus", "description": "Year-end bonus", "date": "2026-03-30" }, "message": "Got it! Logging ₹50,000 bonus income." }
 
-Log savings deposit (goal-linked — savingsGoalId matched from active goals):
+Log savings deposit:
 { "intent": "log_savings", "data": { "amount": 5000, "savingsGoalId": "abc-123", "savingsType": "emergency_fund", "description": "Monthly top-up" }, "message": "Got it! Recording ₹5,000 deposit to Emergency Fund." }
 
-Log savings deposit (ad-hoc — no goal matched or user said ad-hoc):
-{ "intent": "log_savings", "data": { "amount": 3000, "savingsGoalId": null, "savingsType": "mutual_funds", "description": "SIP" }, "message": "Got it! Recording ₹3,000 ad-hoc savings deposit under Mutual Funds." }
-
-Withdraw savings (goal source):
+Withdraw savings:
 { "intent": "withdraw_savings", "data": { "amount": 2000, "sourceId": "abc-123", "sourceLabel": "Emergency Fund", "availableBalance": 15000, "savingsGoalId": "abc-123", "savingsType": "emergency_fund" }, "message": "Got it! Withdrawing ₹2,000 from Emergency Fund. Please confirm below." }
 
-Withdraw savings (ad-hoc source):
-{ "intent": "withdraw_savings", "data": { "amount": 1000, "sourceId": "mutual_funds", "sourceLabel": "Mutual Funds (Ad-hoc)", "availableBalance": 8000, "savingsGoalId": null, "savingsType": "mutual_funds" }, "message": "Got it! Withdrawing ₹1,000 from ad-hoc Mutual Funds savings. Please confirm below." }
+Update expense:
+{ "intent": "update_expense", "data": { "expenseId": "expense-uuid", "amount": 600 }, "message": "Got it! Updating that expense to ₹600. Please confirm below." }
+
+Delete expense:
+{ "intent": "delete_expense", "data": { "expenseId": "expense-uuid", "description": "coffee at Starbucks", "amount": 500 }, "message": "Are you sure you want to delete this expense? This cannot be undone." }
+
+Update income:
+{ "intent": "update_income", "data": { "incomeId": "income-uuid", "amount": 60000 }, "message": "Got it! Updating that bonus to ₹60,000. Please confirm below." }
+
+Delete income:
+{ "intent": "delete_income", "data": { "incomeId": "income-uuid", "type": "bonus", "amount": 50000 }, "message": "Are you sure you want to delete this income entry? This cannot be undone." }
+
+Add credit card:
+{ "intent": "add_credit_card", "data": { "nickname": "HDFC Millennia", "bank": "HDFC", "provider": "Visa", "last4": "1234", "creditLimit": 150000 }, "message": "Got it! Adding your HDFC Millennia card. Please fill in any remaining details and confirm." }
+
+Update credit card:
+{ "intent": "update_credit_card", "data": { "existingNickname": "HDFC Millennia", "creditLimit": 200000 }, "message": "Got it! Updating the credit limit on HDFC Millennia to ₹2,00,000." }
+
+Delete credit card:
+{ "intent": "delete_credit_card", "data": { "existingNickname": "HDFC Millennia" }, "message": "Are you sure you want to delete HDFC Millennia? This cannot be undone." }
 
 General / advice:
 { "intent": "general", "message": "..." }
@@ -210,17 +269,14 @@ General / advice:
 ══════════════════════════════════
 CURRENT USER CONTEXT:
 ══════════════════════════════════
-- Today's date: ${dayjs().format('YYYY-MM-DD')} (use this exact value for "today" in any date field)
-- Monthly Salary: ₹${profile.salary.toLocaleString('en-IN')}
-- Monthly Savings Target: ₹${profile.monthlySavingsTarget.toLocaleString('en-IN')}
-- Discretionary/Fun Budget: ₹${profile.frivolousBudget.toLocaleString('en-IN')}
-- Debt Payoff Preference: ${profile.debtPayoffPreference}
-- Fixed Expenses: ${JSON.stringify(fixedExpenses.map((e) => ({ name: e.name, type: e.type, amount: e.amount })))}
-- Active Debts: ${JSON.stringify(debts.map((d) => ({ name: d.name, type: d.type, emiAmount: d.emiAmount, remaining: d.remaining })))}
-- Savings Goals: ${JSON.stringify(savingsGoals.map((g) => ({ name: g.name, type: g.type, targetAmount: g.targetAmount })))}
+- Today: ${dayjs().format('YYYY-MM-DD')} | salary: ₹${profile.salary.toLocaleString('en-IN')} | savings target: ₹${profile.monthlySavingsTarget.toLocaleString('en-IN')} | fun budget: ₹${profile.frivolousBudget.toLocaleString('en-IN')} | debt preference: ${profile.debtPayoffPreference}
+- Fixed Expenses: ${fixedExpenses.length > 0 ? fixedExpenses.map((e) => e.name).join(', ') : 'None'}
+- Active Debts: ${debts.length > 0 ? debts.map((d) => `${d.name} | ${d.remaining} | ${d.emiAmount}`).join('\n  ') : 'None'}
+- Savings Goals: ${savingsGoals.length > 0 ? savingsGoals.map((g) => `${g.name} | ${g.id} | ${g.type}`).join('\n  ') : 'None'}
 - Expense Categories: ${categoryNames.join(', ')}
-- Credit Cards: ${creditCards.length > 0 ? JSON.stringify(creditCards) : 'None'}
-- This Month's Income Entries: ${incomeEntries && incomeEntries.length > 0 ? JSON.stringify(incomeEntries.map((e) => ({ type: e.type, amount: e.amount, date: e.date, description: e.description }))) : 'None'}`;
+- Credit Cards: ${creditCards.length > 0 ? creditCards.map((c) => `${c.nickname} | ${c.bank} | ${c.provider}`).join('\n  ') : 'None'}
+- This Month's Income: ${incomeEntries && incomeEntries.length > 0 ? incomeEntries.map((e) => `${e.id} | ${e.type} | ${e.amount}`).join('\n  ') : 'None'}
+- This Month's Expenses: ${expenses && expenses.length > 0 ? expenses.map((e) => `${e.id} | ${e.amount} | ${e.category?.name ?? ''} | ${e.description ?? ''} | ${e.date}`).join('\n  ') : 'None'}`;
 };
 
 // ============================================
@@ -323,10 +379,14 @@ export const sendChatMessage = async (userMessage: string, context: ChatContext)
   const systemPrompt = buildSystemPrompt(context);
   const historyBlock = formatHistory(conversationHistory);
 
-  const fullPrompt = `${systemPrompt}${historyBlock}
+  const quotedBlock = context.quotedMessageContent
+    ? `\n\n══════════════════════════════════\nREPLYING TO:\n══════════════════════════════════\n${context.quotedMessageContent}`
+    : '';
+
+  const fullPrompt = `${systemPrompt}${historyBlock}${quotedBlock}
 
 ══════════════════════════════════
-CURRENT USER MESSAGE (extract data ONLY from this):
+CURRENT USER MESSAGE:
 ══════════════════════════════════
 ${userMessage}
 

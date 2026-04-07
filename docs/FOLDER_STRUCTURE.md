@@ -20,7 +20,7 @@ budgetmybs/
 │   ├── components/
 │   │   ├── ui/                   # B* primitives (BButton, BText, BView, etc.)
 │   │   ├── {feature}/            # Feature-scoped components (transaction/, dashboard/, chat/)
-│   │   ├── chat/                 # Chat components (ChatBubble, ChatHeader, ChatInput, InlineExpenseForm, InlineIncomeForm, InlineSavingsForm, InlineWithdrawalForm, InlineProfileUpdate, InlineDeleteConfirm)
+│   │   ├── chat/                 # Chat components (ChatBubble, ChatHeader, ChatInput, GenericInlineForm)
 │   │   ├── dashboard/            # Dashboard components (QuickActionsSection, QuickStatSheet, heroCard, ExtraIncomeSection, SavingsChecklistCard)
 │   │   ├── income/               # Income components (IncomeForm)
 │   │   ├── savings/              # Savings components (SavingsDepositForm, SavingsDepositTab, SavingsSummary, SavingsWithdrawalForm, SavingsWithdrawTab, SavingsGoalCard, AdHocSavingsAccordion, SavingsOverviewTab)
@@ -29,6 +29,10 @@ budgetmybs/
 │   │
 │   ├── hooks/                    # TanStack Query hooks
 │   │   ├── use{Domain}.ts        # One hook per domain (useExpenses, useProfile, useIncome, etc.)
+│   │   ├── useChatActionHandler.ts  # Generic registry action handler hook
+│   │   ├── useFormOptionSources.ts  # Aggregated picker option sources for generic form
+│   │   ├── useMutationMap.ts        # String-keyed map of all async mutation functions
+│   │   ├── queryKeys.ts          # Shared query keys (breaks circular deps between useExpenses/useCreditCards)
 │   │   ├── theme-hooks/          # Theme-related hooks
 │   │   └── index.ts              # Barrel exports with query keys
 │   │
@@ -42,12 +46,15 @@ budgetmybs/
 │   │   └── financialPlanService.ts
 │   │
 │   ├── types/                    # TypeScript type definitions
+│   │   ├── chatRegistry.ts       # Types for intent registry (IntentRegistryEntry, MutationMap, etc.)
 │   │   ├── income.ts             # IncomeEntryData type for income settings screen
 │   │   ├── {domain}.ts
 │   │   └── index.ts
 │   │
 │   ├── constants/
 │   │   ├── theme/                # Theme system (colors, spacing, variants, typography, layout)
+│   │   ├── chat.registry.strings.ts  # User-facing strings for registry-based generic forms
+│   │   ├── chatRegistry.config.ts    # Intent registry — declarative config for migrated intents
 │   │   ├── {feature}.strings.ts  # User-facing text
 │   │   ├── dashboard.strings.ts  # Strings for dashboard Quick Actions section
 │   │   ├── income.strings.ts     # Strings for income settings screen, income log form, all-income and income-detail screens

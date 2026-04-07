@@ -260,6 +260,13 @@ export const ChatActionTypeEnum = {
   ADD_INCOME: 'add_income',
   LOG_SAVINGS: 'log_savings',
   WITHDRAW_SAVINGS: 'withdraw_savings',
+  UPDATE_EXPENSE: 'update_expense',
+  DELETE_EXPENSE: 'delete_expense',
+  UPDATE_INCOME: 'update_income',
+  DELETE_INCOME: 'delete_income',
+  ADD_CREDIT_CARD: 'add_credit_card',
+  UPDATE_CREDIT_CARD: 'update_credit_card',
+  DELETE_CREDIT_CARD: 'delete_credit_card',
 } as const;
 export type ChatActionType = (typeof ChatActionTypeEnum)[keyof typeof ChatActionTypeEnum];
 export const CHAT_ACTION_TYPES = Object.values(ChatActionTypeEnum);
@@ -294,6 +301,13 @@ export const ChatIntentEnum = {
   ADD_INCOME: 'add_income',
   LOG_SAVINGS: 'log_savings',
   WITHDRAW_SAVINGS: 'withdraw_savings',
+  UPDATE_EXPENSE: 'update_expense',
+  DELETE_EXPENSE: 'delete_expense',
+  UPDATE_INCOME: 'update_income',
+  DELETE_INCOME: 'delete_income',
+  ADD_CREDIT_CARD: 'add_credit_card',
+  UPDATE_CREDIT_CARD: 'update_credit_card',
+  DELETE_CREDIT_CARD: 'delete_credit_card',
   GENERAL: 'general',
 } as const;
 export type ChatIntent = (typeof ChatIntentEnum)[keyof typeof ChatIntentEnum];

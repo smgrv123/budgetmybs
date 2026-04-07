@@ -1,5 +1,8 @@
-import { BButton, BIcon, BText, BView } from '@/src/components/ui';
-import type { BIconProps } from '@/src/components/ui/icon';
+import { default as BButton } from './button';
+import BIcon from './icon';
+import type { BIconProps } from './icon';
+import { default as BText } from './text';
+import { default as BView } from './view';
 import { ButtonVariant, SpacingValue, TextVariant } from '@/src/constants/theme';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { FC } from 'react';

@@ -136,5 +136,6 @@ export {
   getChatMessageById,
   getChatMessages,
   getRecentChatMessages,
+  replaceChatMessageContent,
   updateChatMessageAction,
 } from './chat';

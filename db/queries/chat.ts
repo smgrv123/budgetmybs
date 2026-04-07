@@ -6,7 +6,7 @@ import type { CreateChatMessageInput } from '../schema-types';
 import type { ChatActionStatus } from '../types';
 
 // ============================================
-// GET CHAT MESSAGES (paginated, oldest first — correct for FlatList rendering)
+// GET CHAT MESSAGES (paginated)
 // ============================================
 
 export const getChatMessages = async (limit = 50, offset = 0) => {
@@ -54,6 +54,20 @@ export const updateChatMessageAction = async (id: string, actionStatus: ChatActi
   const result = await db
     .update(chatMessagesTable)
     .set({ actionStatus })
+    .where(eq(chatMessagesTable.id, id))
+    .returning();
+  return result[0];
+};
+
+// ============================================
+// REPLACE CHAT MESSAGE CONTENT
+// Updates content + actionStatus in one write — used for the single-message pattern.
+// ============================================
+
+export const replaceChatMessageContent = async (id: string, content: string, actionStatus: ChatActionStatus) => {
+  const result = await db
+    .update(chatMessagesTable)
+    .set({ content, actionStatus })
     .where(eq(chatMessagesTable.id, id))
     .returning();
   return result[0];
