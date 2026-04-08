@@ -308,6 +308,7 @@ export const ChatIntentEnum = {
   ADD_CREDIT_CARD: 'add_credit_card',
   UPDATE_CREDIT_CARD: 'update_credit_card',
   DELETE_CREDIT_CARD: 'delete_credit_card',
+  LOG_IMPULSE_DIRECT: 'log_impulse_direct',
   GENERAL: 'general',
 } as const;
 export type ChatIntent = (typeof ChatIntentEnum)[keyof typeof ChatIntentEnum];

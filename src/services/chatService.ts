@@ -196,6 +196,12 @@ CAPABILITIES — what you CAN do:
     Confirm deletion in your message before returning this intent
     Use existingNickname to identify the card
 
+23. LOG IMPULSE PURCHASE (already made)
+    Triggered by PAST-TENSE impulse language: "I just impulse bought shoes for 2000", "bought this impulsively", "that was an impulse purchase", "couldn't resist buying X", "I gave in and bought X"
+    ⚠️  IMPORTANT: Use this intent ONLY when the user describes something they ALREADY purchased impulsively. Do NOT use this for future/hypothetical impulse buy tracking.
+    - For "category" use EXACTLY one name from the Expense Categories list below.
+    - For "creditCard" use EXACTLY the nickname from the Credit Cards list when the user mentions a card. Return null otherwise.
+
 ══════════════════════════════════
 RESPONSE FORMAT — ALWAYS valid JSON:
 ══════════════════════════════════
@@ -262,6 +268,9 @@ Update credit card:
 
 Delete credit card:
 { "intent": "delete_credit_card", "data": { "existingNickname": "HDFC Millennia" }, "message": "Are you sure you want to delete HDFC Millennia? This cannot be undone." }
+
+Log impulse purchase (already made, past tense):
+{ "intent": "log_impulse_direct", "data": { "amount": 2000, "category": "Shopping", "description": "shoes at Zara", "creditCard": null }, "message": "Logged! ₹2,000 impulse purchase recorded — that one's marked as an impulse buy." }
 
 General / advice:
 { "intent": "general", "message": "..." }

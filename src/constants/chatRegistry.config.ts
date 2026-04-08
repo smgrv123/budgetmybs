@@ -241,6 +241,104 @@ const addExpenseEntry: IntentRegistryEntry = {
   },
 };
 
+const logImpulseDirectEntry: IntentRegistryEntry = {
+  intent: ChatIntentEnum.LOG_IMPULSE_DIRECT,
+  title: CHAT_REGISTRY_STRINGS.LOG_IMPULSE_DIRECT_TITLE,
+  formType: 'default',
+  buttonVariant: ButtonVariant.PRIMARY,
+  submitLabel: CHAT_REGISTRY_STRINGS.LOG_IMPULSE_DIRECT_SUBMIT,
+
+  fields: [
+    {
+      key: ExpenseFieldKey.AMOUNT,
+      type: 'currency',
+      label: CHAT_REGISTRY_STRINGS.LOG_IMPULSE_DIRECT_AMOUNT_LABEL,
+      placeholder: CHAT_REGISTRY_STRINGS.LOG_IMPULSE_DIRECT_AMOUNT_PLACEHOLDER,
+      required: true,
+    },
+    {
+      key: ExpenseFieldKey.CATEGORY_ID,
+      type: 'picker',
+      label: CHAT_REGISTRY_STRINGS.LOG_IMPULSE_DIRECT_CATEGORY_LABEL,
+      optionsSource: 'categories',
+      modalTitle: CHAT_REGISTRY_STRINGS.LOG_IMPULSE_DIRECT_CATEGORY_MODAL_TITLE,
+      required: true,
+    },
+    {
+      key: ExpenseFieldKey.CREDIT_CARD_ID,
+      type: 'picker',
+      label: CHAT_REGISTRY_STRINGS.LOG_IMPULSE_DIRECT_CREDIT_CARD_LABEL,
+      optionsSource: 'creditCards',
+      modalTitle: CHAT_REGISTRY_STRINGS.LOG_IMPULSE_DIRECT_CREDIT_CARD_MODAL_TITLE,
+      pickerPlaceholder: CHAT_REGISTRY_STRINGS.LOG_IMPULSE_DIRECT_CREDIT_CARD_PLACEHOLDER,
+      required: false,
+    },
+    {
+      key: ExpenseFieldKey.DESCRIPTION,
+      type: 'text',
+      label: CHAT_REGISTRY_STRINGS.LOG_IMPULSE_DIRECT_DESCRIPTION_LABEL,
+      placeholder: CHAT_REGISTRY_STRINGS.LOG_IMPULSE_DIRECT_DESCRIPTION_PLACEHOLDER,
+      required: false,
+    },
+  ],
+
+  mutations: [
+    {
+      key: 'createExpense',
+      transformData: (formValues, _context) => ({
+        amount: parseFloat(formValues[ExpenseFieldKey.AMOUNT] ?? '0'),
+        categoryId: formValues[ExpenseFieldKey.CATEGORY_ID] || undefined,
+        description: formValues[ExpenseFieldKey.DESCRIPTION] || undefined,
+        wasImpulse: 1,
+        ...(formValues[ExpenseFieldKey.CREDIT_CARD_ID]
+          ? {
+              creditCardId: formValues[ExpenseFieldKey.CREDIT_CARD_ID],
+              creditCardTxnType: CreditCardTxnTypeEnum.PURCHASE,
+            }
+          : {}),
+      }),
+      errorLog: 'Failed to save impulse purchase:',
+    },
+  ],
+
+  messages: {
+    success: (formValues) =>
+      CHAT_REGISTRY_STRINGS.LOG_IMPULSE_DIRECT_SUCCESS(parseFloat(formValues[ExpenseFieldKey.AMOUNT] ?? '0')),
+    failure: CHAT_REGISTRY_STRINGS.LOG_IMPULSE_DIRECT_FAILURE,
+    cancelled: CHAT_REGISTRY_STRINGS.LOG_IMPULSE_DIRECT_CANCELLED,
+  },
+
+  invalidations: [EXPENSES_QUERY_KEY],
+
+  validate: validateWithSchema(
+    z.object({
+      [ExpenseFieldKey.AMOUNT]: z.coerce
+        .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED })
+        .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED }),
+      [ExpenseFieldKey.CATEGORY_ID]: z.string().min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_CATEGORY_REQUIRED }),
+    }).loose()
+  ),
+
+  getInitialValues: (actionData, context) => {
+    // Resolve AI-returned category name to its DB id
+    const categoryName = typeof actionData['category'] === 'string' ? actionData['category'] : '';
+    const matchedCategory = context.categories.find((c) => c.name.toLowerCase() === categoryName.toLowerCase());
+
+    // Resolve AI-returned credit card nickname to its DB id
+    const creditCardNickname = typeof actionData['creditCard'] === 'string' ? actionData['creditCard'] : '';
+    const matchedCard = creditCardNickname
+      ? context.creditCards.find((c) => c.nickname.toLowerCase() === creditCardNickname.toLowerCase())
+      : undefined;
+
+    return {
+      [ExpenseFieldKey.AMOUNT]: String(actionData['amount'] ?? ''),
+      [ExpenseFieldKey.CATEGORY_ID]: matchedCategory?.id ?? '',
+      [ExpenseFieldKey.CREDIT_CARD_ID]: matchedCard?.id ?? '',
+      [ExpenseFieldKey.DESCRIPTION]: typeof actionData['description'] === 'string' ? actionData['description'] : '',
+    };
+  },
+};
+
 const addIncomeEntry: IntentRegistryEntry = {
   intent: ChatIntentEnum.ADD_INCOME,
   title: CHAT_REGISTRY_STRINGS.ADD_INCOME_TITLE,
@@ -2057,6 +2155,7 @@ const deleteCreditCardEntry: IntentRegistryEntry = {
 
 export const INTENT_REGISTRY: Readonly<Record<string, IntentRegistryEntry>> = {
   [ChatIntentEnum.ADD_EXPENSE]: addExpenseEntry,
+  [ChatIntentEnum.LOG_IMPULSE_DIRECT]: logImpulseDirectEntry,
   [ChatIntentEnum.ADD_INCOME]: addIncomeEntry,
   [ChatIntentEnum.DELETE_FIXED_EXPENSE]: deleteFixedExpenseEntry,
   [ChatIntentEnum.UPDATE_PROFILE]: updateProfileEntry,

@@ -255,6 +255,19 @@ export const CHAT_REGISTRY_STRINGS = {
   DELETE_CREDIT_CARD_TITLE: 'Delete Credit Card',
   DELETE_CREDIT_CARD_SUBMIT: 'Delete',
 
+  // LOG_IMPULSE_DIRECT intent
+  LOG_IMPULSE_DIRECT_TITLE: 'Confirm Impulse Purchase',
+  LOG_IMPULSE_DIRECT_AMOUNT_LABEL: 'Amount (₹)',
+  LOG_IMPULSE_DIRECT_AMOUNT_PLACEHOLDER: '0',
+  LOG_IMPULSE_DIRECT_CATEGORY_LABEL: 'Category',
+  LOG_IMPULSE_DIRECT_CATEGORY_MODAL_TITLE: 'Select Category',
+  LOG_IMPULSE_DIRECT_CREDIT_CARD_LABEL: 'Credit Card (optional)',
+  LOG_IMPULSE_DIRECT_CREDIT_CARD_MODAL_TITLE: 'Select Card',
+  LOG_IMPULSE_DIRECT_CREDIT_CARD_PLACEHOLDER: 'None (cash)',
+  LOG_IMPULSE_DIRECT_DESCRIPTION_LABEL: 'Description (optional)',
+  LOG_IMPULSE_DIRECT_DESCRIPTION_PLACEHOLDER: 'e.g. shoes at Zara',
+  LOG_IMPULSE_DIRECT_SUBMIT: 'Log Impulse Purchase',
+
   // Credit card success/failure/cancelled messages
   ADD_CREDIT_CARD_SUCCESS: (nickname: string) => `Credit card "${nickname}" has been added.`,
   ADD_CREDIT_CARD_FAILURE: "Couldn't add the credit card. Please try again.",
@@ -267,6 +280,11 @@ export const CHAT_REGISTRY_STRINGS = {
   DELETE_CREDIT_CARD_SUCCESS: (nickname: string) => `${nickname} has been deleted.`,
   DELETE_CREDIT_CARD_FAILURE: "Couldn't delete the credit card. Please try again.",
   DELETE_CREDIT_CARD_CANCELLED: 'Deletion cancelled.',
+
+  LOG_IMPULSE_DIRECT_SUCCESS: (amount: number) =>
+    `Impulse purchase of ₹${amount.toLocaleString('en-IN')} logged successfully!`,
+  LOG_IMPULSE_DIRECT_FAILURE: "Couldn't save the impulse purchase. Please try again.",
+  LOG_IMPULSE_DIRECT_CANCELLED: 'Impulse purchase entry cancelled.',
 
   // Validation errors
 
@@ -324,6 +342,7 @@ export const INTENT_CATEGORY_MAP: Record<string, IntentCategory> = {
   add_credit_card: 'credit_card',
   update_credit_card: 'credit_card',
   delete_credit_card: 'credit_card',
+  log_impulse_direct: 'expense',
   general: 'general',
 };
 
