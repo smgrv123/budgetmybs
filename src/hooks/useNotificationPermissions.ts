@@ -6,6 +6,7 @@ import { Alert, Linking } from 'react-native';
 import {
   IMPULSE_NOTIFICATION_ACTION_CONFIRM,
   IMPULSE_NOTIFICATION_ACTION_SKIP,
+  IMPULSE_NOTIFICATION_ID_PREFIX,
 } from '@/src/constants/impulse.config';
 import { IMPULSE_STRINGS } from '@/src/constants/impulse.strings';
 import { getAllImpulsePurchases, removeImpulsePurchase } from '@/src/utils/impulseAsyncStore';
@@ -40,7 +41,7 @@ export const useNotificationPermissions = () => {
       const notificationIdentifier = response.notification.request.identifier;
 
       if (
-          === IMPULSE_NOTIFICATION_ACTION_CONFIRM ||
+        actionIdentifier === IMPULSE_NOTIFICATION_ACTION_CONFIRM ||
         actionIdentifier === IMPULSE_NOTIFICATION_ACTION_SKIP
       ) {
         const allPending = await getAllImpulsePurchases();
@@ -61,7 +62,17 @@ export const useNotificationPermissions = () => {
         }
       }
 
-      router.push('/dashboard');
+      // If the tapped notification is an impulse notification (body tap, not action button),
+      // navigate to the single-purchase confirm screen. Otherwise go to dashboard.
+      if (
+        actionIdentifier === Notifications.DEFAULT_ACTION_IDENTIFIER &&
+        notificationIdentifier.startsWith(IMPULSE_NOTIFICATION_ID_PREFIX)
+      ) {
+        const entryId = notificationIdentifier.slice(IMPULSE_NOTIFICATION_ID_PREFIX.length);
+        router.push(`/impulse-confirm?id=${entryId}`);
+      } else {
+        router.push('/dashboard');
+      }
     });
 
     return () => subscription.remove();

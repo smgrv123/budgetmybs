@@ -30,6 +30,7 @@ export {
 } from './useIncome';
 export { MONTHLY_BUDGET_QUERY_KEY, useMonthlyBudget } from './useMonthlyBudget';
 export { useMutationMap } from './useMutationMap';
+export { useExpiredImpulseCheck } from './useExpiredImpulseCheck';
 export { useImpulsePermission } from './useImpulsePermission';
 export { useNotificationPermissions } from './useNotificationPermissions';
 export { useNotificationScheduler } from './useNotificationScheduler';

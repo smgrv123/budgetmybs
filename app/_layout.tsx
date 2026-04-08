@@ -41,6 +41,7 @@ export default function RootLayout() {
               <Stack.Screen name="all-income" options={{ headerShown: false }} />
               <Stack.Screen name="income-detail" options={{ headerShown: false }} />
               <Stack.Screen name="savings" options={{ headerShown: false }} />
+              <Stack.Screen name="impulse-confirm" options={{ headerShown: false }} />
             </Stack>
             <StatusBar style="auto" />
           </ThemeProvider>

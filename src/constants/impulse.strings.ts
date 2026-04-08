@@ -66,4 +66,21 @@ export const IMPULSE_STRINGS = {
   savedOverrideLog: 'Logged impulse purchase directly to DB:',
   savePendingFailedLog: 'Failed to save pending impulse purchase:',
   scheduleNotificationFailedLog: 'Failed to schedule impulse notification:',
+
+  // Impulse Confirm Screen
+  confirmScreenTitle: 'Impulse Review',
+  confirmScreenEmptyTitle: 'Nothing to Review',
+  confirmScreenEmptyBody: 'All impulse purchases have been handled.',
+  confirmLabel: 'Confirm Purchase',
+  skipLabel: 'Skip (Delete)',
+  amountLabel: 'Amount',
+  descriptionLabel: 'Description',
+  categoryLabel: 'Category',
+  dateLabel: 'Date',
+  noDescription: 'No description',
+  noCategory: 'Uncategorized',
+  cooldownExpiredBadge: 'Cooldown expired',
+  confirmErrorLog: 'Failed to confirm impulse purchase:',
+  skipErrorLog: 'Failed to skip impulse purchase:',
+  loadingLabel: 'Loading...',
 } as const;

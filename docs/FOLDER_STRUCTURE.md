@@ -11,6 +11,7 @@ budgetmybs/
 │   ├── onboarding/               # Onboarding flow screens
 │   ├── settings/                 # Settings screens (fixed-expenses, debts, savings, credit-cards)
 │   ├── transaction-detail.tsx    # Modal screen
+│   ├── impulse-confirm.tsx       # Impulse Buy Cooldown — confirm/skip screen (single & list mode)
 │   ├── all-transactions.tsx      # Modal screen
 │   ├── all-income.tsx            # All income entries for the current month
 │   ├── income-detail.tsx         # Income entry detail (view/edit/delete)
@@ -32,7 +33,8 @@ budgetmybs/
 │   │   ├── use{Domain}.ts        # One hook per domain (useExpenses, useProfile, useIncome, etc.)
 │   │   ├── useChatActionHandler.ts  # Generic registry action handler hook
 │   │   ├── useFormOptionSources.ts  # Aggregated picker option sources for generic form
-│   │   ├── useImpulsePermission.ts  # Notification permission gating for Impulse Buy Cooldown feature
+│   │   ├── useExpiredImpulseCheck.ts # App-open hook: navigates to impulse-confirm if expired purchases exist
+│   ├── useImpulsePermission.ts  # Notification permission gating for Impulse Buy Cooldown feature
 │   │   ├── useMutationMap.ts        # String-keyed map of all async mutation functions
 │   │   ├── queryKeys.ts          # Shared query keys (breaks circular deps between useExpenses/useCreditCards)
 │   │   ├── theme-hooks/          # Theme-related hooks

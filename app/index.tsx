@@ -5,7 +5,7 @@ import { Alert, StyleSheet } from 'react-native';
 import { initializeCurrentMonth, processRecurringTransactions } from '@/db/queries';
 import { BIcon, BSafeAreaView, BText, BView } from '@/src/components';
 import { Spacing, TextVariant } from '@/src/constants/theme';
-import { useCategories, useProfile } from '@/src/hooks';
+import { useCategories, useExpiredImpulseCheck, useProfile } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 
 /**
@@ -17,6 +17,8 @@ export default function RootScreen() {
   const { profile, isProfileLoading } = useProfile();
   const { seedCategoryAsync } = useCategories();
   const themeColors = useThemeColors();
+
+  useExpiredImpulseCheck();
 
   useEffect(() => {
     const processOnAppLoad = async () => {
