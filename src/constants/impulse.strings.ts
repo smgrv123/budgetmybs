@@ -52,8 +52,18 @@ export const IMPULSE_STRINGS = {
   cooldownRequired: 'Please select a cooldown duration',
   customValueInvalid: 'Please enter a valid duration greater than 0',
 
+  // Notification content
+  notificationTitle: 'Still want to buy this?',
+  notificationBody: (description: string, amount: string) =>
+    `You marked "${description}" (${amount}) as an impulse buy. Confirm or skip logging it.`,
+  notificationBodyNoDescription: (amount: string) =>
+    `You marked an impulse purchase of ${amount}. Confirm or skip logging it.`,
+  notificationActionConfirm: 'Confirm',
+  notificationActionSkip: 'Skip',
+
   // Save confirmations (console logging)
   savedPendingLog: 'Saved impulse purchase to pending store:',
   savedOverrideLog: 'Logged impulse purchase directly to DB:',
   savePendingFailedLog: 'Failed to save pending impulse purchase:',
+  scheduleNotificationFailedLog: 'Failed to schedule impulse notification:',
 } as const;

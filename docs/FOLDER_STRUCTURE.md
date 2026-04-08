@@ -79,7 +79,7 @@ budgetmybs/
 │   │   ├── date.ts
 │   │   ├── format.ts
 │   │   ├── id.ts
-│   │   ├── impulseStore.ts       # AsyncStorage-backed store for pending impulse purchases (save/getAll/getExpired/remove)
+│   │   ├── impulseAsyncStore.ts  # AsyncStorage-backed store for pending impulse purchases (save/getAll/getExpired/remove/updateNotificationId)
 │   │   ├── network.ts
 │   │   └── normalize.ts
 │   │

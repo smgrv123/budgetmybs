@@ -61,3 +61,17 @@ export const removeImpulsePurchase = async (id: string): Promise<void> => {
   const updated = current.filter((entry) => entry.id !== id);
   await writeAll(updated);
 };
+
+/**
+ * Update the notificationId field for a pending impulse purchase.
+ * Called after a notification has been scheduled so the ID can be
+ * referenced for cancellation later.
+ */
+export const updateNotificationId = async (id: string, notificationId: string): Promise<void> => {
+  const current = await readAll();
+  const updated = current.map((entry) => {
+    if (entry.id !== id) return entry;
+    return { ...entry, notificationId };
+  });
+  await writeAll(updated);
+};

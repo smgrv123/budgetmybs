@@ -51,6 +51,20 @@ export const UNIT_OPTIONS: { label: string; value: CooldownUnitType }[] = [
 export const IMPULSE_PERMISSION_ASK_THRESHOLDS = [1, 3, 10];
 export const IMPULSE_PERMISSION_MAX_ASK_COUNT = 10;
 
+// ─── Notification category & action identifiers ───────────────────────────────
+
+/** Category identifier for impulse-reminder notifications */
+export const IMPULSE_NOTIFICATION_CATEGORY = 'impulse-reminder';
+
+/** Action identifier for the Confirm button in impulse-reminder notifications */
+export const IMPULSE_NOTIFICATION_ACTION_CONFIRM = 'impulse-confirm';
+
+/** Action identifier for the Skip button in impulse-reminder notifications */
+export const IMPULSE_NOTIFICATION_ACTION_SKIP = 'impulse-skip';
+
+/** Prefix used on impulse notification identifiers so they can be selectively preserved */
+export const IMPULSE_NOTIFICATION_ID_PREFIX = 'impulse-';
+
 export const toMinutes = (value: number, unit: CooldownUnitType): number => {
   switch (unit) {
     case CooldownUnit.HOURS:

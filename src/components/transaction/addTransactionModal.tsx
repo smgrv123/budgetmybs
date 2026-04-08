@@ -20,7 +20,8 @@ import type { CooldownPresetType, CooldownUnitType } from '@/src/types/impulse';
 import { TransactionFieldKey, TransactionFieldType, type TransactionFieldKeyValue } from '@/src/types/transaction';
 import { formatLocalDateToISO } from '@/src/utils/date';
 import { generateUUID } from '@/src/utils/id';
-import { saveImpulsePurchase } from '@/src/utils/impulseAsyncStore';
+import { saveImpulsePurchase, updateNotificationId } from '@/src/utils/impulseAsyncStore';
+import { scheduleImpulseNotification } from '@/src/services/notificationService';
 import dayjs from 'dayjs';
 import ImpulseCooldownSection from './ImpulseCooldownSection';
 import { createTransactionFields } from './transactionForm';
@@ -175,7 +176,7 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
     );
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const data = buildValidatedExpenseData();
     if (!data) return;
 
@@ -209,14 +210,26 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
         createdAt: now.toISOString(),
       };
 
-      saveImpulsePurchase(entry)
-        .then(() => {
-          console.log(IMPULSE_STRINGS.savedPendingLog, entry.id);
-          handleClose();
-        })
-        .catch((error: unknown) => {
-          console.error(IMPULSE_STRINGS.savePendingFailedLog, error);
-        });
+      try {
+        await saveImpulsePurchase(entry);
+        console.log(IMPULSE_STRINGS.savedPendingLog, entry.id);
+
+        try {
+          const notificationId = await scheduleImpulseNotification({
+            entryId: entry.id,
+            description: entry.purchaseData.description,
+            amount: entry.purchaseData.amount,
+            triggerDate: now.add(cooldownMinutes, 'minute').toDate(),
+          });
+          await updateNotificationId(entry.id, notificationId);
+        } catch (error: unknown) {
+          console.error(IMPULSE_STRINGS.scheduleNotificationFailedLog, error);
+        }
+
+        handleClose();
+      } catch (error: unknown) {
+        console.error(IMPULSE_STRINGS.savePendingFailedLog, error);
+      }
 
       return;
     }
