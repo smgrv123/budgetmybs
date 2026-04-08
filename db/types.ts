@@ -267,6 +267,8 @@ export const ChatActionTypeEnum = {
   ADD_CREDIT_CARD: 'add_credit_card',
   UPDATE_CREDIT_CARD: 'update_credit_card',
   DELETE_CREDIT_CARD: 'delete_credit_card',
+  LOG_IMPULSE_DIRECT: 'log_impulse_direct',
+  LOG_IMPULSE_COOLDOWN: 'log_impulse_cooldown',
 } as const;
 export type ChatActionType = (typeof ChatActionTypeEnum)[keyof typeof ChatActionTypeEnum];
 export const CHAT_ACTION_TYPES = Object.values(ChatActionTypeEnum);
@@ -309,6 +311,7 @@ export const ChatIntentEnum = {
   UPDATE_CREDIT_CARD: 'update_credit_card',
   DELETE_CREDIT_CARD: 'delete_credit_card',
   LOG_IMPULSE_DIRECT: 'log_impulse_direct',
+  LOG_IMPULSE_COOLDOWN: 'log_impulse_cooldown',
   GENERAL: 'general',
 } as const;
 export type ChatIntent = (typeof ChatIntentEnum)[keyof typeof ChatIntentEnum];

@@ -122,6 +122,14 @@ export const DeleteSavingsGoalFieldKey = {
 // Ad-hoc sentinel value for LOG_SAVINGS destination picker
 const ADHOC_VALUE = '__adhoc__';
 
+export const ImpulseCooldownFieldKey = {
+  AMOUNT: 'amount',
+  CATEGORY_ID: 'categoryId',
+  CREDIT_CARD_ID: 'creditCardId',
+  DESCRIPTION: 'description',
+  COOLDOWN_MINUTES: 'cooldownMinutes',
+} as const;
+
 export const LogSavingsFieldKey = {
   AMOUNT: 'amount',
   DESTINATION: 'destination',
@@ -335,6 +343,109 @@ const logImpulseDirectEntry: IntentRegistryEntry = {
       [ExpenseFieldKey.CATEGORY_ID]: matchedCategory?.id ?? '',
       [ExpenseFieldKey.CREDIT_CARD_ID]: matchedCard?.id ?? '',
       [ExpenseFieldKey.DESCRIPTION]: typeof actionData['description'] === 'string' ? actionData['description'] : '',
+    };
+  },
+};
+
+/**
+ * LOG_IMPULSE_COOLDOWN — present/future-tense impulse intent.
+ *
+ * The registry entry defines the form fields (same as add_expense + cooldownMinutes).
+ * The actual submit path (AsyncStorage + notification vs. direct DB write) is handled
+ * as a special case in useChatActionHandler, which calls useImpulsePermission.
+ * The mutations array is left empty because the handler bypasses the generic loop.
+ */
+const logImpulseCooldownEntry: IntentRegistryEntry = {
+  intent: ChatIntentEnum.LOG_IMPULSE_COOLDOWN,
+  title: CHAT_REGISTRY_STRINGS.LOG_IMPULSE_COOLDOWN_TITLE,
+  formType: 'default',
+  buttonVariant: ButtonVariant.PRIMARY,
+  submitLabel: CHAT_REGISTRY_STRINGS.LOG_IMPULSE_COOLDOWN_SUBMIT,
+
+  fields: [
+    {
+      key: ImpulseCooldownFieldKey.AMOUNT,
+      type: 'currency',
+      label: CHAT_REGISTRY_STRINGS.LOG_IMPULSE_COOLDOWN_AMOUNT_LABEL,
+      placeholder: CHAT_REGISTRY_STRINGS.LOG_IMPULSE_COOLDOWN_AMOUNT_PLACEHOLDER,
+      required: true,
+    },
+    {
+      key: ImpulseCooldownFieldKey.CATEGORY_ID,
+      type: 'picker',
+      label: CHAT_REGISTRY_STRINGS.LOG_IMPULSE_COOLDOWN_CATEGORY_LABEL,
+      optionsSource: 'categories',
+      modalTitle: CHAT_REGISTRY_STRINGS.LOG_IMPULSE_COOLDOWN_CATEGORY_MODAL_TITLE,
+      required: true,
+    },
+    {
+      key: ImpulseCooldownFieldKey.CREDIT_CARD_ID,
+      type: 'picker',
+      label: CHAT_REGISTRY_STRINGS.LOG_IMPULSE_COOLDOWN_CREDIT_CARD_LABEL,
+      optionsSource: 'creditCards',
+      modalTitle: CHAT_REGISTRY_STRINGS.LOG_IMPULSE_COOLDOWN_CREDIT_CARD_MODAL_TITLE,
+      pickerPlaceholder: CHAT_REGISTRY_STRINGS.LOG_IMPULSE_COOLDOWN_CREDIT_CARD_PLACEHOLDER,
+      required: false,
+    },
+    {
+      key: ImpulseCooldownFieldKey.DESCRIPTION,
+      type: 'text',
+      label: CHAT_REGISTRY_STRINGS.LOG_IMPULSE_COOLDOWN_DESCRIPTION_LABEL,
+      placeholder: CHAT_REGISTRY_STRINGS.LOG_IMPULSE_COOLDOWN_DESCRIPTION_PLACEHOLDER,
+      required: false,
+    },
+    {
+      key: ImpulseCooldownFieldKey.COOLDOWN_MINUTES,
+      type: 'number',
+      label: CHAT_REGISTRY_STRINGS.LOG_IMPULSE_COOLDOWN_MINUTES_LABEL,
+      placeholder: CHAT_REGISTRY_STRINGS.LOG_IMPULSE_COOLDOWN_MINUTES_PLACEHOLDER,
+      required: true,
+    },
+  ],
+
+  // mutations intentionally empty — useChatActionHandler handles this intent specially
+  mutations: [],
+
+  messages: {
+    success: (formValues) =>
+      CHAT_REGISTRY_STRINGS.LOG_IMPULSE_COOLDOWN_SUCCESS(parseFloat(formValues[ImpulseCooldownFieldKey.AMOUNT] ?? '0')),
+    failure: CHAT_REGISTRY_STRINGS.LOG_IMPULSE_COOLDOWN_FAILURE,
+    cancelled: CHAT_REGISTRY_STRINGS.LOG_IMPULSE_COOLDOWN_CANCELLED,
+  },
+
+  invalidations: [EXPENSES_QUERY_KEY],
+
+  validate: validateWithSchema(
+    z.object({
+      [ImpulseCooldownFieldKey.AMOUNT]: z.coerce
+        .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED })
+        .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED }),
+      [ImpulseCooldownFieldKey.CATEGORY_ID]: z.string().min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_CATEGORY_REQUIRED }),
+      [ImpulseCooldownFieldKey.COOLDOWN_MINUTES]: z.coerce
+        .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_COOLDOWN_MINUTES_REQUIRED })
+        .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_COOLDOWN_MINUTES_REQUIRED }),
+    }).loose()
+  ),
+
+  getInitialValues: (actionData, context) => {
+    const categoryName = typeof actionData['category'] === 'string' ? actionData['category'] : '';
+    const matchedCategory = context.categories.find((c) => c.name.toLowerCase() === categoryName.toLowerCase());
+
+    const creditCardNickname = typeof actionData['creditCard'] === 'string' ? actionData['creditCard'] : '';
+    const matchedCard = creditCardNickname
+      ? context.creditCards.find((c) => c.nickname.toLowerCase() === creditCardNickname.toLowerCase())
+      : undefined;
+
+    const rawMinutes = actionData['cooldownMinutes'];
+    const cooldownMinutes =
+      typeof rawMinutes === 'number' && rawMinutes > 0 ? String(Math.round(rawMinutes)) : '';
+
+    return {
+      [ImpulseCooldownFieldKey.AMOUNT]: String(actionData['amount'] ?? ''),
+      [ImpulseCooldownFieldKey.CATEGORY_ID]: matchedCategory?.id ?? '',
+      [ImpulseCooldownFieldKey.CREDIT_CARD_ID]: matchedCard?.id ?? '',
+      [ImpulseCooldownFieldKey.DESCRIPTION]: typeof actionData['description'] === 'string' ? actionData['description'] : '',
+      [ImpulseCooldownFieldKey.COOLDOWN_MINUTES]: cooldownMinutes,
     };
   },
 };
@@ -2156,6 +2267,7 @@ const deleteCreditCardEntry: IntentRegistryEntry = {
 export const INTENT_REGISTRY: Readonly<Record<string, IntentRegistryEntry>> = {
   [ChatIntentEnum.ADD_EXPENSE]: addExpenseEntry,
   [ChatIntentEnum.LOG_IMPULSE_DIRECT]: logImpulseDirectEntry,
+  [ChatIntentEnum.LOG_IMPULSE_COOLDOWN]: logImpulseCooldownEntry,
   [ChatIntentEnum.ADD_INCOME]: addIncomeEntry,
   [ChatIntentEnum.DELETE_FIXED_EXPENSE]: deleteFixedExpenseEntry,
   [ChatIntentEnum.UPDATE_PROFILE]: updateProfileEntry,

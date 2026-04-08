@@ -147,6 +147,14 @@ export type ChatDeleteCreditCardData = {
 // narrow with a switch/case using the same enum everywhere.
 // ============================================
 
+export type ChatImpulseCooldownData = {
+  amount: number;
+  category?: string;
+  description?: string;
+  creditCard?: string | null;
+  cooldownMinutes: number;
+};
+
 export type ChatResponse =
   | { intent: typeof ChatIntentEnum.ADD_EXPENSE; message: string; data: ChatExpenseData }
   | { intent: typeof ChatIntentEnum.UPDATE_PROFILE; message: string; data: ChatProfileUpdateData }
@@ -169,4 +177,6 @@ export type ChatResponse =
   | { intent: typeof ChatIntentEnum.ADD_CREDIT_CARD; message: string; data: ChatAddCreditCardData }
   | { intent: typeof ChatIntentEnum.UPDATE_CREDIT_CARD; message: string; data: ChatUpdateCreditCardData }
   | { intent: typeof ChatIntentEnum.DELETE_CREDIT_CARD; message: string; data: ChatDeleteCreditCardData }
+  | { intent: typeof ChatIntentEnum.LOG_IMPULSE_DIRECT; message: string; data: ChatExpenseData }
+  | { intent: typeof ChatIntentEnum.LOG_IMPULSE_COOLDOWN; message: string; data: ChatImpulseCooldownData }
   | { intent: typeof ChatIntentEnum.GENERAL; message: string; data?: undefined };

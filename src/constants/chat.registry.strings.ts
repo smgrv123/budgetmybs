@@ -286,6 +286,28 @@ export const CHAT_REGISTRY_STRINGS = {
   LOG_IMPULSE_DIRECT_FAILURE: "Couldn't save the impulse purchase. Please try again.",
   LOG_IMPULSE_DIRECT_CANCELLED: 'Impulse purchase entry cancelled.',
 
+  // LOG_IMPULSE_COOLDOWN intent
+  LOG_IMPULSE_COOLDOWN_TITLE: 'Impulse Buy Cooldown',
+  LOG_IMPULSE_COOLDOWN_AMOUNT_LABEL: 'Amount (₹)',
+  LOG_IMPULSE_COOLDOWN_AMOUNT_PLACEHOLDER: '0',
+  LOG_IMPULSE_COOLDOWN_CATEGORY_LABEL: 'Category',
+  LOG_IMPULSE_COOLDOWN_CATEGORY_MODAL_TITLE: 'Select Category',
+  LOG_IMPULSE_COOLDOWN_CREDIT_CARD_LABEL: 'Credit Card (optional)',
+  LOG_IMPULSE_COOLDOWN_CREDIT_CARD_MODAL_TITLE: 'Select Card',
+  LOG_IMPULSE_COOLDOWN_CREDIT_CARD_PLACEHOLDER: 'None (cash)',
+  LOG_IMPULSE_COOLDOWN_DESCRIPTION_LABEL: 'Description (optional)',
+  LOG_IMPULSE_COOLDOWN_DESCRIPTION_PLACEHOLDER: 'e.g. sneakers at Nike',
+  LOG_IMPULSE_COOLDOWN_MINUTES_LABEL: 'Cooldown Duration (minutes)',
+  LOG_IMPULSE_COOLDOWN_MINUTES_PLACEHOLDER: 'e.g. 120',
+  LOG_IMPULSE_COOLDOWN_SUBMIT: 'Start Cooldown',
+  LOG_IMPULSE_COOLDOWN_SUCCESS: (amount: number) =>
+    `Cooldown started for ₹${amount.toLocaleString('en-IN')} impulse purchase. You'll get a reminder when it expires.`,
+  LOG_IMPULSE_COOLDOWN_SUCCESS_NO_PERMISSION: (amount: number) =>
+    `Notifications are off — impulse purchase of ₹${amount.toLocaleString('en-IN')} logged directly.`,
+  LOG_IMPULSE_COOLDOWN_FAILURE: "Couldn't start the cooldown. Please try again.",
+  LOG_IMPULSE_COOLDOWN_CANCELLED: 'Impulse cooldown cancelled.',
+  VALIDATION_COOLDOWN_MINUTES_REQUIRED: 'Please enter a cooldown duration greater than 0.',
+
   // Validation errors
 
   VALIDATION_AMOUNT_REQUIRED: 'Please enter a valid amount greater than 0.',
@@ -343,6 +365,7 @@ export const INTENT_CATEGORY_MAP: Record<string, IntentCategory> = {
   update_credit_card: 'credit_card',
   delete_credit_card: 'credit_card',
   log_impulse_direct: 'expense',
+  log_impulse_cooldown: 'expense',
   general: 'general',
 };
 
