@@ -7,9 +7,13 @@ export const IMPULSE_STRINGS = {
   toggleLabel: 'Impulse Buy?',
   toggleDescription: 'Mark this as an impulse purchase and set a cooldown reminder.',
 
-  // Disclaimer shown when toggle is on
+  // Disclaimer shown when toggle is on (notifications granted)
   disclaimer:
     "This purchase will be held for your cooldown period. After the time is up, you'll receive a reminder to confirm or skip logging it.",
+
+  // Disclaimer shown when toggle is on but notifications are denied
+  disclaimerNotificationsDenied:
+    'Notifications are off. This purchase will be logged immediately with the impulse flag — no cooldown period will apply.',
 
   // Override link
   overrideLink: 'Already purchased? Log it now',
@@ -36,6 +40,13 @@ export const IMPULSE_STRINGS = {
     hours: 'Hours',
     days: 'Days',
   },
+
+  // Notification permission denied alert
+  permissionDeniedTitle: 'Notifications Disabled',
+  permissionDeniedMessage:
+    'To use the impulse cooldown reminder, please enable notifications for this app in your device settings.',
+  permissionDeniedOpenSettings: 'Open Settings',
+  permissionDeniedCancel: 'Not Now',
 
   // Errors
   cooldownRequired: 'Please select a cooldown duration',

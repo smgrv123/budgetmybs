@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ScrollView as ScrollViewType } from 'react-native';
 import { Alert, ScrollView, StyleSheet } from 'react-native';
 import { z } from 'zod';
@@ -14,7 +14,7 @@ import { ButtonVariant, Spacing, SpacingValue, TextVariant } from '@/src/constan
 import { TRANSACTION_TAB_CONFIGS } from '@/src/constants/transactionForm.config';
 import { TransactionTab } from '@/src/constants/transactionModal';
 import { ADD_TRANSACTION_STRINGS, TRANSACTION_VALIDATION_STRINGS } from '@/src/constants/transactions.strings';
-import { useCategories, useCreditCards, useExpenses } from '@/src/hooks';
+import { useCategories, useCreditCards, useExpenses, useImpulsePermission } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { CooldownPresetType, CooldownUnitType } from '@/src/types/impulse';
 import { TransactionFieldKey, TransactionFieldType, type TransactionFieldKeyValue } from '@/src/types/transaction';
@@ -51,6 +51,8 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
 
   // ─── Impulse state ──────────────────────────────────────────────────────────
   const [isImpulse, setIsImpulse] = useState(false);
+  // true when toggle was activated and notifications were denied — decided at toggle time, not submit time
+  const [impulseDirectMode, setImpulseDirectMode] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState<CooldownPresetType | null>(null);
   const [customValue, setCustomValue] = useState('');
   const [customUnit, setCustomUnit] = useState<CooldownUnitType>(CooldownUnit.MINUTES);
@@ -58,6 +60,14 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
   const { allCategories } = useCategories();
   const { creditCards } = useCreditCards();
   const { createExpense, isCreatingExpense } = useExpenses();
+  const { notificationsGranted, onImpulseToggleActivated } = useImpulsePermission();
+
+  // When the user returns from Settings with notifications now granted, clear direct mode
+  useEffect(() => {
+    if (isImpulse && notificationsGranted) {
+      setImpulseDirectMode(false);
+    }
+  }, [notificationsGranted, isImpulse]);
 
   const categoryOptions = allCategories.map((cat) => ({ label: cat.name, value: cat.id }));
 
@@ -94,12 +104,17 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
     }
   };
 
-  const handleToggleImpulse = (value: boolean) => {
+  const handleToggleImpulse = async (value: boolean) => {
     setIsImpulse(value);
     if (value) {
+      // Permission check happens here — mode is decided at toggle time, not submit time
+      const granted = await onImpulseToggleActivated();
+      setImpulseDirectMode(!granted);
       setTimeout(() => {
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }, 100);
+    } else {
+      setImpulseDirectMode(false);
     }
   };
 
@@ -165,6 +180,12 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
     if (!data) return;
 
     if (isImpulse) {
+      // Notifications denied at toggle time: log directly to DB with impulse flag
+      if (impulseDirectMode) {
+        saveToDatabase(true);
+        return;
+      }
+
       // Impulse path: validate cooldown, then save to AsyncStorage
       const cooldownMinutes = resolveCooldownMinutes();
       if (cooldownMinutes === null) {
@@ -219,6 +240,7 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
     setDescription('');
     setDate(formatLocalDateToISO(new Date()));
     setIsImpulse(false);
+    setImpulseDirectMode(false);
     setSelectedPreset(null);
     setCustomValue('');
     setCustomUnit(CooldownUnit.MINUTES);
@@ -282,6 +304,7 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
           customUnit={customUnit}
           onCustomUnitChange={setCustomUnit}
           onOverridePress={handleOverride}
+          notificationsDenied={impulseDirectMode}
         />
       </ScrollView>
 

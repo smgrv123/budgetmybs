@@ -33,38 +33,44 @@ The submit button text does NOT change. The disclaimer and override within it co
 
 ### Acceptance criteria
 
-- [ ] Impulse toggle appears in the add-transaction modal
-- [ ] Toggling on reveals: disclaimer text, timer preset chips, custom duration picker
-- [ ] Preset chips: 10 min, 30 min, 1 hr, 2 hr, 5 hr, 1 day — single select
-- [ ] Custom option opens a number + unit picker (minutes / hours / days)
-- [ ] Disclaimer explains that the purchase will be held and a reminder sent after the selected time
-- [ ] "Already purchased? Log it now" override saves to DB with `wasImpulse: 1` immediately
-- [ ] Non-override submit saves the pending purchase to AsyncStorage via the impulse store
-- [ ] Pending purchases survive app restarts (AsyncStorage persistence verified)
-- [ ] Impulse store exposes `save`, `getAll`, `getExpired`, `remove` interface
-- [ ] All strings in a constants file, all UI uses B* components and theme tokens
-- [ ] `pnpm run lint`, `pnpm run typecheck` pass
+- [x] Impulse toggle appears in the add-transaction modal
+- [x] Toggling on reveals: disclaimer text, timer preset chips, custom duration picker
+- [x] Preset chips: 10 min, 30 min, 1 hr, 2 hr, 5 hr, 1 day — single select
+- [x] Custom option opens a number + unit picker (minutes / hours / days)
+- [x] Disclaimer explains that the purchase will be held and a reminder sent after the selected time
+- [x] "Already purchased? Log it now" override saves to DB with `wasImpulse: 1` immediately
+- [x] Non-override submit saves the pending purchase to AsyncStorage via the impulse store
+- [x] Pending purchases survive app restarts (AsyncStorage persistence verified)
+- [x] Impulse store exposes `save`, `getAll`, `getExpired`, `remove` interface
+- [x] All strings in a constants file, all UI uses B* components and theme tokens
+- [x] `pnpm run lint`, `pnpm run typecheck` pass
 
 ---
 
 ## Phase 2A: Permission Gating + Timer Selection
 
-**User stories**: 12, 13, 14
+**User stories**: 12, 13, 14, 14a, 14b
 
 ### What to build
 
 Build a notification permission tracker backed by AsyncStorage that counts how many times the impulse toggle has been activated. On the 1st, 3rd, and 10th activation, prompt the user for notification permissions. After the 10th, never ask again.
 
-Wire this into the impulse toggle in the transaction modal: when the user flips the toggle on, check permissions and potentially prompt. If permissions are granted, proceed normally (disclaimer + timer UI). If denied, the toggle stays on but the disclaimer changes to a different warning explaining that notifications are off and the purchase will be logged directly with the impulse flag. In that case, submit writes to DB with `wasImpulse: 1` (no AsyncStorage, no notification).
+Wire this into the impulse toggle in the transaction modal: when the user flips the toggle on, check permissions and potentially prompt. If permissions are granted, proceed normally (disclaimer + timer UI). If denied, the toggle stays on but the disclaimer changes to a different warning explaining that notifications are off and the purchase will be logged directly with the impulse flag.
+
+The mode decision (cooldown vs. direct-log) is resolved at toggle time and stored in local state — submit reads this pre-computed state. When denied, the app shows an in-app alert with an "Open Settings" button that deep-links to system settings via `Linking.openSettings()`. An `AppState` listener re-checks permissions on foreground return and restores the normal flow automatically if the user has since granted permissions.
+
+All notification permission check/request logic lives in `useNotificationPermissions` and is consumed by `useImpulsePermission`.
 
 ### Acceptance criteria
 
-- [ ] Permission ask counter persisted in AsyncStorage
-- [ ] Permission prompt fires on the 1st, 3rd, and 10th impulse toggle activation, then never
-- [ ] If permission granted: normal impulse flow (disclaimer + timer + AsyncStorage)
-- [ ] If permission denied: toggle stays on, warning changes, submit logs directly to DB with `wasImpulse: 1`
-- [ ] Counter increments regardless of grant/deny outcome
-- [ ] `pnpm run lint`, `pnpm run typecheck` pass
+- [x] Permission ask counter persisted in AsyncStorage
+- [x] Permission prompt fires on the 1st, 3rd, and 10th impulse toggle activation, then never
+- [x] If permission granted: normal impulse flow (disclaimer + timer + AsyncStorage)
+- [x] If permission denied: in-app alert shown with "Open Settings" button that calls `Linking.openSettings()`
+- [x] Mode decision set at toggle time (`impulseDirectMode`); submit reads pre-computed mode, no re-check at submission
+- [x] `AppState` listener re-checks permissions on foreground return; if granted, denied warning clears automatically
+- [x] Counter increments regardless of grant/deny outcome
+- [x] `pnpm run lint`, `pnpm run typecheck` pass
 
 ---
 
@@ -175,7 +181,7 @@ Extend the chat impulse handling for present/future tense ("I want to buy", "I'm
 2. If not provided, the AI asks a follow-up question for the duration.
 3. Save to AsyncStorage via the impulse store and schedule a notification — same flow as the modal.
 
-Apply the same notification permission cadence (1st/3rd/10th) and fallback behavior (direct logging with warning when denied) as the modal path.
+Apply the same permission logic as the modal: cadence-based requesting (1st/3rd/10th), in-app alert with "Open Settings" deep-link when denied, `AppState`-based foreground re-check to restore the full flow automatically when the user later grants permissions.
 
 ### Acceptance criteria
 
@@ -183,7 +189,7 @@ Apply the same notification permission cadence (1st/3rd/10th) and fallback behav
 - [ ] Timer duration parsed from message when provided
 - [ ] AI asks follow-up for duration when not specified
 - [ ] Pending purchase saved to AsyncStorage + notification scheduled
-- [ ] Same permission cadence and denied-fallback as modal
+- [ ] Same permission cadence, denied alert (with "Open Settings"), and `AppState`-based foreground re-check as modal
 - [ ] `pnpm run lint`, `pnpm run typecheck` pass
 
 ---
@@ -194,13 +200,13 @@ Apply the same notification permission cadence (1st/3rd/10th) and fallback behav
 
 ### What to build
 
-Add an impulse purchase filter to the all-transactions screen. Extend the existing `ExpenseFilter` type to include an impulse flag. Add a corresponding option in the filter modal so users can filter to show only impulse purchases. The existing transaction detail impulse badge continues working as-is (no changes needed).
+Add an impulse purchase filter to the all-transactions screen. "Impulse" is added as a first-class option in `TRANSACTION_FILTER_TYPE_OPTIONS` alongside All / Expenses / Savings — no separate toggle. Extend `ExpenseFilterType` with an `IMPULSE` value. The existing transaction detail impulse badge continues working as-is (no changes needed).
 
 ### Acceptance criteria
 
-- [ ] `ExpenseFilter` type extended with impulse filter option
-- [ ] Filter modal includes an impulse purchase toggle/option
-- [ ] Filtering by impulse shows only transactions with `wasImpulse: 1`
-- [ ] Active filter chip displayed when impulse filter is active
-- [ ] Existing transaction detail impulse badge unaffected
-- [ ] `pnpm run lint`, `pnpm run typecheck` pass
+- [x] `ExpenseFilterType` extended with `IMPULSE` option
+- [x] "Impulse" chip added to the type filter row in the filter modal
+- [x] Filtering by Impulse shows only transactions with `wasImpulse: 1`
+- [x] Active filter chip displays "Impulse only" when the filter is active
+- [x] Existing transaction detail impulse badge unaffected
+- [x] `pnpm run lint`, `pnpm run typecheck` pass

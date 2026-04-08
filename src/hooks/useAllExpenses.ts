@@ -11,7 +11,8 @@ const PAGE_SIZE = 30;
 
 export const useAllExpenses = (filter: ExpenseFilter = DEFAULT_EXPENSE_FILTER) => {
   const isSavingParam =
-    filter.type === ExpenseFilterType.ALL ? undefined : filter.type === ExpenseFilterType.SAVING ? 1 : 0;
+    filter.type === ExpenseFilterType.SAVING ? 1 : filter.type === ExpenseFilterType.EXPENSE ? 0 : undefined;
+  const wasImpulseParam = filter.type === ExpenseFilterType.IMPULSE ? true : undefined;
 
   const query = useInfiniteQuery({
     queryKey: [...ALL_EXPENSES_QUERY_KEY, filter],
@@ -22,6 +23,7 @@ export const useAllExpenses = (filter: ExpenseFilter = DEFAULT_EXPENSE_FILTER) =
         startDate: filter.startDate || undefined,
         endDate: filter.endDate || undefined,
         isSaving: isSavingParam,
+        wasImpulse: wasImpulseParam,
         limit: PAGE_SIZE,
         offset: pageParam,
       }),
@@ -68,7 +70,7 @@ export const useAllExpenses = (filter: ExpenseFilter = DEFAULT_EXPENSE_FILTER) =
     filter.creditCardId !== null ||
     filter.startDate !== '' ||
     filter.endDate !== '' ||
-    filter.type !== 'all';
+    filter.type !== ExpenseFilterType.ALL;
 
   return {
     items,

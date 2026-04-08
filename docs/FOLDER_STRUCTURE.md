@@ -32,6 +32,7 @@ budgetmybs/
 │   │   ├── use{Domain}.ts        # One hook per domain (useExpenses, useProfile, useIncome, etc.)
 │   │   ├── useChatActionHandler.ts  # Generic registry action handler hook
 │   │   ├── useFormOptionSources.ts  # Aggregated picker option sources for generic form
+│   │   ├── useImpulsePermission.ts  # Notification permission gating for Impulse Buy Cooldown feature
 │   │   ├── useMutationMap.ts        # String-keyed map of all async mutation functions
 │   │   ├── queryKeys.ts          # Shared query keys (breaks circular deps between useExpenses/useCreditCards)
 │   │   ├── theme-hooks/          # Theme-related hooks

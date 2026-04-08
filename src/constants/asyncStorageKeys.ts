@@ -12,6 +12,8 @@ export const AsyncStorageKeys = {
   NOTIFICATION_LAST_COPY_PREFIX: 'notification_last_copy_',
   // Pending impulse purchases awaiting cooldown confirmation
   PENDING_IMPULSE_PURCHASES: 'pendingImpulsePurchases',
+  // Number of times the impulse toggle has been activated (used for permission ask gating)
+  IMPULSE_PERMISSION_ASK_COUNT: 'impulsePermissionAskCount',
 } as const;
 
 export type AsyncStorageKey = (typeof AsyncStorageKeys)[keyof typeof AsyncStorageKeys];

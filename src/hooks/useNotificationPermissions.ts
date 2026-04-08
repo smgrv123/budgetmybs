@@ -1,6 +1,9 @@
 import * as Notifications from 'expo-notifications';
 import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
+import { Alert, Linking } from 'react-native';
+
+import { IMPULSE_STRINGS } from '@/src/constants/impulse.strings';
 
 /**
  * Handles notification permission lifecycle on dashboard load.
@@ -32,4 +35,40 @@ export const useNotificationPermissions = () => {
 
     return () => subscription.remove();
   }, [router]);
+
+  /** Returns whether notification permissions are currently granted. */
+  const checkPermissions = async (): Promise<boolean> => {
+    const { status } = await Notifications.getPermissionsAsync();
+    return status === 'granted';
+  };
+
+  /**
+   * Requests notification permissions.
+   * - If undetermined: shows the OS system prompt.
+   * - If already denied: OS won't re-prompt — shows an in-app alert directing the user to Settings.
+   * Returns whether permissions are granted after the interaction.
+   */
+  const requestPermissions = async (): Promise<boolean> => {
+    const { status: current } = await Notifications.getPermissionsAsync();
+
+    if (current === 'denied') {
+      Alert.alert(
+        IMPULSE_STRINGS.permissionDeniedTitle,
+        IMPULSE_STRINGS.permissionDeniedMessage,
+        [
+          { text: IMPULSE_STRINGS.permissionDeniedCancel, style: 'cancel' },
+          {
+            text: IMPULSE_STRINGS.permissionDeniedOpenSettings,
+            onPress: () => Linking.openSettings(),
+          },
+        ]
+      );
+      return false;
+    }
+
+    const { status } = await Notifications.requestPermissionsAsync();
+    return status === 'granted';
+  };
+
+  return { checkPermissions, requestPermissions };
 };

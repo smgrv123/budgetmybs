@@ -44,6 +44,13 @@ export const UNIT_OPTIONS: { label: string; value: CooldownUnitType }[] = [
   { label: IMPULSE_STRINGS.customUnitLabels.days, value: CooldownUnit.DAYS },
 ];
 
+// ─── Permission ask thresholds ───────────────────────────────────────────────
+// The impulse toggle activation counts at which we prompt for notification permission.
+// After the 10th activation, we never ask again.
+
+export const IMPULSE_PERMISSION_ASK_THRESHOLDS = [1, 3, 10];
+export const IMPULSE_PERMISSION_MAX_ASK_COUNT = 10;
+
 export const toMinutes = (value: number, unit: CooldownUnitType): number => {
   switch (unit) {
     case CooldownUnit.HOURS:

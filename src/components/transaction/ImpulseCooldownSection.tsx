@@ -25,6 +25,12 @@ export type ImpulseCooldownSectionProps = {
   onCustomUnitChange: (unit: CooldownUnitType) => void;
   /** Called when the override link is pressed */
   onOverridePress: () => void;
+  /**
+   * When true, the user has denied notification permissions.
+   * The disclaimer changes to explain that the purchase will be logged directly,
+   * and the cooldown timer UI is hidden.
+   */
+  notificationsDenied?: boolean;
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -39,6 +45,7 @@ const ImpulseCooldownSection: FC<ImpulseCooldownSectionProps> = ({
   customUnit,
   onCustomUnitChange,
   onOverridePress,
+  notificationsDenied = false,
 }) => {
   const themeColors = useThemeColors();
 
@@ -60,7 +67,7 @@ const ImpulseCooldownSection: FC<ImpulseCooldownSectionProps> = ({
       {/* Expanded section — only shown when toggle is on */}
       {isImpulse && (
         <BView gap={SpacingValue.SM}>
-          {/* Disclaimer card */}
+          {/* Disclaimer card — changes based on notification permission state */}
           <BView
             padding={SpacingValue.SM}
             rounded="base"
@@ -70,82 +77,88 @@ const ImpulseCooldownSection: FC<ImpulseCooldownSectionProps> = ({
             ]}
           >
             <BText variant={TextVariant.CAPTION} color={themeColors.warning}>
-              {IMPULSE_STRINGS.disclaimer}
+              {notificationsDenied ? IMPULSE_STRINGS.disclaimerNotificationsDenied : IMPULSE_STRINGS.disclaimer}
             </BText>
-            <BButton
-              variant={ButtonVariant.GHOST}
-              onPress={onOverridePress}
-              paddingX={SpacingValue.NONE}
-              paddingY={SpacingValue.XS}
-              style={styles.overrideButton}
-            >
-              <BText variant={TextVariant.CAPTION} color={themeColors.primary} style={styles.overrideLinkText}>
-                {IMPULSE_STRINGS.overrideLink}
-              </BText>
-            </BButton>
+            {!notificationsDenied && (
+              <BButton
+                variant={ButtonVariant.GHOST}
+                onPress={onOverridePress}
+                paddingX={SpacingValue.NONE}
+                paddingY={SpacingValue.XS}
+                style={styles.overrideButton}
+              >
+                <BText variant={TextVariant.CAPTION} color={themeColors.primary} style={styles.overrideLinkText}>
+                  {IMPULSE_STRINGS.overrideLink}
+                </BText>
+              </BButton>
+            )}
           </BView>
 
-          {/* Timer preset chips */}
-          <BText variant={TextVariant.LABEL}>{IMPULSE_STRINGS.timerSectionLabel}</BText>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.presetRow}>
-            {PRESET_DEFINITIONS.map(({ preset, label }) => {
-              const isSelected = selectedPreset === preset;
-              return (
-                <BButton
-                  key={preset}
-                  onPress={() => onPresetChange(preset)}
-                  variant={isSelected ? ButtonVariant.PRIMARY : ButtonVariant.OUTLINE}
-                  paddingX={SpacingValue.SM}
-                  paddingY={SpacingValue.XS}
-                  style={styles.presetChip}
-                >
-                  <BText variant={TextVariant.CAPTION} color={isSelected ? themeColors.white : themeColors.primary}>
-                    {label}
-                  </BText>
-                </BButton>
-              );
-            })}
-          </ScrollView>
+          {/* Timer preset chips and custom picker — hidden when notifications denied */}
+          {!notificationsDenied && (
+            <BView gap={SpacingValue.SM}>
+              <BText variant={TextVariant.LABEL}>{IMPULSE_STRINGS.timerSectionLabel}</BText>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.presetRow}>
+                {PRESET_DEFINITIONS.map(({ preset, label }) => {
+                  const isSelected = selectedPreset === preset;
+                  return (
+                    <BButton
+                      key={preset}
+                      onPress={() => onPresetChange(preset)}
+                      variant={isSelected ? ButtonVariant.PRIMARY : ButtonVariant.OUTLINE}
+                      paddingX={SpacingValue.SM}
+                      paddingY={SpacingValue.XS}
+                      style={styles.presetChip}
+                    >
+                      <BText variant={TextVariant.CAPTION} color={isSelected ? themeColors.white : themeColors.primary}>
+                        {label}
+                      </BText>
+                    </BButton>
+                  );
+                })}
+              </ScrollView>
 
-          {/* Custom duration picker — only when CUSTOM preset selected */}
-          {selectedPreset === CooldownPreset.CUSTOM && (
-            <BView gap={SpacingValue.XS}>
-              <BText variant={TextVariant.LABEL}>{IMPULSE_STRINGS.customDurationLabel}</BText>
-              <BView row gap={SpacingValue.SM} align="center">
-                {/* Number input */}
-                <BView style={styles.customValueInput}>
-                  <BInput
-                    value={customValue}
-                    onChangeText={onCustomValueChange}
-                    placeholder={IMPULSE_STRINGS.customAmountPlaceholder}
-                    keyboardType="number-pad"
-                  />
-                </BView>
+              {/* Custom duration picker — only when CUSTOM preset selected */}
+              {selectedPreset === CooldownPreset.CUSTOM && (
+                <BView gap={SpacingValue.XS}>
+                  <BText variant={TextVariant.LABEL}>{IMPULSE_STRINGS.customDurationLabel}</BText>
+                  <BView row gap={SpacingValue.SM} align="center">
+                    {/* Number input */}
+                    <BView style={styles.customValueInput}>
+                      <BInput
+                        value={customValue}
+                        onChangeText={onCustomValueChange}
+                        placeholder={IMPULSE_STRINGS.customAmountPlaceholder}
+                        keyboardType="number-pad"
+                      />
+                    </BView>
 
-                {/* Unit selector chips */}
-                <BView row gap={SpacingValue.XS}>
-                  {UNIT_OPTIONS.map(({ label, value }) => {
-                    const isSelected = customUnit === value;
-                    return (
-                      <BButton
-                        key={value}
-                        onPress={() => onCustomUnitChange(value)}
-                        variant={isSelected ? ButtonVariant.PRIMARY : ButtonVariant.OUTLINE}
-                        paddingX={SpacingValue.SM}
-                        paddingY={SpacingValue.XS}
-                        style={styles.unitChip}
-                      >
-                        <BText
-                          variant={TextVariant.CAPTION}
-                          color={isSelected ? themeColors.white : themeColors.primary}
-                        >
-                          {label}
-                        </BText>
-                      </BButton>
-                    );
-                  })}
+                    {/* Unit selector chips */}
+                    <BView row gap={SpacingValue.XS}>
+                      {UNIT_OPTIONS.map(({ label, value }) => {
+                        const isSelected = customUnit === value;
+                        return (
+                          <BButton
+                            key={value}
+                            onPress={() => onCustomUnitChange(value)}
+                            variant={isSelected ? ButtonVariant.PRIMARY : ButtonVariant.OUTLINE}
+                            paddingX={SpacingValue.SM}
+                            paddingY={SpacingValue.XS}
+                            style={styles.unitChip}
+                          >
+                            <BText
+                              variant={TextVariant.CAPTION}
+                              color={isSelected ? themeColors.white : themeColors.primary}
+                            >
+                              {label}
+                            </BText>
+                          </BButton>
+                        );
+                      })}
+                    </BView>
+                  </BView>
                 </BView>
-              </BView>
+              )}
             </BView>
           )}
         </BView>

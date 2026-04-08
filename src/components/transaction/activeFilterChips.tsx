@@ -31,7 +31,9 @@ const ActiveFilterChips: FC<ActiveFilterChipsProps> = ({ filter, onUpdateFilter,
           label={
             filter.type === ExpenseFilterType.EXPENSE
               ? ALL_TRANSACTIONS_STRINGS.expensesOnlyChip
-              : ALL_TRANSACTIONS_STRINGS.savingsOnlyChip
+              : filter.type === ExpenseFilterType.SAVING
+                ? ALL_TRANSACTIONS_STRINGS.savingsOnlyChip
+                : ALL_TRANSACTIONS_STRINGS.impulseOnlyChip
           }
           onRemove={() => onUpdateFilter((f) => ({ ...f, type: ExpenseFilterType.ALL }))}
         />
