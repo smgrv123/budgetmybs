@@ -3,7 +3,13 @@ import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
 import { Alert, Linking } from 'react-native';
 
+import {
+  IMPULSE_NOTIFICATION_ACTION_CONFIRM,
+  IMPULSE_NOTIFICATION_ACTION_SKIP,
+} from '@/src/constants/impulse.config';
 import { IMPULSE_STRINGS } from '@/src/constants/impulse.strings';
+import { getAllImpulsePurchases, removeImpulsePurchase } from '@/src/utils/impulseAsyncStore';
+import { createExpense } from '@/db/queries/expenses';
 
 /**
  * Handles notification permission lifecycle on dashboard load.
@@ -29,7 +35,32 @@ export const useNotificationPermissions = () => {
   }, []);
 
   useEffect(() => {
-    const subscription = Notifications.addNotificationResponseReceivedListener(() => {
+    const subscription = Notifications.addNotificationResponseReceivedListener(async (response) => {
+      const actionIdentifier = response.actionIdentifier;
+      const notificationIdentifier = response.notification.request.identifier;
+
+      if (
+          === IMPULSE_NOTIFICATION_ACTION_CONFIRM ||
+        actionIdentifier === IMPULSE_NOTIFICATION_ACTION_SKIP
+      ) {
+        const allPending = await getAllImpulsePurchases();
+        const pending = allPending.find((entry) => entry.notificationId === notificationIdentifier);
+
+        if (pending) {
+          if (actionIdentifier === IMPULSE_NOTIFICATION_ACTION_CONFIRM) {
+            await createExpense({
+              amount: pending.purchaseData.amount,
+              categoryId: pending.purchaseData.categoryId,
+              description: pending.purchaseData.description,
+              creditCardId: pending.purchaseData.creditCardId,
+              date: pending.purchaseData.date,
+              wasImpulse: 1,
+            });
+          }
+          await removeImpulsePurchase(pending.id);
+        }
+      }
+
       router.push('/dashboard');
     });
 
