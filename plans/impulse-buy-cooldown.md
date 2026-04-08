@@ -86,12 +86,12 @@ When the user submits an impulse purchase with notifications enabled, schedule a
 
 ### Acceptance criteria
 
-- [ ] Notification category with Confirm and Skip actions registered at app startup
-- [ ] Impulse submit (with permissions) schedules a local notification at `now + selected cooldown`
-- [ ] Notification content includes purchase description and amount
-- [ ] Notification ID stored in AsyncStorage with the pending purchase entry
-- [ ] Notifications work on both iOS and Android
-- [ ] `pnpm run lint`, `pnpm run typecheck` pass
+- [x] Notification category with Confirm and Skip actions registered at app startup
+- [x] Impulse submit (with permissions) schedules a local notification at `now + selected cooldown`
+- [x] Notification content includes purchase description and amount
+- [x] Notification ID stored in AsyncStorage with the pending purchase entry
+- [x] Notifications work on both iOS and Android
+- [x] `pnpm run lint`, `pnpm run typecheck` pass
 
 ---
 
@@ -111,11 +111,11 @@ Wire the response handling into the existing notification response listener infr
 
 ### Acceptance criteria
 
-- [ ] Tapping Confirm on notification → expense created in DB with `wasImpulse: 1`, cleared from AsyncStorage
-- [ ] Tapping Skip on notification → cleared from AsyncStorage, no DB entry
-- [ ] Response handling integrates with the existing notification listener pattern
-- [ ] Edge case: if the pending purchase was already handled (e.g. via app-open check), gracefully no-op
-- [ ] `pnpm run lint`, `pnpm run typecheck` pass
+- [x] Tapping Confirm on notification → expense created in DB with `wasImpulse: 1`, cleared from AsyncStorage
+- [x] Tapping Skip on notification → cleared from AsyncStorage, no DB entry
+- [x] Response handling integrates with the existing notification listener pattern
+- [x] Edge case: if the pending purchase was already handled (e.g. via app-open check), gracefully no-op
+- [x] `pnpm run lint`, `pnpm run typecheck` pass
 
 ---
 
@@ -136,15 +136,15 @@ Update the notification body tap handler to navigate to this screen with the spe
 
 ### Acceptance criteria
 
-- [ ] New `impulse-confirm` screen exists and is navigable
-- [ ] Single-purchase mode: shows purchase details with Confirm and Skip buttons
-- [ ] List mode: shows all expired pending purchases, each with Confirm and Skip
-- [ ] Confirm → writes to DB with `wasImpulse: 1`, removes from AsyncStorage
-- [ ] Skip → removes from AsyncStorage
-- [ ] App-open hook detects expired pending purchases and navigates to list mode
-- [ ] Notification body tap navigates to single-purchase mode
-- [ ] Handles empty state gracefully (no expired purchases → no navigation)
-- [ ] `pnpm run lint`, `pnpm run typecheck` pass
+- [x] New `impulse-confirm` screen exists and is navigable
+- [x] Single-purchase mode: shows purchase details with Confirm and Skip buttons
+- [x] List mode: shows all expired pending purchases, each with Confirm and Skip
+- [x] Confirm → writes to DB with `wasImpulse: 1`, removes from AsyncStorage
+- [x] Skip → removes from AsyncStorage
+- [x] App-open hook detects expired pending purchases and navigates to list mode
+- [x] Notification body tap navigates to single-purchase mode
+- [x] Handles empty state gracefully (no expired purchases → no navigation)
+- [x] `pnpm run lint`, `pnpm run typecheck` pass
 
 ---
 
@@ -160,12 +160,12 @@ The AI system prompt must be updated to detect impulse intent from natural langu
 
 ### Acceptance criteria
 
-- [ ] New chat intent registered for direct impulse expense logging
-- [ ] AI detects past-tense impulse language and routes to this intent
-- [ ] Expense saved to DB with `wasImpulse: 1` via the existing mutation infrastructure
-- [ ] Same fields as normal expense intent (amount, category, description, credit card)
-- [ ] Follows existing registry pattern (fields, validation, mutations, invalidations)
-- [ ] `pnpm run lint`, `pnpm run typecheck` pass
+- [x] New chat intent registered for direct impulse expense logging
+- [x] AI detects past-tense impulse language and routes to this intent
+- [x] Expense saved to DB with `wasImpulse: 1` via the existing mutation infrastructure
+- [x] Same fields as normal expense intent (amount, category, description, credit card)
+- [x] Follows existing registry pattern (fields, validation, mutations, invalidations)
+- [x] `pnpm run lint`, `pnpm run typecheck` pass
 
 ---
 
@@ -185,12 +185,12 @@ Apply the same permission logic as the modal: cadence-based requesting (1st/3rd/
 
 ### Acceptance criteria
 
-- [ ] AI detects present/future tense impulse language and routes to cooldown flow
-- [ ] Timer duration parsed from message when provided
-- [ ] AI asks follow-up for duration when not specified
-- [ ] Pending purchase saved to AsyncStorage + notification scheduled
-- [ ] Same permission cadence, denied alert (with "Open Settings"), and `AppState`-based foreground re-check as modal
-- [ ] `pnpm run lint`, `pnpm run typecheck` pass
+- [x] AI detects present/future tense impulse language and routes to cooldown flow
+- [x] Timer duration parsed from message when provided
+- [x] AI asks follow-up for duration when not specified
+- [x] Pending purchase saved to AsyncStorage + notification scheduled
+- [x] Same permission cadence, denied alert (with "Open Settings"), and `AppState`-based foreground re-check as modal
+- [x] `pnpm run lint`, `pnpm run typecheck` pass
 
 ---
 
