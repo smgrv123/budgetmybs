@@ -11,6 +11,7 @@ budgetmybs/
 │   ├── onboarding/               # Onboarding flow screens
 │   ├── settings/                 # Settings screens (fixed-expenses, debts, savings, credit-cards)
 │   ├── transaction-detail.tsx    # Modal screen
+│   ├── impulse-confirm.tsx       # Impulse Buy Cooldown — confirm/skip screen (single & list mode)
 │   ├── all-transactions.tsx      # Modal screen
 │   ├── all-income.tsx            # All income entries for the current month
 │   ├── income-detail.tsx         # Income entry detail (view/edit/delete)
@@ -24,6 +25,7 @@ budgetmybs/
 │   │   ├── dashboard/            # Dashboard components (QuickActionsSection, QuickStatSheet, heroCard, ExtraIncomeSection, SavingsChecklistCard)
 │   │   ├── income/               # Income components (IncomeForm)
 │   │   ├── savings/              # Savings components (SavingsDepositForm, SavingsDepositTab, SavingsSummary, SavingsWithdrawalForm, SavingsWithdrawTab, SavingsGoalCard, AdHocSavingsAccordion, SavingsOverviewTab)
+│   │   ├── transaction/          # Transaction components (AddTransactionModal, ImpulseCooldownSection, TransactionCard, TransactionFilterModal)
 │   │   ├── {SharedName}.tsx      # Shared non-primitive components (used across features)
 │   │   └── index.ts              # Barrel exports
 │   │
@@ -31,6 +33,8 @@ budgetmybs/
 │   │   ├── use{Domain}.ts        # One hook per domain (useExpenses, useProfile, useIncome, etc.)
 │   │   ├── useChatActionHandler.ts  # Generic registry action handler hook
 │   │   ├── useFormOptionSources.ts  # Aggregated picker option sources for generic form
+│   │   ├── useExpiredImpulseCheck.ts # App-open hook: navigates to impulse-confirm if expired purchases exist
+│   ├── useImpulsePermission.ts  # Notification permission gating for Impulse Buy Cooldown feature
 │   │   ├── useMutationMap.ts        # String-keyed map of all async mutation functions
 │   │   ├── queryKeys.ts          # Shared query keys (breaks circular deps between useExpenses/useCreditCards)
 │   │   ├── theme-hooks/          # Theme-related hooks
@@ -47,6 +51,7 @@ budgetmybs/
 │   │
 │   ├── types/                    # TypeScript type definitions
 │   │   ├── chatRegistry.ts       # Types for intent registry (IntentRegistryEntry, MutationMap, etc.)
+│   │   ├── impulse.ts            # Types for Impulse Buy Cooldown (PendingImpulsePurchase, CooldownPreset, CooldownUnit)
 │   │   ├── income.ts             # IncomeEntryData type for income settings screen
 │   │   ├── {domain}.ts
 │   │   └── index.ts
@@ -57,12 +62,13 @@ budgetmybs/
 │   │   ├── chatRegistry.config.ts    # Intent registry — declarative config for migrated intents
 │   │   ├── {feature}.strings.ts  # User-facing text
 │   │   ├── dashboard.strings.ts  # Strings for dashboard Quick Actions section
+│   │   ├── impulse.strings.ts    # Strings for the Impulse Buy Cooldown feature
 │   │   ├── income.strings.ts     # Strings for income settings screen, income log form, all-income and income-detail screens
 │   │   ├── savings-deposit.strings.ts  # Strings for savings deposit form and summary
 │   │   ├── savings-icons.config.ts     # SavingsType → Ionicons icon name mapping
 │   │   ├── savings-screen.strings.ts   # Strings for the dedicated savings screen (header, tabs, overview)
 │   │   ├── {feature}.config.ts   # Structural configuration
-│   │   └── asyncStorageKeys.ts   # AsyncStorage key constants
+│   │   └── asyncStorageKeys.ts   # AsyncStorage key constants (includes PENDING_IMPULSE_PURCHASES)
 │   │
 │   ├── validation/               # Zod schemas
 │   │   ├── income.ts             # Zod schema for income log form
@@ -74,9 +80,10 @@ budgetmybs/
 │   │   ├── budget.ts
 │   │   ├── date.ts
 │   │   ├── format.ts
+│   │   ├── id.ts
+│   │   ├── impulseAsyncStore.ts  # AsyncStorage-backed store for pending impulse purchases (save/getAll/getExpired/remove/updateNotificationId)
 │   │   ├── network.ts
-│   │   ├── normalize.ts
-│   │   └── id.ts
+│   │   └── normalize.ts
 │   │
 │   └── config/
 │       └── env.ts                # Environment configuration

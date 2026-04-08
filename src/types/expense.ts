@@ -59,6 +59,7 @@ export const ExpenseFilterType = {
   ALL: 'all',
   EXPENSE: TransactionType.EXPENSE,
   SAVING: TransactionType.SAVING,
+  IMPULSE: 'impulse',
 } as const;
 export type ExpenseFilterTypeValue = (typeof ExpenseFilterType)[keyof typeof ExpenseFilterType];
 

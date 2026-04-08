@@ -9,26 +9,38 @@
  *  4. Sends success/failure chat message
  *  5. Marks action completed/cancelled
  *  6. Invalidates the relevant query keys
+ *
+ * Special case: LOG_IMPULSE_COOLDOWN bypasses the mutations loop and instead:
+ *  - Calls useImpulsePermission.onImpulseToggleActivated() to check/request permissions
+ *  - If granted: saves to AsyncStorage + schedules a notification
+ *  - If denied:  logs directly to DB with wasImpulse: 1
  */
-import { INTENT_REGISTRY } from '@/src/constants/chatRegistry.config';
+import { ImpulseCooldownFieldKey, INTENT_REGISTRY } from '@/src/constants/chatRegistry.config';
 import {
   CHAT_ACTION_MESSAGE_POOLS,
+  CHAT_REGISTRY_STRINGS,
   INTENT_CATEGORY_MAP,
   pickMessage,
 } from '@/src/constants/chat.registry.strings';
+import { ChatActionStatusEnum, ChatIntentEnum, CreditCardTxnTypeEnum } from '@/db/types';
+import { formatDate as formatDbDate } from '@/db/utils';
+import { scheduleImpulseNotification } from '@/src/services/notificationService';
+import { generateUUID } from '@/src/utils/id';
+import { saveImpulsePurchase, updateNotificationId } from '@/src/utils/impulseAsyncStore';
+import { useQueryClient } from '@tanstack/react-query';
+import dayjs from 'dayjs';
+import { useState } from 'react';
 import { useCategories } from './useCategories';
 import { useChat } from './useChat';
 import { useCreditCards } from './useCreditCards';
 import { useDebts } from './useDebts';
 import { useExpenses } from './useExpenses';
 import { useFixedExpenses } from './useFixedExpenses';
+import { useImpulsePermission } from './useImpulsePermission';
 import { useIncome } from './useIncome';
+import { useMutationMap } from './useMutationMap';
 import { useProfile } from './useProfile';
 import { useSavingsGoals } from './useSavingsGoals';
-import { useMutationMap } from './useMutationMap';
-import { ChatActionStatusEnum } from '@/db/types';
-import { useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -56,6 +68,9 @@ export const useChatActionHandler = (pendingAction: RegistryPendingAction | null
 
   const mutationMap = useMutationMap();
 
+  // Impulse permission — called unconditionally per hooks rules
+  const { onImpulseToggleActivated } = useImpulsePermission();
+
   const { replaceMessageAsync } = useChat();
 
   const handleConfirm = async (formValues: Record<string, string>) => {
@@ -76,6 +91,121 @@ export const useChatActionHandler = (pendingAction: RegistryPendingAction | null
       expenses,
       incomeEntries,
     };
+
+    // ── Special case: LOG_IMPULSE_COOLDOWN ────────────────────────────────────
+    // Bypasses the generic mutations loop. Uses useImpulsePermission to gate
+    // whether we save to AsyncStorage + schedule a notification, or log to DB directly.
+    if (pendingAction.intent === ChatIntentEnum.LOG_IMPULSE_COOLDOWN) {
+      const amount = parseFloat(formValues[ImpulseCooldownFieldKey.AMOUNT] ?? '0');
+      const categoryId = formValues[ImpulseCooldownFieldKey.CATEGORY_ID] ?? '';
+      const description = formValues[ImpulseCooldownFieldKey.DESCRIPTION]?.trim() || undefined;
+      const creditCardId = formValues[ImpulseCooldownFieldKey.CREDIT_CARD_ID] || undefined;
+      const cooldownMinutes = parseInt(formValues[ImpulseCooldownFieldKey.COOLDOWN_MINUTES] ?? '0', 10);
+
+      let impulseCooldownSucceeded = true;
+      let permissionsGranted = false;
+
+      try {
+        permissionsGranted = await onImpulseToggleActivated();
+      } catch (err) {
+        console.error('[useChatActionHandler] Failed to check impulse permissions:', err);
+        impulseCooldownSucceeded = false;
+      }
+
+      if (impulseCooldownSucceeded) {
+        if (permissionsGranted) {
+          // Save to AsyncStorage and schedule a notification
+          const entryId = generateUUID();
+          const now = dayjs();
+          const expiresAt = now.add(cooldownMinutes, 'minute').toISOString();
+          const date = formatDbDate(now.toDate());
+
+          try {
+            await saveImpulsePurchase({
+              id: entryId,
+              purchaseData: {
+                amount,
+                categoryId,
+                description,
+                creditCardId,
+                date,
+              },
+              cooldownMinutes,
+              expiresAt,
+              notificationId: null,
+              createdAt: now.toISOString(),
+            });
+
+            const triggerDate = dayjs(expiresAt).toDate();
+            const notificationId = await scheduleImpulseNotification({
+              entryId,
+              description,
+              amount,
+              triggerDate,
+            });
+
+            await updateNotificationId(entryId, notificationId);
+          } catch (err) {
+            console.error('[useChatActionHandler] Failed to save/schedule impulse cooldown:', err);
+            impulseCooldownSucceeded = false;
+          }
+        } else {
+          // Permissions denied — log directly to DB with wasImpulse: 1
+          const createExpenseMutation = mutationMap['createExpense'];
+          if (!createExpenseMutation) {
+            console.error('[useChatActionHandler] createExpense mutation not found in map');
+            impulseCooldownSucceeded = false;
+          } else {
+            try {
+              await createExpenseMutation({
+                amount,
+                categoryId,
+                description,
+                wasImpulse: 1,
+                ...(creditCardId ? { creditCardId, creditCardTxnType: CreditCardTxnTypeEnum.PURCHASE } : {}),
+              });
+            } catch (err) {
+              console.error('[useChatActionHandler] Failed to log impulse purchase directly:', err);
+              impulseCooldownSucceeded = false;
+            }
+          }
+        }
+      }
+
+      const category = INTENT_CATEGORY_MAP[pendingAction.intent] ?? 'general';
+
+      if (!impulseCooldownSucceeded) {
+        const failureMsg = pickMessage(CHAT_ACTION_MESSAGE_POOLS[category].failure);
+        await replaceMessageAsync({
+          id: pendingAction.messageId,
+          content: failureMsg,
+          actionStatus: ChatActionStatusEnum.CANCELLED,
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      for (const key of entry.invalidations) {
+        queryClient.invalidateQueries({ queryKey: key });
+      }
+
+      const successContent = permissionsGranted
+        ? CHAT_REGISTRY_STRINGS.LOG_IMPULSE_COOLDOWN_SUCCESS(amount)
+        : CHAT_REGISTRY_STRINGS.LOG_IMPULSE_COOLDOWN_SUCCESS_NO_PERMISSION(amount);
+
+      try {
+        await replaceMessageAsync({
+          id: pendingAction.messageId,
+          content: successContent,
+          actionStatus: ChatActionStatusEnum.COMPLETED,
+        });
+      } catch (err) {
+        console.error('[useChatActionHandler] Failed to replace message with cooldown success:', err);
+      }
+
+      setIsSubmitting(false);
+      return;
+    }
 
     // Run mutations sequentially; bail on first failure
     let allSucceeded = true;

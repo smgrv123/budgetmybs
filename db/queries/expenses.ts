@@ -454,6 +454,7 @@ export const getAllExpensesWithCategory = async (filter?: {
   startDate?: string;
   endDate?: string;
   isSaving?: number;
+  wasImpulse?: boolean;
   limit?: number;
   offset?: number;
 }) => {
@@ -494,7 +495,8 @@ export const getAllExpensesWithCategory = async (filter?: {
         filter?.creditCardId ? eq(expensesTable.creditCardId, filter.creditCardId) : undefined,
         filter?.startDate ? sql`${expensesTable.date} >= ${filter.startDate}` : undefined,
         filter?.endDate ? sql`${expensesTable.date} <= ${filter.endDate}` : undefined,
-        filter?.isSaving !== undefined ? eq(expensesTable.isSaving, filter.isSaving) : undefined
+        filter?.isSaving !== undefined ? eq(expensesTable.isSaving, filter.isSaving) : undefined,
+        filter?.wasImpulse === true ? eq(expensesTable.wasImpulse, 1) : undefined
       )
     )
     .orderBy(desc(expensesTable.date))

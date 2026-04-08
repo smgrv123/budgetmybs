@@ -1,6 +1,13 @@
 import dayjs from 'dayjs';
 import * as Notifications from 'expo-notifications';
 
+import {
+  IMPULSE_NOTIFICATION_ACTION_CONFIRM,
+  IMPULSE_NOTIFICATION_ACTION_SKIP,
+  IMPULSE_NOTIFICATION_CATEGORY,
+  IMPULSE_NOTIFICATION_ID_PREFIX,
+} from '@/src/constants/impulse.config';
+import { IMPULSE_STRINGS } from '@/src/constants/impulse.strings';
 import { NotificationScenario, type NotificationScenarioType } from '@/src/constants/notifications.strings';
 import { formatCurrency } from '@/src/utils/format';
 import {
@@ -10,6 +17,73 @@ import {
   pickNotificationCopy,
 } from '@/src/utils/notificationUtils';
 import type { CreditCard, Debt, FixedExpense } from '@/db/schema-types';
+
+// ============================================
+// IMPULSE NOTIFICATION CATEGORY
+// ============================================
+
+/**
+ * Register the `impulse-reminder` notification category with Confirm and Skip
+ * action buttons. Must be called once at app startup (root layout).
+ */
+export const registerImpulseNotificationCategory = async (): Promise<void> => {
+  await Notifications.setNotificationCategoryAsync(IMPULSE_NOTIFICATION_CATEGORY, [
+    {
+      identifier: IMPULSE_NOTIFICATION_ACTION_CONFIRM,
+      buttonTitle: IMPULSE_STRINGS.notificationActionConfirm,
+      options: { opensAppToForeground: true },
+    },
+    {
+      identifier: IMPULSE_NOTIFICATION_ACTION_SKIP,
+      buttonTitle: IMPULSE_STRINGS.notificationActionSkip,
+      options: { opensAppToForeground: false, isDestructive: true },
+    },
+  ]);
+};
+
+/**
+ * Schedule a local notification for a pending impulse purchase.
+ *
+ * Returns the notification identifier (string) so callers can store it
+ * alongside the pending entry for later cancellation.
+ *
+ * The identifier is prefixed with `impulse-` so `scheduleAllNotifications`
+ * can skip cancelling it.
+ */
+export const scheduleImpulseNotification = async ({
+  entryId,
+  description,
+  amount,
+  triggerDate,
+}: {
+  entryId: string;
+  description: string | undefined;
+  amount: number;
+  triggerDate: Date;
+}): Promise<string> => {
+  const formattedAmount = formatCurrency(amount);
+  const body = description
+    ? IMPULSE_STRINGS.notificationBody(description, formattedAmount)
+    : IMPULSE_STRINGS.notificationBodyNoDescription(formattedAmount);
+
+  const identifier = `${IMPULSE_NOTIFICATION_ID_PREFIX}${entryId}`;
+
+  await Notifications.scheduleNotificationAsync({
+    identifier,
+    content: {
+      title: IMPULSE_STRINGS.notificationTitle,
+      body,
+      sound: true,
+      categoryIdentifier: IMPULSE_NOTIFICATION_CATEGORY,
+    },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.DATE,
+      date: triggerDate,
+    },
+  });
+
+  return identifier;
+};
 
 // Show notifications as banners even when the app is in the foreground
 Notifications.setNotificationHandler({
@@ -79,15 +153,21 @@ export interface ScheduleNotificationsParams {
 }
 
 /**
- * Cancels all scheduled notifications and reschedules from scratch.
- * Called on app open and whenever relevant query data changes.
+ * Cancels all scheduled notifications except impulse-reminder ones, then
+ * reschedules from scratch. Impulse notifications have identifiers prefixed
+ * with `impulse-` and must survive this call so pending cooldowns are preserved.
  */
 export const scheduleAllNotifications = async ({
   fixedExpenses,
   debts,
   creditCards, // Phase 4
 }: ScheduleNotificationsParams): Promise<void> => {
-  await Notifications.cancelAllScheduledNotificationsAsync();
+  // Cancel only non-impulse notifications to preserve pending cooldown reminders
+  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+  const nonImpulseIds = scheduled
+    .map((n) => n.identifier)
+    .filter((id) => !id.startsWith(IMPULSE_NOTIFICATION_ID_PREFIX));
+  await Promise.all(nonImpulseIds.map((id) => Notifications.cancelScheduledNotificationAsync(id)));
 
   const today = dayjs();
 

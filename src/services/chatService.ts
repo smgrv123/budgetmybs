@@ -196,6 +196,22 @@ CAPABILITIES — what you CAN do:
     Confirm deletion in your message before returning this intent
     Use existingNickname to identify the card
 
+23. LOG IMPULSE PURCHASE (already made)
+    Triggered by PAST-TENSE impulse language: "I just impulse bought shoes for 2000", "bought this impulsively", "that was an impulse purchase", "couldn't resist buying X", "I gave in and bought X"
+    ⚠️  IMPORTANT: Use this intent ONLY when the user describes something they ALREADY purchased impulsively. Do NOT use this for future/hypothetical impulse buy tracking.
+    - For "category" use EXACTLY one name from the Expense Categories list below.
+    - For "creditCard" use EXACTLY the nickname from the Credit Cards list when the user mentions a card. Return null otherwise.
+
+24. IMPULSE BUY COOLDOWN (thinking about buying, future/present tense)
+    Triggered by PRESENT or FUTURE-TENSE impulse language: "I want to buy", "I'm tempted to get", "thinking about buying", "I'm about to buy", "I feel like buying", "should I buy", "considering buying", "I might buy"
+    ⚠️  IMPORTANT: Use this intent ONLY when the user is considering or wanting to buy something — NOT when they've already bought it. For past purchases, use intent 23 (log_impulse_direct) instead.
+    - Extract the same fields as add_expense: amount, category, description, creditCard.
+    - ALSO extract "cooldownMinutes" — the cooldown duration in MINUTES:
+      * Parse from the message if given: "remind me in 2 hours" → 120, "wait 30 minutes" → 30, "1 day" → 1440
+      * If not specified, set "cooldownMinutes" to 0 and ask the user in your "message" field how long they'd like the cooldown to be.
+    - For "category" use EXACTLY one name from the Expense Categories list below.
+    - For "creditCard" use EXACTLY the nickname from the Credit Cards list when the user mentions a card. Return null otherwise.
+
 ══════════════════════════════════
 RESPONSE FORMAT — ALWAYS valid JSON:
 ══════════════════════════════════
@@ -263,6 +279,12 @@ Update credit card:
 Delete credit card:
 { "intent": "delete_credit_card", "data": { "existingNickname": "HDFC Millennia" }, "message": "Are you sure you want to delete HDFC Millennia? This cannot be undone." }
 
+Log impulse purchase (already made, past tense):
+{ "intent": "log_impulse_direct", "data": { "amount": 2000, "category": "Shopping", "description": "shoes at Zara", "creditCard": null }, "message": "Logged! ₹2,000 impulse purchase recorded — that one's marked as an impulse buy." }
+
+Impulse buy cooldown (thinking about / want to buy, present/future tense):
+{ "intent": "log_impulse_cooldown", "data": { "amount": 3500, "category": "Shopping", "description": "sneakers at Nike", "creditCard": null, "cooldownMinutes": 120 }, "message": "Let's pause on that! Starting a 2-hour cooldown for ₹3,500 sneakers. I'll remind you when it's up — confirm the details below." }
+
 General / advice:
 { "intent": "general", "message": "..." }
 
@@ -326,6 +348,14 @@ const chatWithdrawalDataSchema = z.object({
   savingsType: z.enum(SAVINGS_TYPES as [string, ...string[]]).nullable(),
 });
 
+const chatImpulseCooldownDataSchema = z.object({
+  amount: z.number().positive(),
+  category: z.string().optional(),
+  description: z.string().optional(),
+  creditCard: z.string().nullable().optional(),
+  cooldownMinutes: z.number().min(0).default(0),
+});
+
 /**
  * Post-process the raw AI response. Validates intent-specific data through
  * Zod schemas and normalises fields (e.g. bad date strings → today's YYYY-MM-DD).
@@ -354,6 +384,13 @@ const normaliseResponse = (raw: ChatResponse): ChatResponse => {
     }
     // Log the violation but still return so the caller can show the form with a safe fallback
     console.warn('[chatService] withdraw_savings data failed schema validation:', parsed.error.flatten());
+  }
+  if (raw.intent === ChatIntentEnum.LOG_IMPULSE_COOLDOWN) {
+    const parsed = chatImpulseCooldownDataSchema.safeParse(raw.data);
+    if (parsed.success) {
+      return { ...raw, data: parsed.data } as ChatResponse;
+    }
+    console.warn('[chatService] log_impulse_cooldown data failed schema validation:', parsed.error.flatten());
   }
   return raw;
 };

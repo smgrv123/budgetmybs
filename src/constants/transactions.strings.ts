@@ -26,6 +26,7 @@ export const TRANSACTION_FILTER_TYPE_OPTIONS: readonly { label: string; value: E
   { label: 'All', value: ExpenseFilterType.ALL },
   { label: 'Expenses', value: ExpenseFilterType.EXPENSE },
   { label: 'Savings', value: ExpenseFilterType.SAVING },
+  { label: 'Impulse', value: ExpenseFilterType.IMPULSE },
 ] as const;
 
 export const ALL_TRANSACTIONS_STRINGS = {
@@ -50,6 +51,8 @@ export const ALL_TRANSACTIONS_STRINGS = {
   loadErrorBody: 'Something went wrong while fetching your data. Please try again.',
   expensesOnlyChip: 'Expenses only',
   savingsOnlyChip: 'Savings only',
+  impulseFilterLabel: 'Impulse Purchases',
+  impulseOnlyChip: 'Impulse only',
 } as const;
 
 export const TRANSACTION_DETAIL_STRINGS = {
