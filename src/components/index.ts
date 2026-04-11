@@ -17,6 +17,9 @@ export * from './transaction';
 // Re-export dashboard components from main components index
 export * from './dashboard';
 
+// Re-export Splitwise components
+export * from './splitwise';
+
 // Re-export onboarding components
 export * from './onboarding/BPlanLoadingView';
 

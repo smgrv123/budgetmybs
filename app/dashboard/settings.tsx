@@ -4,10 +4,11 @@ import SettingsAppearanceSection from '@/src/components/settings/appearance';
 import SettingsBudgetSection from '@/src/components/settings/budget';
 import SettingsFinancialSection from '@/src/components/settings/financial';
 import SettingsProfileSection from '@/src/components/settings/profile';
+import { SplitwiseConnectionCard } from '@/src/components/splitwise';
 import { BSafeAreaView, BText, BView } from '@/src/components/ui';
 import { createFinancialDataItems } from '@/src/constants/settings.config';
 import { SETTINGS_SCREEN_STRINGS } from '@/src/constants/settings.strings';
-import { Spacing } from '@/src/constants/theme';
+import { Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
 import { useCreditCards, useDebts, useFixedExpenses, useMonthlyBudget, useProfile, useSavingsGoals } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { BudgetValueKey, FinancialDataKey } from '@/src/types/settings';
@@ -72,6 +73,17 @@ export default function SettingsScreen() {
       key: 'budget',
       component: <SettingsBudgetSection values={values} />,
       rank: 3,
+      enabled: true,
+    },
+    {
+      key: 'integrations',
+      component: (
+        <BView gap={SpacingValue.SM}>
+          <BText variant={TextVariant.SUBHEADING}>{SETTINGS_SCREEN_STRINGS.integrationsTitle}</BText>
+          <SplitwiseConnectionCard />
+        </BView>
+      ),
+      rank: 4,
       enabled: true,
     },
   ];

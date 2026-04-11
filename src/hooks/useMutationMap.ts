@@ -14,6 +14,7 @@ import {
   useSavingsGoals,
   useProfile,
   useCreditCards,
+  useSplitwise,
 } from '@/src/hooks';
 import type { MutationMap } from '@/src/types';
 
@@ -25,6 +26,7 @@ export const useMutationMap = (): MutationMap => {
   const { createSavingsGoalAsync, updateSavingsGoalAsync, removeSavingsGoalAsync } = useSavingsGoals();
   const { upsertProfileAsync } = useProfile();
   const { createCreditCardAsync, updateCreditCardAsync, removeCreditCardAsync } = useCreditCards();
+  const { connectAsync, disconnectAsync } = useSplitwise();
 
   return {
     createExpense: createExpenseAsync,
@@ -46,5 +48,7 @@ export const useMutationMap = (): MutationMap => {
     createCreditCard: createCreditCardAsync,
     updateCreditCard: updateCreditCardAsync,
     removeCreditCard: removeCreditCardAsync,
+    connectSplitwise: connectAsync,
+    disconnectSplitwise: disconnectAsync,
   };
 };

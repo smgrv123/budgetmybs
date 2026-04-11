@@ -32,6 +32,7 @@ import type { IntentRegistryEntry } from '@/src/types/chatRegistry';
 import { CHAT_REGISTRY_STRINGS } from './chat.registry.strings';
 import { CHAT_PROFILE_FIELD_LABELS } from './chat';
 import { ButtonVariant } from './theme';
+import { SPLITWISE_STRINGS } from './splitwise.strings';
 import dayjs from 'dayjs';
 import { z } from 'zod';
 
@@ -221,12 +222,16 @@ const addExpenseEntry: IntentRegistryEntry = {
   invalidations: [EXPENSES_QUERY_KEY],
 
   validate: validateWithSchema(
-    z.object({
-      [ExpenseFieldKey.AMOUNT]: z.coerce
-        .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED })
-        .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED }),
-      [ExpenseFieldKey.CATEGORY_ID]: z.string().min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_CATEGORY_REQUIRED }),
-    }).loose()
+    z
+      .object({
+        [ExpenseFieldKey.AMOUNT]: z.coerce
+          .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED })
+          .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED }),
+        [ExpenseFieldKey.CATEGORY_ID]: z
+          .string()
+          .min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_CATEGORY_REQUIRED }),
+      })
+      .loose()
   ),
 
   getInitialValues: (actionData, context) => {
@@ -319,12 +324,16 @@ const logImpulseDirectEntry: IntentRegistryEntry = {
   invalidations: [EXPENSES_QUERY_KEY],
 
   validate: validateWithSchema(
-    z.object({
-      [ExpenseFieldKey.AMOUNT]: z.coerce
-        .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED })
-        .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED }),
-      [ExpenseFieldKey.CATEGORY_ID]: z.string().min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_CATEGORY_REQUIRED }),
-    }).loose()
+    z
+      .object({
+        [ExpenseFieldKey.AMOUNT]: z.coerce
+          .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED })
+          .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED }),
+        [ExpenseFieldKey.CATEGORY_ID]: z
+          .string()
+          .min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_CATEGORY_REQUIRED }),
+      })
+      .loose()
   ),
 
   getInitialValues: (actionData, context) => {
@@ -416,15 +425,19 @@ const logImpulseCooldownEntry: IntentRegistryEntry = {
   invalidations: [EXPENSES_QUERY_KEY],
 
   validate: validateWithSchema(
-    z.object({
-      [ImpulseCooldownFieldKey.AMOUNT]: z.coerce
-        .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED })
-        .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED }),
-      [ImpulseCooldownFieldKey.CATEGORY_ID]: z.string().min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_CATEGORY_REQUIRED }),
-      [ImpulseCooldownFieldKey.COOLDOWN_MINUTES]: z.coerce
-        .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_COOLDOWN_MINUTES_REQUIRED })
-        .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_COOLDOWN_MINUTES_REQUIRED }),
-    }).loose()
+    z
+      .object({
+        [ImpulseCooldownFieldKey.AMOUNT]: z.coerce
+          .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED })
+          .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED }),
+        [ImpulseCooldownFieldKey.CATEGORY_ID]: z
+          .string()
+          .min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_CATEGORY_REQUIRED }),
+        [ImpulseCooldownFieldKey.COOLDOWN_MINUTES]: z.coerce
+          .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_COOLDOWN_MINUTES_REQUIRED })
+          .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_COOLDOWN_MINUTES_REQUIRED }),
+      })
+      .loose()
   ),
 
   getInitialValues: (actionData, context) => {
@@ -437,14 +450,14 @@ const logImpulseCooldownEntry: IntentRegistryEntry = {
       : undefined;
 
     const rawMinutes = actionData['cooldownMinutes'];
-    const cooldownMinutes =
-      typeof rawMinutes === 'number' && rawMinutes > 0 ? String(Math.round(rawMinutes)) : '';
+    const cooldownMinutes = typeof rawMinutes === 'number' && rawMinutes > 0 ? String(Math.round(rawMinutes)) : '';
 
     return {
       [ImpulseCooldownFieldKey.AMOUNT]: String(actionData['amount'] ?? ''),
       [ImpulseCooldownFieldKey.CATEGORY_ID]: matchedCategory?.id ?? '',
       [ImpulseCooldownFieldKey.CREDIT_CARD_ID]: matchedCard?.id ?? '',
-      [ImpulseCooldownFieldKey.DESCRIPTION]: typeof actionData['description'] === 'string' ? actionData['description'] : '',
+      [ImpulseCooldownFieldKey.DESCRIPTION]:
+        typeof actionData['description'] === 'string' ? actionData['description'] : '',
       [ImpulseCooldownFieldKey.COOLDOWN_MINUTES]: cooldownMinutes,
     };
   },
@@ -523,19 +536,22 @@ const addIncomeEntry: IntentRegistryEntry = {
   invalidations: [INCOME_QUERY_KEY, MONTHLY_INCOME_SUM_QUERY_KEY],
 
   validate: validateWithSchema(
-    z.object({
-      [IncomeFieldKey.AMOUNT]: z.coerce
-        .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED })
-        .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED }),
-      [IncomeFieldKey.TYPE]: z.string().min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_INCOME_TYPE_REQUIRED }),
-      [IncomeFieldKey.CUSTOM_TYPE]: z.string().optional(),
-      [IncomeFieldKey.DATE]: z.string().refine(isISODateString, { message: CHAT_REGISTRY_STRINGS.VALIDATION_DATE_REQUIRED }),
-    })
-    .loose()
-    .refine(
-      (data) => data[IncomeFieldKey.TYPE] !== IncomeTypeEnum.OTHER || !!data[IncomeFieldKey.CUSTOM_TYPE]?.trim(),
-      { message: CHAT_REGISTRY_STRINGS.VALIDATION_CUSTOM_TYPE_REQUIRED, path: [IncomeFieldKey.CUSTOM_TYPE] }
-    )
+    z
+      .object({
+        [IncomeFieldKey.AMOUNT]: z.coerce
+          .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED })
+          .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED }),
+        [IncomeFieldKey.TYPE]: z.string().min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_INCOME_TYPE_REQUIRED }),
+        [IncomeFieldKey.CUSTOM_TYPE]: z.string().optional(),
+        [IncomeFieldKey.DATE]: z
+          .string()
+          .refine(isISODateString, { message: CHAT_REGISTRY_STRINGS.VALIDATION_DATE_REQUIRED }),
+      })
+      .loose()
+      .refine(
+        (data) => data[IncomeFieldKey.TYPE] !== IncomeTypeEnum.OTHER || !!data[IncomeFieldKey.CUSTOM_TYPE]?.trim(),
+        { message: CHAT_REGISTRY_STRINGS.VALIDATION_CUSTOM_TYPE_REQUIRED, path: [IncomeFieldKey.CUSTOM_TYPE] }
+      )
   ),
 
   getInitialValues: (actionData, _context) => {
@@ -598,9 +614,13 @@ const deleteFixedExpenseEntry: IntentRegistryEntry = {
   invalidations: [FIXED_EXPENSES_QUERY_KEY],
 
   validate: validateWithSchema(
-    z.object({
-      [DeleteFixedExpenseFieldKey.EXISTING_NAME]: z.string().min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_ITEM_NOT_FOUND('') }),
-    }).loose()
+    z
+      .object({
+        [DeleteFixedExpenseFieldKey.EXISTING_NAME]: z
+          .string()
+          .min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_ITEM_NOT_FOUND('') }),
+      })
+      .loose()
   ),
 
   getInitialValues: (actionData, _context) => ({
@@ -666,11 +686,13 @@ const updateProfileEntry: IntentRegistryEntry = {
   invalidations: [PROFILE_QUERY_KEY],
 
   validate: validateWithSchema(
-    z.object({
-      [ProfileUpdateFieldKey.VALUE]: z.coerce
-        .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_VALUE_REQUIRED })
-        .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_VALUE_REQUIRED }),
-    }).loose()
+    z
+      .object({
+        [ProfileUpdateFieldKey.VALUE]: z.coerce
+          .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_VALUE_REQUIRED })
+          .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_VALUE_REQUIRED }),
+      })
+      .loose()
   ),
 
   getInitialValues: (actionData, _context) => {
@@ -735,12 +757,16 @@ const addFixedExpenseEntry: IntentRegistryEntry = {
   invalidations: [FIXED_EXPENSES_QUERY_KEY],
 
   validate: validateWithSchema(
-    z.object({
-      [FixedExpenseRegistryFieldKey.NAME]: z.string().min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_NAME_REQUIRED }),
-      [FixedExpenseRegistryFieldKey.AMOUNT]: z.coerce
-        .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED })
-        .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED }),
-    }).loose()
+    z
+      .object({
+        [FixedExpenseRegistryFieldKey.NAME]: z
+          .string()
+          .min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_NAME_REQUIRED }),
+        [FixedExpenseRegistryFieldKey.AMOUNT]: z.coerce
+          .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED })
+          .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED }),
+      })
+      .loose()
   ),
 
   getInitialValues: (actionData, _context) => ({
@@ -815,19 +841,24 @@ const updateFixedExpenseEntry: IntentRegistryEntry = {
   invalidations: [FIXED_EXPENSES_QUERY_KEY],
 
   validate: validateWithSchema(
-    z.object({
-      [FixedExpenseRegistryFieldKey.NAME]: z.string().optional(),
-      [FixedExpenseRegistryFieldKey.AMOUNT]: z.string().optional(),
-    })
-    .loose()
-    .superRefine((data, ctx) => {
-      const hasName = !!data[FixedExpenseRegistryFieldKey.NAME]?.trim();
-      const amount = parseFloat(data[FixedExpenseRegistryFieldKey.AMOUNT] ?? '');
-      const hasAmount = !isNaN(amount) && amount > 0;
-      if (!hasName && !hasAmount) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: CHAT_REGISTRY_STRINGS.VALIDATION_NAME_REQUIRED, path: [FixedExpenseRegistryFieldKey.NAME] });
-      }
-    })
+    z
+      .object({
+        [FixedExpenseRegistryFieldKey.NAME]: z.string().optional(),
+        [FixedExpenseRegistryFieldKey.AMOUNT]: z.string().optional(),
+      })
+      .loose()
+      .superRefine((data, ctx) => {
+        const hasName = !!data[FixedExpenseRegistryFieldKey.NAME]?.trim();
+        const amount = parseFloat(data[FixedExpenseRegistryFieldKey.AMOUNT] ?? '');
+        const hasAmount = !isNaN(amount) && amount > 0;
+        if (!hasName && !hasAmount) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: CHAT_REGISTRY_STRINGS.VALIDATION_NAME_REQUIRED,
+            path: [FixedExpenseRegistryFieldKey.NAME],
+          });
+        }
+      })
   ),
 
   getInitialValues: (actionData, context) => {
@@ -926,22 +957,24 @@ const addDebtEntry: IntentRegistryEntry = {
   invalidations: [DEBTS_QUERY_KEY],
 
   validate: validateWithSchema(
-    z.object({
-      [DebtRegistryFieldKey.NAME]: z.string().min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_NAME_REQUIRED }),
-      [DebtRegistryFieldKey.PRINCIPAL]: z.coerce
-        .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_PRINCIPAL_REQUIRED })
-        .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_PRINCIPAL_REQUIRED }),
-      [DebtRegistryFieldKey.INTEREST_RATE]: z.coerce
-        .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_INTEREST_RATE_REQUIRED })
-        .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_INTEREST_RATE_REQUIRED }),
-      [DebtRegistryFieldKey.EMI_AMOUNT]: z.coerce
-        .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_EMI_REQUIRED })
-        .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_EMI_REQUIRED }),
-      [DebtRegistryFieldKey.TENURE_MONTHS]: z.coerce
-        .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_TENURE_REQUIRED })
-        .int()
-        .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_TENURE_REQUIRED }),
-    }).loose()
+    z
+      .object({
+        [DebtRegistryFieldKey.NAME]: z.string().min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_NAME_REQUIRED }),
+        [DebtRegistryFieldKey.PRINCIPAL]: z.coerce
+          .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_PRINCIPAL_REQUIRED })
+          .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_PRINCIPAL_REQUIRED }),
+        [DebtRegistryFieldKey.INTEREST_RATE]: z.coerce
+          .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_INTEREST_RATE_REQUIRED })
+          .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_INTEREST_RATE_REQUIRED }),
+        [DebtRegistryFieldKey.EMI_AMOUNT]: z.coerce
+          .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_EMI_REQUIRED })
+          .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_EMI_REQUIRED }),
+        [DebtRegistryFieldKey.TENURE_MONTHS]: z.coerce
+          .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_TENURE_REQUIRED })
+          .int()
+          .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_TENURE_REQUIRED }),
+      })
+      .loose()
   ),
 
   getInitialValues: (actionData, _context) => ({
@@ -1106,9 +1139,13 @@ const deleteDebtEntry: IntentRegistryEntry = {
   invalidations: [DEBTS_QUERY_KEY],
 
   validate: validateWithSchema(
-    z.object({
-      [DeleteDebtFieldKey.EXISTING_NAME]: z.string().min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_ITEM_NOT_FOUND('') }),
-    }).loose()
+    z
+      .object({
+        [DeleteDebtFieldKey.EXISTING_NAME]: z
+          .string()
+          .min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_ITEM_NOT_FOUND('') }),
+      })
+      .loose()
   ),
 
   getInitialValues: (actionData, _context) => ({
@@ -1167,12 +1204,16 @@ const addMonthlySavingsEntry: IntentRegistryEntry = {
   invalidations: [SAVINGS_GOALS_QUERY_KEY],
 
   validate: validateWithSchema(
-    z.object({
-      [SavingsGoalRegistryFieldKey.NAME]: z.string().min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_NAME_REQUIRED }),
-      [SavingsGoalRegistryFieldKey.TARGET_AMOUNT]: z.coerce
-        .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_TARGET_REQUIRED })
-        .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_TARGET_REQUIRED }),
-    }).loose()
+    z
+      .object({
+        [SavingsGoalRegistryFieldKey.NAME]: z
+          .string()
+          .min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_NAME_REQUIRED }),
+        [SavingsGoalRegistryFieldKey.TARGET_AMOUNT]: z.coerce
+          .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_TARGET_REQUIRED })
+          .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_TARGET_REQUIRED }),
+      })
+      .loose()
   ),
 
   getInitialValues: (actionData, _context) => ({
@@ -1301,9 +1342,13 @@ const deleteMonthlySavingsEntry: IntentRegistryEntry = {
   invalidations: [SAVINGS_GOALS_QUERY_KEY],
 
   validate: validateWithSchema(
-    z.object({
-      [DeleteSavingsGoalFieldKey.EXISTING_NAME]: z.string().min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_ITEM_NOT_FOUND('') }),
-    }).loose()
+    z
+      .object({
+        [DeleteSavingsGoalFieldKey.EXISTING_NAME]: z
+          .string()
+          .min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_ITEM_NOT_FOUND('') }),
+      })
+      .loose()
   ),
 
   getInitialValues: (actionData, _context) => ({
@@ -1407,19 +1452,26 @@ const logSavingsEntry: IntentRegistryEntry = {
   ],
 
   validate: validateWithSchema(
-    z.object({
-      [LogSavingsFieldKey.AMOUNT]: z.coerce
-        .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED })
-        .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED }),
-      [LogSavingsFieldKey.DESTINATION]: z.string().min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_DESTINATION_REQUIRED }),
-      [LogSavingsFieldKey.SAVINGS_TYPE]: z.string().optional(),
-    })
-    .loose()
-    .superRefine((data, ctx) => {
-      if (data[LogSavingsFieldKey.DESTINATION] === ADHOC_VALUE && !data[LogSavingsFieldKey.SAVINGS_TYPE]) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: CHAT_REGISTRY_STRINGS.VALIDATION_SAVINGS_TYPE_REQUIRED, path: [LogSavingsFieldKey.SAVINGS_TYPE] });
-      }
-    })
+    z
+      .object({
+        [LogSavingsFieldKey.AMOUNT]: z.coerce
+          .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED })
+          .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED }),
+        [LogSavingsFieldKey.DESTINATION]: z
+          .string()
+          .min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_DESTINATION_REQUIRED }),
+        [LogSavingsFieldKey.SAVINGS_TYPE]: z.string().optional(),
+      })
+      .loose()
+      .superRefine((data, ctx) => {
+        if (data[LogSavingsFieldKey.DESTINATION] === ADHOC_VALUE && !data[LogSavingsFieldKey.SAVINGS_TYPE]) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: CHAT_REGISTRY_STRINGS.VALIDATION_SAVINGS_TYPE_REQUIRED,
+            path: [LogSavingsFieldKey.SAVINGS_TYPE],
+          });
+        }
+      })
   ),
 
   getInitialValues: (actionData, context) => {
@@ -1528,20 +1580,25 @@ const withdrawSavingsEntry: IntentRegistryEntry = {
   ],
 
   validate: validateWithSchema(
-    z.object({
-      [WithdrawSavingsFieldKey.AMOUNT]: z.coerce
-        .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED })
-        .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED }),
-      [WithdrawSavingsFieldKey.AVAILABLE_BALANCE]: z.string().optional(),
-    })
-    .loose()
-    .superRefine((data, ctx) => {
-      const amount = parseFloat(String(data[WithdrawSavingsFieldKey.AMOUNT] ?? ''));
-      const availableBalance = parseFloat(data[WithdrawSavingsFieldKey.AVAILABLE_BALANCE] ?? '0');
-      if (!isNaN(amount) && !isNaN(availableBalance) && amount > availableBalance) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: CHAT_REGISTRY_STRINGS.VALIDATION_EXCEEDS_BALANCE, path: [WithdrawSavingsFieldKey.AMOUNT] });
-      }
-    })
+    z
+      .object({
+        [WithdrawSavingsFieldKey.AMOUNT]: z.coerce
+          .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED })
+          .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_AMOUNT_REQUIRED }),
+        [WithdrawSavingsFieldKey.AVAILABLE_BALANCE]: z.string().optional(),
+      })
+      .loose()
+      .superRefine((data, ctx) => {
+        const amount = parseFloat(String(data[WithdrawSavingsFieldKey.AMOUNT] ?? ''));
+        const availableBalance = parseFloat(data[WithdrawSavingsFieldKey.AVAILABLE_BALANCE] ?? '0');
+        if (!isNaN(amount) && !isNaN(availableBalance) && amount > availableBalance) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: CHAT_REGISTRY_STRINGS.VALIDATION_EXCEEDS_BALANCE,
+            path: [WithdrawSavingsFieldKey.AMOUNT],
+          });
+        }
+      })
   ),
 
   getInitialValues: (actionData, _context) => {
@@ -1667,9 +1724,7 @@ const updateExpenseEntry: IntentRegistryEntry = {
     const expenseId = typeof actionData['expenseId'] === 'string' ? actionData['expenseId'] : '';
     const existing = context.expenses?.find((e) => e.id === expenseId);
 
-    const rawDate = typeof actionData['date'] === 'string'
-      ? actionData['date']
-      : (existing?.date ?? '');
+    const rawDate = typeof actionData['date'] === 'string' ? actionData['date'] : (existing?.date ?? '');
 
     return {
       [UpdateExpenseFieldKey.EXPENSE_ID]: expenseId,
@@ -1738,8 +1793,7 @@ const deleteExpenseEntry: IntentRegistryEntry = {
 
   getInitialValues: (actionData, _context) => ({
     [DeleteExpenseFieldKey.EXPENSE_ID]: typeof actionData['expenseId'] === 'string' ? actionData['expenseId'] : '',
-    [DeleteExpenseFieldKey.DESCRIPTION]:
-      typeof actionData['description'] === 'string' ? actionData['description'] : '',
+    [DeleteExpenseFieldKey.DESCRIPTION]: typeof actionData['description'] === 'string' ? actionData['description'] : '',
     [DeleteExpenseFieldKey.AMOUNT]: String(actionData['amount'] ?? ''),
   }),
 };
@@ -1853,9 +1907,7 @@ const updateIncomeEntry: IntentRegistryEntry = {
     const rawType = typeof actionData['type'] === 'string' ? actionData['type'] : (existing?.type ?? '');
     const resolvedType = (USER_INCOME_TYPES as readonly string[]).includes(rawType) ? rawType : '';
 
-    const rawDate = typeof actionData['date'] === 'string'
-      ? actionData['date']
-      : (existing?.date ?? '');
+    const rawDate = typeof actionData['date'] === 'string' ? actionData['date'] : (existing?.date ?? '');
 
     return {
       [UpdateIncomeFieldKey.INCOME_ID]: incomeId,
@@ -2026,26 +2078,34 @@ const addCreditCardEntry: IntentRegistryEntry = {
   invalidations: [CREDIT_CARDS_QUERY_KEY],
 
   validate: validateWithSchema(
-    z.object({
-      [CreditCardRegistryFieldKey.NICKNAME]: z.string().min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_NICKNAME_REQUIRED }),
-      [CreditCardRegistryFieldKey.BANK]: z.string().min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_BANK_REQUIRED }),
-      [CreditCardRegistryFieldKey.PROVIDER]: z.string().min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_PROVIDER_REQUIRED }),
-      [CreditCardRegistryFieldKey.LAST4]: z
-        .string()
-        .regex(/^\d{4}$/, { message: CHAT_REGISTRY_STRINGS.VALIDATION_LAST4_REQUIRED }),
-      [CreditCardRegistryFieldKey.CREDIT_LIMIT]: z.coerce
-        .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_CREDIT_LIMIT_INVALID })
-        .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_CREDIT_LIMIT_INVALID }),
-      [CreditCardRegistryFieldKey.STATEMENT_DAY]: z.coerce
-        .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_STATEMENT_DAY_INVALID })
-        .int()
-        .min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_STATEMENT_DAY_INVALID })
-        .max(31, { message: CHAT_REGISTRY_STRINGS.VALIDATION_STATEMENT_DAY_INVALID }),
-      [CreditCardRegistryFieldKey.BUFFER_DAYS]: z.coerce
-        .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_BUFFER_DAYS_INVALID })
-        .int()
-        .min(0, { message: CHAT_REGISTRY_STRINGS.VALIDATION_BUFFER_DAYS_INVALID }),
-    }).loose()
+    z
+      .object({
+        [CreditCardRegistryFieldKey.NICKNAME]: z
+          .string()
+          .min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_NICKNAME_REQUIRED }),
+        [CreditCardRegistryFieldKey.BANK]: z
+          .string()
+          .min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_BANK_REQUIRED }),
+        [CreditCardRegistryFieldKey.PROVIDER]: z
+          .string()
+          .min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_PROVIDER_REQUIRED }),
+        [CreditCardRegistryFieldKey.LAST4]: z
+          .string()
+          .regex(/^\d{4}$/, { message: CHAT_REGISTRY_STRINGS.VALIDATION_LAST4_REQUIRED }),
+        [CreditCardRegistryFieldKey.CREDIT_LIMIT]: z.coerce
+          .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_CREDIT_LIMIT_INVALID })
+          .positive({ message: CHAT_REGISTRY_STRINGS.VALIDATION_CREDIT_LIMIT_INVALID }),
+        [CreditCardRegistryFieldKey.STATEMENT_DAY]: z.coerce
+          .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_STATEMENT_DAY_INVALID })
+          .int()
+          .min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_STATEMENT_DAY_INVALID })
+          .max(31, { message: CHAT_REGISTRY_STRINGS.VALIDATION_STATEMENT_DAY_INVALID }),
+        [CreditCardRegistryFieldKey.BUFFER_DAYS]: z.coerce
+          .number({ error: CHAT_REGISTRY_STRINGS.VALIDATION_BUFFER_DAYS_INVALID })
+          .int()
+          .min(0, { message: CHAT_REGISTRY_STRINGS.VALIDATION_BUFFER_DAYS_INVALID }),
+      })
+      .loose()
   ),
 
   getInitialValues: (actionData, _context) => ({
@@ -2165,7 +2225,9 @@ const updateCreditCardEntry: IntentRegistryEntry = {
   messages: {
     success: (formValues) =>
       CHAT_REGISTRY_STRINGS.UPDATE_CREDIT_CARD_SUCCESS(
-        formValues[CreditCardRegistryFieldKey.NICKNAME] || formValues[CreditCardRegistryFieldKey.EXISTING_NICKNAME] || ''
+        formValues[CreditCardRegistryFieldKey.NICKNAME] ||
+          formValues[CreditCardRegistryFieldKey.EXISTING_NICKNAME] ||
+          ''
       ),
     failure: CHAT_REGISTRY_STRINGS.UPDATE_CREDIT_CARD_FAILURE,
     cancelled: CHAT_REGISTRY_STRINGS.UPDATE_CREDIT_CARD_CANCELLED,
@@ -2237,9 +2299,7 @@ const deleteCreditCardEntry: IntentRegistryEntry = {
 
   messages: {
     success: (formValues) =>
-      CHAT_REGISTRY_STRINGS.DELETE_CREDIT_CARD_SUCCESS(
-        formValues[CreditCardRegistryFieldKey.EXISTING_NICKNAME] ?? ''
-      ),
+      CHAT_REGISTRY_STRINGS.DELETE_CREDIT_CARD_SUCCESS(formValues[CreditCardRegistryFieldKey.EXISTING_NICKNAME] ?? ''),
     failure: CHAT_REGISTRY_STRINGS.DELETE_CREDIT_CARD_FAILURE,
     cancelled: CHAT_REGISTRY_STRINGS.DELETE_CREDIT_CARD_CANCELLED,
   },
@@ -2247,17 +2307,59 @@ const deleteCreditCardEntry: IntentRegistryEntry = {
   invalidations: [CREDIT_CARDS_QUERY_KEY],
 
   validate: validateWithSchema(
-    z.object({
-      [CreditCardRegistryFieldKey.EXISTING_NICKNAME]: z
-        .string()
-        .min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_ITEM_NOT_FOUND('') }),
-    }).loose()
+    z
+      .object({
+        [CreditCardRegistryFieldKey.EXISTING_NICKNAME]: z
+          .string()
+          .min(1, { message: CHAT_REGISTRY_STRINGS.VALIDATION_ITEM_NOT_FOUND('') }),
+      })
+      .loose()
   ),
 
   getInitialValues: (actionData, _context) => ({
     [CreditCardRegistryFieldKey.EXISTING_NICKNAME]:
       typeof actionData['existingNickname'] === 'string' ? actionData['existingNickname'] : '',
   }),
+};
+
+// ============================================
+// SPLITWISE REGISTRY ENTRIES
+// ============================================
+
+const connectSplitwiseEntry: IntentRegistryEntry = {
+  intent: ChatIntentEnum.CONNECT_SPLITWISE,
+  title: SPLITWISE_STRINGS.chatConnectTitle,
+  formType: 'default',
+  buttonVariant: ButtonVariant.PRIMARY,
+  submitLabel: SPLITWISE_STRINGS.connectButton,
+  fields: [],
+  mutations: [],
+  messages: {
+    success: SPLITWISE_STRINGS.chatConnectSuccess,
+    failure: SPLITWISE_STRINGS.chatConnectFailure,
+    cancelled: SPLITWISE_STRINGS.chatConnectCancelled,
+  },
+  invalidations: [],
+  validate: () => null,
+  getInitialValues: () => ({}),
+};
+
+const disconnectSplitwiseEntry: IntentRegistryEntry = {
+  intent: ChatIntentEnum.DISCONNECT_SPLITWISE,
+  title: SPLITWISE_STRINGS.chatDisconnectTitle,
+  formType: 'default',
+  buttonVariant: ButtonVariant.DANGER,
+  submitLabel: SPLITWISE_STRINGS.disconnectButton,
+  fields: [],
+  mutations: [],
+  messages: {
+    success: SPLITWISE_STRINGS.chatDisconnectSuccess,
+    failure: SPLITWISE_STRINGS.chatDisconnectFailure,
+    cancelled: SPLITWISE_STRINGS.chatDisconnectCancelled,
+  },
+  invalidations: [],
+  validate: () => null,
+  getInitialValues: () => ({}),
 };
 
 // ============================================
@@ -2288,6 +2390,8 @@ export const INTENT_REGISTRY: Readonly<Record<string, IntentRegistryEntry>> = {
   [ChatIntentEnum.ADD_CREDIT_CARD]: addCreditCardEntry,
   [ChatIntentEnum.UPDATE_CREDIT_CARD]: updateCreditCardEntry,
   [ChatIntentEnum.DELETE_CREDIT_CARD]: deleteCreditCardEntry,
+  [ChatIntentEnum.CONNECT_SPLITWISE]: connectSplitwiseEntry,
+  [ChatIntentEnum.DISCONNECT_SPLITWISE]: disconnectSplitwiseEntry,
 };
 
 /** The set of intent values that have been migrated to the registry. */

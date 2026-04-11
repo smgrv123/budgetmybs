@@ -340,7 +340,15 @@ export const CHAT_REGISTRY_STRINGS = {
 // ROTATING MESSAGE POOLS — single-message pattern
 // ============================================
 
-export type IntentCategory = 'expense' | 'income' | 'savings' | 'debt' | 'fixed_expense' | 'profile' | 'credit_card' | 'general';
+export type IntentCategory =
+  | 'expense'
+  | 'income'
+  | 'savings'
+  | 'debt'
+  | 'fixed_expense'
+  | 'profile'
+  | 'credit_card'
+  | 'general';
 
 export const INTENT_CATEGORY_MAP: Record<string, IntentCategory> = {
   add_expense: 'expense',
@@ -366,10 +374,15 @@ export const INTENT_CATEGORY_MAP: Record<string, IntentCategory> = {
   delete_credit_card: 'credit_card',
   log_impulse_direct: 'expense',
   log_impulse_cooldown: 'expense',
+  connect_splitwise: 'general',
+  disconnect_splitwise: 'general',
   general: 'general',
 };
 
-export const CHAT_ACTION_MESSAGE_POOLS: Record<IntentCategory, { success: string[]; failure: string[]; cancel: string[] }> = {
+export const CHAT_ACTION_MESSAGE_POOLS: Record<
+  IntentCategory,
+  { success: string[]; failure: string[]; cancel: string[] }
+> = {
   expense: {
     success: [
       'Got it — expense logged.',
@@ -387,8 +400,8 @@ export const CHAT_ACTION_MESSAGE_POOLS: Record<IntentCategory, { success: string
       "Couldn't save that expense. Try again.",
       'Something went wrong. Give it another shot.',
       "Hmm, that didn't go through. Try once more.",
-      "Failed to log the expense. Try again.",
-      "No luck there — try again.",
+      'Failed to log the expense. Try again.',
+      'No luck there — try again.',
     ],
     cancel: [
       'No worries, skipped.',
@@ -416,8 +429,8 @@ export const CHAT_ACTION_MESSAGE_POOLS: Record<IntentCategory, { success: string
       "Couldn't save that income entry. Try again.",
       'Something went wrong. Give it another shot.',
       "Hmm, that didn't go through. Try once more.",
-      "Failed to log income. Try again.",
-      "No luck there — try again.",
+      'Failed to log income. Try again.',
+      'No luck there — try again.',
     ],
     cancel: [
       'No worries, skipped.',
@@ -431,7 +444,7 @@ export const CHAT_ACTION_MESSAGE_POOLS: Record<IntentCategory, { success: string
   savings: {
     success: [
       'Savings updated.',
-      "Done — savings logged.",
+      'Done — savings logged.',
       'Got it, savings recorded.',
       'Savings up to date.',
       'Added to your savings.',
@@ -445,8 +458,8 @@ export const CHAT_ACTION_MESSAGE_POOLS: Record<IntentCategory, { success: string
       "Couldn't update savings. Try again.",
       'Something went wrong. Give it another shot.',
       "Hmm, that didn't go through. Try once more.",
-      "Failed to save that. Try again.",
-      "No luck there — try again.",
+      'Failed to save that. Try again.',
+      'No luck there — try again.',
     ],
     cancel: [
       'No worries, skipped.',
@@ -474,8 +487,8 @@ export const CHAT_ACTION_MESSAGE_POOLS: Record<IntentCategory, { success: string
       "Couldn't update debt. Try again.",
       'Something went wrong. Give it another shot.',
       "Hmm, that didn't go through. Try once more.",
-      "Failed to save that. Try again.",
-      "No luck there — try again.",
+      'Failed to save that. Try again.',
+      'No luck there — try again.',
     ],
     cancel: [
       'No worries, skipped.',
@@ -503,8 +516,8 @@ export const CHAT_ACTION_MESSAGE_POOLS: Record<IntentCategory, { success: string
       "Couldn't update that fixed expense. Try again.",
       'Something went wrong. Give it another shot.',
       "Hmm, that didn't go through. Try once more.",
-      "Failed to save that. Try again.",
-      "No luck there — try again.",
+      'Failed to save that. Try again.',
+      'No luck there — try again.',
     ],
     cancel: [
       'No worries, skipped.',
@@ -532,8 +545,8 @@ export const CHAT_ACTION_MESSAGE_POOLS: Record<IntentCategory, { success: string
       "Couldn't update your profile. Try again.",
       'Something went wrong. Give it another shot.',
       "Hmm, that didn't go through. Try once more.",
-      "Failed to save that. Try again.",
-      "No luck there — try again.",
+      'Failed to save that. Try again.',
+      'No luck there — try again.',
     ],
     cancel: [
       'No worries, skipped.',
@@ -562,8 +575,8 @@ export const CHAT_ACTION_MESSAGE_POOLS: Record<IntentCategory, { success: string
       "Couldn't update the credit card. Try again.",
       'Something went wrong. Give it another shot.',
       "Hmm, that didn't go through. Try once more.",
-      "Failed to save the card. Try again.",
-      "No luck there — try again.",
+      'Failed to save the card. Try again.',
+      'No luck there — try again.',
     ],
     cancel: [
       'No worries, skipped.',
@@ -591,8 +604,8 @@ export const CHAT_ACTION_MESSAGE_POOLS: Record<IntentCategory, { success: string
       "Couldn't complete that. Try again.",
       'Something went wrong. Give it another shot.',
       "Hmm, that didn't go through. Try once more.",
-      "Failed. Try again.",
-      "No luck — try again.",
+      'Failed. Try again.',
+      'No luck — try again.',
     ],
     cancel: [
       'No worries, skipped.',
@@ -605,5 +618,4 @@ export const CHAT_ACTION_MESSAGE_POOLS: Record<IntentCategory, { success: string
   },
 };
 
-export const pickMessage = (pool: string[]): string =>
-  pool[Math.floor(Math.random() * pool.length)] ?? pool[0] ?? '';
+export const pickMessage = (pool: string[]): string => pool[Math.floor(Math.random() * pool.length)] ?? pool[0] ?? '';

@@ -25,6 +25,7 @@ budgetmybs/
 │   │   ├── dashboard/            # Dashboard components (QuickActionsSection, QuickStatSheet, heroCard, ExtraIncomeSection, SavingsChecklistCard)
 │   │   ├── income/               # Income components (IncomeForm)
 │   │   ├── savings/              # Savings components (SavingsDepositForm, SavingsDepositTab, SavingsSummary, SavingsWithdrawalForm, SavingsWithdrawTab, SavingsGoalCard, AdHocSavingsAccordion, SavingsOverviewTab)
+│   │   ├── splitwise/            # Splitwise components (SplitwiseConnectionCard)
 │   │   ├── transaction/          # Transaction components (AddTransactionModal, ImpulseCooldownSection, TransactionCard, TransactionFilterModal)
 │   │   ├── {SharedName}.tsx      # Shared non-primitive components (used across features)
 │   │   └── index.ts              # Barrel exports
@@ -36,6 +37,7 @@ budgetmybs/
 │   │   ├── useExpiredImpulseCheck.ts # App-open hook: navigates to impulse-confirm if expired purchases exist
 │   ├── useImpulsePermission.ts  # Notification permission gating for Impulse Buy Cooldown feature
 │   │   ├── useMutationMap.ts        # String-keyed map of all async mutation functions
+│   │   ├── useSplitwise.ts          # Splitwise connection state, connect/disconnect mutations, TanStack Query
 │   │   ├── queryKeys.ts          # Shared query keys (breaks circular deps between useExpenses/useCreditCards)
 │   │   ├── theme-hooks/          # Theme-related hooks
 │   │   └── index.ts              # Barrel exports with query keys
@@ -47,12 +49,20 @@ budgetmybs/
 │   ├── services/                 # External API integrations only
 │   │   ├── chatService.ts
 │   │   ├── gemini.ts
-│   │   └── financialPlanService.ts
+│   │   ├── financialPlanService.ts
+│   │   ├── api/                  # Generic typed HTTP client
+│   │   │   ├── httpClient.ts     # createHttpClient factory (get/post/put/patch/delete, retry, auth, timeout)
+│   │   │   ├── types.ts          # AuthProvider interface + typed errors (NetworkError, AuthError, RateLimitError, ApiError)
+│   │   │   └── index.ts          # Barrel export
+│   │   └── splitwise/            # Splitwise API integration
+│   │       ├── auth.ts           # OAuth helpers, token storage (expo-secure-store), silent refresh
+│   │       └── index.ts          # Barrel export
 │   │
 │   ├── types/                    # TypeScript type definitions
 │   │   ├── chatRegistry.ts       # Types for intent registry (IntentRegistryEntry, MutationMap, etc.)
 │   │   ├── impulse.ts            # Types for Impulse Buy Cooldown (PendingImpulsePurchase, CooldownPreset, CooldownUnit)
 │   │   ├── income.ts             # IncomeEntryData type for income settings screen
+│   │   ├── splitwise.ts          # SplitwiseUser, SplitwiseTokens, SplitwiseConnectionState types
 │   │   ├── {domain}.ts
 │   │   └── index.ts
 │   │
@@ -67,6 +77,8 @@ budgetmybs/
 │   │   ├── savings-deposit.strings.ts  # Strings for savings deposit form and summary
 │   │   ├── savings-icons.config.ts     # SavingsType → Ionicons icon name mapping
 │   │   ├── savings-screen.strings.ts   # Strings for the dedicated savings screen (header, tabs, overview)
+│   │   ├── splitwise.strings.ts  # Strings for Splitwise integration (connect, disconnect, chat intents)
+│   │   ├── splitwise.config.ts   # Splitwise API base URL, endpoints, token storage keys, timeouts
 │   │   ├── {feature}.config.ts   # Structural configuration
 │   │   └── asyncStorageKeys.ts   # AsyncStorage key constants (includes PENDING_IMPULSE_PURCHASES)
 │   │
@@ -74,6 +86,7 @@ budgetmybs/
 │   │   ├── income.ts             # Zod schema for income log form
 │   │   ├── savings-deposit.ts    # Zod schema for savings deposit form
 │   │   ├── savings-withdrawal.ts # Zod schema for savings withdrawal form
+│   │   ├── splitwise.ts          # Zod schemas for Splitwise API responses (user, tokens)
 │   │   └── {feature}.ts
 │   │
 │   ├── utils/                    # Pure utility functions

@@ -1,5 +1,6 @@
 export * from './chat';
 export * from './chatRegistry';
+export * from './splitwise';
 export * from './expense';
 export * from './financialPlan';
 export * from './form';
