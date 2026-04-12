@@ -4,6 +4,7 @@ import {
   deleteExpense,
   getExpenseById,
   getExpensesWithCategory,
+  getAllExpensesWithCategory,
   getImpulsePurchaseStats,
   getOneOffSavings,
   getSpendingByCategory,
@@ -76,6 +77,12 @@ export const useExpenses = (month: string = getCurrentMonth()) => {
     queryFn: () => getTotalSpentByMonth(month),
   });
 
+  // Single unified query for the dashboard recent transactions list
+  const combinedTransactionsQuery = useQuery({
+    queryKey: [...EXPENSES_QUERY_KEY, 'combined', { month }],
+    queryFn: () => getAllExpensesWithCategory({ month, limit: 100 }),
+  });
+
   // One-off savings queries
   const oneOffSavingsQuery = useQuery({
     queryKey: [...ONE_OFF_SAVINGS_QUERY_KEY, { month }],
@@ -142,6 +149,10 @@ export const useExpenses = (month: string = getCurrentMonth()) => {
   });
 
   return {
+    // Combined (expenses + savings) for current month — single query
+    combinedTransactions: combinedTransactionsQuery.data ?? [],
+    isCombinedTransactionsLoading: combinedTransactionsQuery.isLoading,
+
     // Expense query state
     expenses: expensesQuery.data ?? [],
     expensesWithCategory: expensesWithCategoryQuery.data ?? [],

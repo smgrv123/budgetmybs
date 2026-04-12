@@ -62,7 +62,7 @@ export default function DashboardScreen() {
   const { fixedExpenses, isFixedExpensesLoading } = useFixedExpenses();
   const { debts, isDebtsLoading } = useDebts();
   const { savingsGoals, isSavingsGoalsLoading } = useSavingsGoals();
-  const { expenses, totalSpent, totalSaved: totalOneOffSavings, oneOffSavings } = useExpenses();
+  const { totalSpent, totalSaved: totalOneOffSavings, combinedTransactions } = useExpenses();
   const { income } = useIncome();
   const { creditCards, creditCardSummaries } = useCreditCards();
   const { isItemProcessed } = useRecurringStatus();
@@ -232,9 +232,6 @@ export default function DashboardScreen() {
       </BSafeAreaView>
     );
   }
-  // ! this should be removed. single query should be triggered for this. again to be picked in a revamp. let go for now
-  const combinedTransactions = [...expenses, ...oneOffSavings];
-
   const dashboardSections = [
     {
       key: 'header',
@@ -433,11 +430,9 @@ export default function DashboardScreen() {
             </BView>
           ) : (
             combinedTransactions.map((item, index) => {
-              // ! accept for now, should be picked up in the revamp
-              const creditCardColor =
-                'creditCard' in item && item.creditCard
-                  ? CREDIT_CARD_PROVIDER_COLORS[item.creditCard.provider]
-                  : undefined;
+              const creditCardColor = item.creditCard
+                ? CREDIT_CARD_PROVIDER_COLORS[item.creditCard.provider]
+                : undefined;
               return (
                 <BView key={item.id}>
                   {index > 0 && <BView style={{ height: Spacing.xxs }} />}
@@ -447,19 +442,17 @@ export default function DashboardScreen() {
                       description={item.description}
                       amount={item.amount}
                       date={item.date}
-                      categoryName={'category' in item ? item.category?.name : null}
-                      categoryIcon={'category' in item ? item.category?.icon : null}
-                      categoryColor={'category' in item ? item.category?.color : null}
-                      savingsType={'savingsType' in item ? item.savingsType : null}
-                      isSaving={'isSaving' in item ? Boolean(item.isSaving) : false}
-                      isRecurring={'sourceType' in item ? Boolean(item.sourceType) : false}
-                      creditCardNickname={'creditCard' in item ? (item.creditCard?.nickname ?? null) : null}
-                      creditCardLast4={'creditCard' in item ? (item.creditCard?.last4 ?? null) : null}
+                      categoryName={item.category?.name ?? null}
+                      categoryIcon={item.category?.icon ?? null}
+                      categoryColor={item.category?.color ?? null}
+                      savingsType={item.savingsType}
+                      isSaving={Boolean(item.isSaving)}
+                      isRecurring={Boolean(item.sourceType)}
+                      creditCardNickname={item.creditCard?.nickname ?? null}
+                      creditCardLast4={item.creditCard?.last4 ?? null}
                       creditCardColor={creditCardColor ?? null}
-                      isBillPay={
-                        'creditCardTxnType' in item ? item.creditCardTxnType === CreditCardTxnTypeEnum.PAYMENT : false
-                      }
-                      isFromSplitwise={'isFromSplitwise' in item ? Boolean(item.isFromSplitwise) : false}
+                      isBillPay={item.creditCardTxnType === CreditCardTxnTypeEnum.PAYMENT}
+                      isFromSplitwise={Boolean(item.isFromSplitwise)}
                     />
                   </BLink>
                 </BView>

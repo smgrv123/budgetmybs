@@ -63,7 +63,7 @@ export default function AllTransactionsScreen() {
 
     const expense = item.data;
     const creditCardColor = expense.creditCard ? CREDIT_CARD_PROVIDER_COLORS[expense.creditCard.provider] : undefined;
-
+    console.log('isfromsplitwise', expense.isFromSplitwise);
     return (
       <BLink href={`/transaction-detail?id=${expense.id}`} fullWidth style={{ paddingVertical: Spacing.none }}>
         <TransactionCard

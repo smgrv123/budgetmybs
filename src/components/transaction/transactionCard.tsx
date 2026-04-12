@@ -1,6 +1,6 @@
 import { BCard, BIcon, BText, BView } from '@/src/components/ui';
-import { CardVariant, IconSize, SpacingValue, TextVariant } from '@/src/constants/theme';
 import { SPLITWISE_STRINGS } from '@/src/constants/splitwise.strings';
+import { CardVariant, FontSize, IconSize, Opacity, SpacingValue, TextVariant } from '@/src/constants/theme';
 import { TRANSACTION_CARD_STRINGS } from '@/src/constants/transactions.strings';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { formatDate } from '@/src/utils/date';
@@ -65,6 +65,19 @@ const TransactionCard: FC<TransactionCardProps> = ({
   const iconBg = categoryColor ? `${categoryColor}20` : themeColors.muted;
   const hasCardAttribution = Boolean(creditCardNickname && creditCardLast4);
 
+  const TransactionCardPill = ({ pillString }: { pillString: string }) => {
+    return (
+      <BView rounded={SpacingValue.XS} paddingX={SpacingValue.SM} paddingY={SpacingValue.XXS} border fullRounded>
+        <BText
+          variant={TextVariant.CAPTION}
+          color={themeColors.white}
+          style={{ opacity: Opacity.muted, fontSize: FontSize.xs }}
+        >
+          {pillString}
+        </BText>
+      </BView>
+    );
+  };
   return (
     <BCard variant={CardVariant.SUMMARY}>
       <BView row justify="space-between" align="center">
@@ -79,34 +92,12 @@ const TransactionCard: FC<TransactionCardProps> = ({
           </BView>
           <BView flex>
             {/* Title row: description + Bill Pay badge + Splitwise badge */}
-            <BView row align="center" gap={SpacingValue.XS}>
+            <BView row align="center" gap={SpacingValue.MD}>
               <BText variant={TextVariant.LABEL} numberOfLines={1} style={{ flexShrink: 1 }}>
                 {description || (isSaving ? 'Saving' : 'Expense')}
               </BText>
-              {isBillPay && (
-                <BView
-                  rounded={SpacingValue.XS}
-                  bg={themeColors.primary}
-                  paddingX={SpacingValue.SM}
-                  paddingY={SpacingValue.XXS}
-                >
-                  <BText variant={TextVariant.CAPTION} color={themeColors.white}>
-                    {TRANSACTION_CARD_STRINGS.billPayBadge}
-                  </BText>
-                </BView>
-              )}
-              {isFromSplitwise && (
-                <BView
-                  rounded={SpacingValue.XS}
-                  bg={themeColors.success}
-                  paddingX={SpacingValue.SM}
-                  paddingY={SpacingValue.XXS}
-                >
-                  <BText variant={TextVariant.CAPTION} color={themeColors.white}>
-                    {SPLITWISE_STRINGS.transactionBadge}
-                  </BText>
-                </BView>
-              )}
+              {isBillPay && <TransactionCardPill pillString={TRANSACTION_CARD_STRINGS.billPayBadge} />}
+              {isFromSplitwise && <TransactionCardPill pillString={SPLITWISE_STRINGS.transactionBadge} />}
             </BView>
             {/* Subtitle row: date · category [· dot cardname ••last4] */}
             <BView row align="center" gap={SpacingValue.XS} style={{ flexWrap: 'wrap' }}>

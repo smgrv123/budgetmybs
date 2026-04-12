@@ -37,17 +37,17 @@ Modified: `app/dashboard/settings.tsx` (new integrations section), `src/constant
 
 ### Acceptance criteria
 
-- [ ] "Connect Splitwise" button appears in Settings → Integrations section
-- [ ] Tapping it opens the OAuth browser flow via `expo-auth-session`
-- [ ] On success, tokens stored in `expo-secure-store` and persist across app restarts
-- [ ] Settings card shows connected account name and avatar from Splitwise `/current_user`
-- [ ] "Disconnect" button clears tokens and resets the card to the connect state
-- [ ] A 401 from any Splitwise API call triggers a silent token refresh
-- [ ] On refresh failure, tokens are cleared and a non-blocking "Reconnect Splitwise" toast/prompt is shown
-- [ ] Chat intent `connect_splitwise` triggers the OAuth flow from chat
-- [ ] Chat intent `disconnect_splitwise` clears tokens from chat
-- [ ] Generic HTTP client in `src/services/api/` is functional with typed errors
-- [ ] `pnpm run lint` and `pnpm run typecheck` pass with no errors
+- [x] "Connect Splitwise" button appears in Settings → Integrations section
+- [x] Tapping it opens the OAuth browser flow via `expo-auth-session`
+- [x] On success, tokens stored in `expo-secure-store` and persist across app restarts
+- [x] Settings card shows connected account name and avatar from Splitwise `/current_user`
+- [x] "Disconnect" button clears tokens and resets the card to the connect state
+- [x] A 401 from any Splitwise API call triggers a silent token refresh
+- [x] On refresh failure, tokens are cleared and a non-blocking "Reconnect Splitwise" toast/prompt is shown
+- [x] Chat intent `connect_splitwise` triggers the OAuth flow from chat
+- [x] Chat intent `disconnect_splitwise` clears tokens from chat
+- [x] Generic HTTP client in `src/services/api/` is functional with typed errors
+- [x] `pnpm run lint` and `pnpm run typecheck` pass with no errors
 
 ---
 
@@ -65,14 +65,14 @@ Modified: `db/schema.ts`, `db/types.ts`, `db/migrations/` (new migration file), 
 
 ### Acceptance criteria
 
-- [ ] `splitwise_expenses` table created with all fields: `id`, `expenseId` (FK), `splitwiseId`, `splitwiseGroupId`, `paidByUserId`, `totalAmount`, `userPaidShare`, `userOwedShare`, `receivableAmount`, `receivableSettled`, `isSettlement`, `splitwiseCategory`, `splitwiseUpdatedAt`, `syncStatus`, `lastSyncedAt`, `createdAt`, `updatedAt`
-- [ ] `RecurringSourceTypeEnum.SPLITWISE = 'splitwise'` added to `db/types.ts`
-- [ ] `IncomeTypeEnum.SPLITWISE_SETTLEMENT = 'splitwise_settlement'` added to `db/types.ts`
-- [ ] `SPLITWISE_SETTLEMENT` excluded from user-facing income type dropdowns
-- [ ] `db/queries/splitwiseExpenses.ts` provides typed insert, upsert-by-splitwiseId, and query-by-expenseId helpers
-- [ ] `pnpm run db:generate` produces a valid migration file
-- [ ] App starts and migration runs without errors
-- [ ] `pnpm run lint` and `pnpm run typecheck` pass with no errors
+- [x] `splitwise_expenses` table created with all fields: `id`, `expenseId` (FK), `splitwiseId`, `splitwiseGroupId`, `paidByUserId`, `totalAmount`, `userPaidShare`, `userOwedShare`, `receivableAmount`, `receivableSettled`, `isSettlement`, `splitwiseCategory`, `splitwiseUpdatedAt`, `syncStatus`, `lastSyncedAt`, `createdAt`, `updatedAt`
+- [ ] `RecurringSourceTypeEnum.SPLITWISE = 'splitwise'` added to `db/types.ts` _(removed — Splitwise is not a recurring source; identified via FK instead)_
+- [x] `IncomeTypeEnum.SPLITWISE_SETTLEMENT = 'splitwise_settlement'` added to `db/types.ts`
+- [x] `SPLITWISE_SETTLEMENT` excluded from user-facing income type dropdowns
+- [x] `db/queries/splitwiseExpenses.ts` provides typed insert, upsert-by-splitwiseId, and query-by-expenseId helpers
+- [x] `pnpm run db:generate` produces a valid migration file
+- [x] App starts and migration runs without errors
+- [x] `pnpm run lint` and `pnpm run typecheck` pass with no errors
 
 ---
 
@@ -90,15 +90,15 @@ Modified: `app/dashboard/index.tsx` (stale-gate on mount), `app/all-transactions
 
 ### Acceptance criteria
 
-- [ ] Splitwise expenses sync into the local `expenses` table with `sourceType: 'splitwise'`
-- [ ] Re-syncing updates existing rows (upsert by `splitwiseId`) — no duplicates created
-- [ ] INR-only: foreign currency expenses are silently skipped
-- [ ] Synced transactions show a "Splitwise" badge on `TransactionCard`
-- [ ] Dashboard auto-syncs on mount if last sync was >5 min ago (timestamp in AsyncStorage)
-- [ ] Pull-to-refresh on all-transactions triggers a full re-fetch (ignores `updated_after`)
-- [ ] Splitwise categories are mapped to local `CategoryType`; unmapped categories fall back to `OTHER`
-- [ ] Chat intent `sync_splitwise` triggers a sync and reports results
-- [ ] `pnpm run lint` and `pnpm run typecheck` pass with no errors
+- [x] Splitwise expenses sync into the local `expenses` table
+- [x] Re-syncing updates existing rows (upsert by `splitwiseId`) — no duplicates created
+- [x] INR-only: foreign currency expenses are silently skipped
+- [x] Synced transactions show a "Splitwise" badge on `TransactionCard`
+- [x] Dashboard auto-syncs on mount if last sync was >5 min ago (timestamp in AsyncStorage)
+- [x] Pull-to-refresh on all-transactions triggers a full re-fetch (ignores `updated_after`)
+- [x] Splitwise categories are mapped to local `CategoryType` via substring matching; unmapped fall back to `OTHER`
+- [x] Chat intent `sync_splitwise` triggers a sync and reports results
+- [x] `pnpm run lint` and `pnpm run typecheck` pass with no errors
 
 ---
 

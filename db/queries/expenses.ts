@@ -450,6 +450,7 @@ export const getOneOffSavings = async (month?: string) => {
  * server-side filtering and offset-based pagination.
  */
 export const getAllExpensesWithCategory = async (filter?: {
+  month?: string;
   categoryId?: string;
   creditCardId?: string;
   startDate?: string;
@@ -494,6 +495,7 @@ export const getAllExpensesWithCategory = async (filter?: {
     .leftJoin(splitwiseExpensesTable, eq(expensesTable.id, splitwiseExpensesTable.expenseId))
     .where(
       and(
+        filter?.month ? like(expensesTable.date, `${filter.month}%`) : undefined,
         filter?.categoryId ? eq(expensesTable.categoryId, filter.categoryId) : undefined,
         filter?.creditCardId ? eq(expensesTable.creditCardId, filter.creditCardId) : undefined,
         filter?.startDate ? sql`${expensesTable.date} >= ${filter.startDate}` : undefined,
