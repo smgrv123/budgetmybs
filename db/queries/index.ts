@@ -129,6 +129,15 @@ export {
 // Account queries (delete/reset)
 export { clearUserData } from './account';
 
+// Splitwise expenses queries
+export {
+  getSplitwiseExpenseByExpenseId,
+  getSplitwiseExpenseBySplitwiseId,
+  insertSplitwiseExpense,
+  updateSplitwiseExpense,
+  upsertSplitwiseExpense,
+} from './splitwiseExpenses';
+
 // Chat queries
 export {
   clearChatHistory,

@@ -150,6 +150,7 @@ export const IncomeTypeEnum = {
   FREELANCE: 'freelance',
   REFUND: 'refund',
   SAVINGS_WITHDRAWAL: 'savings_withdrawal',
+  SPLITWISE_SETTLEMENT: 'splitwise_settlement',
   OTHER: 'other',
 } as const;
 
@@ -158,9 +159,26 @@ export type IncomeType = (typeof IncomeTypeEnum)[keyof typeof IncomeTypeEnum];
 export const INCOME_TYPES = Object.values(IncomeTypeEnum);
 
 /**
- * Income types available for user-facing dropdowns (excludes system-only types)
+ * Income types available for user-facing dropdowns (excludes system-only types).
+ * `savings_withdrawal` and `splitwise_settlement` are system-generated and must not
+ * appear in income entry forms or chat intent pickers.
  */
-export const USER_INCOME_TYPES = INCOME_TYPES.filter((t) => t !== IncomeTypeEnum.SAVINGS_WITHDRAWAL);
+export const USER_INCOME_TYPES = INCOME_TYPES.filter(
+  (t) => t !== IncomeTypeEnum.SAVINGS_WITHDRAWAL && t !== IncomeTypeEnum.SPLITWISE_SETTLEMENT
+);
+
+/**
+ * Splitwise sync status for outbound push tracking
+ */
+export const SplitwiseSyncStatusEnum = {
+  SYNCED: 'synced',
+  PENDING_PUSH: 'pending_push',
+  PUSH_FAILED: 'push_failed',
+} as const;
+
+export type SplitwiseSyncStatus = (typeof SplitwiseSyncStatusEnum)[keyof typeof SplitwiseSyncStatusEnum];
+
+export const SPLITWISE_SYNC_STATUSES = Object.values(SplitwiseSyncStatusEnum);
 
 // ============================================
 // DISPLAY LABELS (for UI)
@@ -220,7 +238,8 @@ export const SavingsLabels: Record<SavingsType, string> = {
 
 /**
  * Display labels for all income types.
- * Use USER_INCOME_TYPES to filter out system-only types (e.g. savings_withdrawal) in dropdowns.
+ * Use USER_INCOME_TYPES to filter out system-only types (e.g. savings_withdrawal,
+ * splitwise_settlement) in dropdowns.
  */
 export const IncomeLabels: Record<IncomeType, string> = {
   bonus: 'Bonus',
@@ -230,6 +249,7 @@ export const IncomeLabels: Record<IncomeType, string> = {
   freelance: 'Freelance',
   refund: 'Refund',
   savings_withdrawal: 'Savings Withdrawal',
+  splitwise_settlement: 'Splitwise Settlement',
   other: 'Other',
 };
 

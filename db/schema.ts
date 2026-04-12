@@ -13,6 +13,7 @@ import type {
   IncomeType,
   RecurringSourceType,
   SavingsType,
+  SplitwiseSyncStatus,
 } from './types';
 import { generateUUID } from './utils';
 
@@ -340,6 +341,36 @@ export const chatMessagesTable = sqliteTable('chat_messages', {
 });
 
 // ============================================
+// SPLITWISE EXPENSES TABLE
+// ============================================
+
+export const splitwiseExpensesTable = sqliteTable('splitwise_expenses', {
+  id: text('id')
+    .primaryKey()
+    .$default(() => generateUUID()),
+  expenseId: text('expense_id').notNull(), // FK → expenses.id
+  splitwiseId: text('splitwise_id').unique(), // null while pending outbound push
+  splitwiseGroupId: integer('splitwise_group_id'), // nullable
+  paidByUserId: text('paid_by_user_id').notNull(), // Splitwise user ID of the payer
+  totalAmount: real('total_amount').notNull(), // full expense amount on Splitwise
+  userPaidShare: real('user_paid_share').notNull(), // how much the local user paid
+  userOwedShare: real('user_owed_share').notNull(), // how much the local user owes
+  receivableAmount: real('receivable_amount'), // paidShare − owedShare when positive; nullable
+  receivableSettled: integer('receivable_settled').notNull().default(0), // 0/1 boolean
+  isSettlement: integer('is_settlement').notNull().default(0), // 1 for settlement audit entries
+  splitwiseCategory: text('splitwise_category'), // original Splitwise category name
+  splitwiseUpdatedAt: text('splitwise_updated_at'), // ISO string for edit conflict detection
+  syncStatus: text('sync_status').$type<SplitwiseSyncStatus>().notNull().default('synced'),
+  lastSyncedAt: text('last_synced_at'), // ISO string
+  createdAt: text('created_at')
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text('updated_at')
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
+// ============================================
 // RELATIONS
 // ============================================
 
@@ -398,5 +429,19 @@ export const chatMessagesRelations = relations(chatMessagesTable, ({ one }) => (
   quotedMessage: one(chatMessagesTable, {
     fields: [chatMessagesTable.quotedMessageId],
     references: [chatMessagesTable.id],
+  }),
+}));
+
+export const splitwiseExpensesRelations = relations(splitwiseExpensesTable, ({ one }) => ({
+  expense: one(expensesTable, {
+    fields: [splitwiseExpensesTable.expenseId],
+    references: [expensesTable.id],
+  }),
+}));
+
+export const expensesSplitwiseRelations = relations(expensesTable, ({ one }) => ({
+  splitwiseExpense: one(splitwiseExpensesTable, {
+    fields: [expensesTable.id],
+    references: [splitwiseExpensesTable.expenseId],
   }),
 }));

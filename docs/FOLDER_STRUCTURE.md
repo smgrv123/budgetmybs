@@ -114,6 +114,7 @@ budgetmybs/
 │   │   ├── income.ts             # Income CRUD + monthly sum
 │   │   ├── profile.ts
 │   │   ├── categories.ts
+│   │   ├── splitwiseExpenses.ts  # Splitwise expenses CRUD (insert, upsert, get by expenseId/splitwiseId, update)
 │   │   └── ...
 │   └── index.ts                  # Barrel exports
 │
