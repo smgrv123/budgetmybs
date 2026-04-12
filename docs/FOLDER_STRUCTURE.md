@@ -38,6 +38,7 @@ budgetmybs/
 │   ├── useImpulsePermission.ts  # Notification permission gating for Impulse Buy Cooldown feature
 │   │   ├── useMutationMap.ts        # String-keyed map of all async mutation functions
 │   │   ├── useSplitwise.ts          # Splitwise connection state, connect/disconnect mutations, TanStack Query
+│   │   ├── useSplitwiseSync.ts      # Splitwise inbound sync hook (syncSplitwise, isSyncing, lastSyncedAt, triggerStaleGatedSync)
 │   │   ├── queryKeys.ts          # Shared query keys (breaks circular deps between useExpenses/useCreditCards)
 │   │   ├── theme-hooks/          # Theme-related hooks
 │   │   └── index.ts              # Barrel exports with query keys
@@ -56,6 +57,8 @@ budgetmybs/
 │   │   │   └── index.ts          # Barrel export
 │   │   └── splitwise/            # Splitwise API integration
 │   │       ├── auth.ts           # OAuth helpers, token storage (expo-secure-store), silent refresh
+│   │       ├── categoryMap.ts    # Static Splitwise category name → local CategoryType mapping
+│   │       ├── sync.ts           # Inbound sync engine (syncSplitwiseExpenses, getLastSyncedAt)
 │   │       └── index.ts          # Barrel export
 │   │
 │   ├── types/                    # TypeScript type definitions

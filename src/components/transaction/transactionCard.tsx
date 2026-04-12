@@ -1,5 +1,6 @@
 import { BCard, BIcon, BText, BView } from '@/src/components/ui';
 import { CardVariant, IconSize, SpacingValue, TextVariant } from '@/src/constants/theme';
+import { SPLITWISE_STRINGS } from '@/src/constants/splitwise.strings';
 import { TRANSACTION_CARD_STRINGS } from '@/src/constants/transactions.strings';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { formatDate } from '@/src/utils/date';
@@ -35,6 +36,8 @@ export interface TransactionCardProps {
   creditCardColor?: string | null;
   /** True if this is a credit card bill payment */
   isBillPay?: boolean;
+  /** True if this expense was imported from Splitwise */
+  isFromSplitwise?: boolean;
 }
 
 const TransactionCard: FC<TransactionCardProps> = ({
@@ -50,6 +53,7 @@ const TransactionCard: FC<TransactionCardProps> = ({
   creditCardLast4,
   creditCardColor,
   isBillPay = false,
+  isFromSplitwise = false,
 }) => {
   const themeColors = useThemeColors();
 
@@ -74,7 +78,7 @@ const TransactionCard: FC<TransactionCardProps> = ({
             <BIcon name={iconName as any} size="sm" color={iconColor} />
           </BView>
           <BView flex>
-            {/* Title row: description + Bill Pay badge */}
+            {/* Title row: description + Bill Pay badge + Splitwise badge */}
             <BView row align="center" gap={SpacingValue.XS}>
               <BText variant={TextVariant.LABEL} numberOfLines={1} style={{ flexShrink: 1 }}>
                 {description || (isSaving ? 'Saving' : 'Expense')}
@@ -88,6 +92,18 @@ const TransactionCard: FC<TransactionCardProps> = ({
                 >
                   <BText variant={TextVariant.CAPTION} color={themeColors.white}>
                     {TRANSACTION_CARD_STRINGS.billPayBadge}
+                  </BText>
+                </BView>
+              )}
+              {isFromSplitwise && (
+                <BView
+                  rounded={SpacingValue.XS}
+                  bg={themeColors.success}
+                  paddingX={SpacingValue.SM}
+                  paddingY={SpacingValue.XXS}
+                >
+                  <BText variant={TextVariant.CAPTION} color={themeColors.white}>
+                    {SPLITWISE_STRINGS.transactionBadge}
                   </BText>
                 </BView>
               )}

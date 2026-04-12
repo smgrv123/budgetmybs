@@ -93,7 +93,7 @@ const executeRequest = async <T>(
     response = await fetch(url, {
       method,
       headers,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: body as BodyInit | undefined,
       signal: controller.signal,
     });
   } catch (error) {

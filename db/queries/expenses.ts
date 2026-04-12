@@ -6,6 +6,7 @@ import {
   creditCardPaymentsTable,
   creditCardsTable,
   expensesTable,
+  splitwiseExpensesTable,
 } from '../schema';
 import type { CreateExpenseInput, CreateOneOffSavingInput, Expense, UpdateExpenseInput } from '../schema-types';
 import type { RecurringSourceType } from '../types';
@@ -485,10 +486,12 @@ export const getAllExpensesWithCategory = async (filter?: {
         last4: creditCardsTable.last4,
         provider: creditCardsTable.provider,
       },
+      isFromSplitwise: sql<number>`CASE WHEN ${splitwiseExpensesTable.expenseId} IS NOT NULL THEN 1 ELSE 0 END`,
     })
     .from(expensesTable)
     .leftJoin(categoriesTable, eq(expensesTable.categoryId, categoriesTable.id))
     .leftJoin(creditCardsTable, eq(expensesTable.creditCardId, creditCardsTable.id))
+    .leftJoin(splitwiseExpensesTable, eq(expensesTable.id, splitwiseExpensesTable.expenseId))
     .where(
       and(
         filter?.categoryId ? eq(expensesTable.categoryId, filter.categoryId) : undefined,

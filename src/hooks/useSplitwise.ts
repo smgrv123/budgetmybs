@@ -7,10 +7,9 @@
  *  - connect(): Opens OAuth browser, exchanges code, stores tokens, fetches currentUser
  *  - disconnect(): Clears tokens and resets state
  *  - isConnected, currentUser, status from TanStack Query
- *  - 401 on any API call → silent token refresh → if refresh fails: clearTokens + reconnectRequired flag
+ *  - reconnectRequired: derived from AsyncStorage flag set by splitwiseAuth on refresh failure
  */
 
-import { useState, useCallback } from 'react';
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -22,16 +21,9 @@ import {
   SPLITWISE_REDIRECT_URI,
 } from '@/src/constants/splitwise.config';
 import { SPLITWISE_STRINGS } from '@/src/constants/splitwise.strings';
-import {
-  clearTokens,
-  exchangeCodeForTokens,
-  isTokenExpired,
-  loadTokens,
-  silentRefresh,
-} from '@/src/services/splitwise';
-import { createHttpClient, AuthError } from '@/src/services/api';
-import type { AuthProvider } from '@/src/services/api';
-import { SplitwiseCurrentUserResponseSchema } from '@/src/validation/splitwise';
+import { splitwiseAuth } from '@/src/services/splitwise';
+import { createHttpClient } from '@/src/services/api';
+import type { SplitwiseCurrentUserApiResponse } from '@/src/validation/splitwise';
 import type { SplitwiseConnectionStatusType, SplitwiseTokens, SplitwiseUser } from '@/src/types/splitwise';
 import { SplitwiseConnectionStatus } from '@/src/types/splitwise';
 
@@ -44,97 +36,53 @@ WebBrowser.maybeCompleteAuthSession();
 
 export const SPLITWISE_CONNECTION_QUERY_KEY = ['splitwise', 'connection'] as const;
 export const SPLITWISE_CURRENT_USER_QUERY_KEY = ['splitwise', 'currentUser'] as const;
-
-// ============================================
-// HELPERS
-// ============================================
-
-const getClientId = (): string => process.env.EXPO_PUBLIC_SPLITWISE_CLIENT_ID ?? '';
-const getClientSecret = (): string => process.env.EXPO_PUBLIC_SPLITWISE_CLIENT_SECRET ?? '';
-
-/**
- * Build an AuthProvider that reads the stored access token and performs
- * a silent refresh on 401.
- */
-const buildAuthProvider = (onRefreshFailed: () => void): AuthProvider => ({
-  getAccessToken: async () => {
-    const tokens = await loadTokens();
-    if (!tokens) return null;
-
-    if (isTokenExpired(tokens.expiresAt)) {
-      try {
-        const refreshed = await silentRefresh(getClientId(), getClientSecret());
-        return refreshed.accessToken;
-      } catch {
-        onRefreshFailed();
-        return null;
-      }
-    }
-
-    return tokens.accessToken;
-  },
-  refreshToken: async () => {
-    try {
-      const refreshed = await silentRefresh(getClientId(), getClientSecret());
-      return refreshed.accessToken;
-    } catch {
-      onRefreshFailed();
-      throw new AuthError('Silent refresh failed.');
-    }
-  },
-});
+export const SPLITWISE_RECONNECT_REQUIRED_QUERY_KEY = ['splitwise', 'reconnectRequired'] as const;
 
 // ============================================
 // CURRENT USER FETCH
 // ============================================
 
-const fetchCurrentUser = async (authProvider: AuthProvider): Promise<SplitwiseUser | null> => {
-  const client = createHttpClient({
-    baseUrl: '',
-    authProvider,
-  });
-
-  const raw = await client.get<unknown>(SPLITWISE_ENDPOINTS.CURRENT_USER);
-  const result = SplitwiseCurrentUserResponseSchema.safeParse(raw);
-  if (!result.success) {
-    console.error('[useSplitwise] Invalid currentUser response:', result.error);
-    return null;
-  }
-  return result.data.user;
+const fetchCurrentUser = async (): Promise<SplitwiseUser | null> => {
+  const client = createHttpClient({ baseUrl: '', authProvider: splitwiseAuth });
+  const { user } = await client.get<SplitwiseCurrentUserApiResponse>(SPLITWISE_ENDPOINTS.CURRENT_USER);
+  return user;
 };
 
 // ============================================
 // HOOK
 // ============================================
 
+const getClientId = (): string => process.env.EXPO_PUBLIC_SPLITWISE_CLIENT_ID ?? '';
+
 export const useSplitwise = () => {
   const queryClient = useQueryClient();
-  const [reconnectRequired, setReconnectRequired] = useState(false);
-
-  const onRefreshFailed = useCallback(() => {
-    setReconnectRequired(true);
-  }, []);
-
-  const authProvider = buildAuthProvider(onRefreshFailed);
 
   // ── Connection check query ────────────────────────────────────────────────
-  // Determines if tokens exist in secure store (survives restarts).
   const tokensQuery = useQuery({
     queryKey: SPLITWISE_CONNECTION_QUERY_KEY,
-    queryFn: loadTokens,
-    // Stale time: re-check on each mount
+    queryFn: () => splitwiseAuth.loadTokens(),
     staleTime: 0,
   });
 
   const tokens: SplitwiseTokens | null = tokensQuery.data ?? null;
   const isConnected = Boolean(tokens?.accessToken);
 
+  // ── Reconnect required query ──────────────────────────────────────────────
+  // splitwiseAuth writes this flag to AsyncStorage when a silent refresh fails.
+  const reconnectQuery = useQuery({
+    queryKey: SPLITWISE_RECONNECT_REQUIRED_QUERY_KEY,
+    queryFn: () => splitwiseAuth.isReconnectRequired(),
+    staleTime: 0,
+  });
+
+  const reconnectRequired = reconnectQuery.data ?? false;
+
   // ── Current user query ────────────────────────────────────────────────────
   const currentUserQuery = useQuery({
     queryKey: SPLITWISE_CURRENT_USER_QUERY_KEY,
-    queryFn: () => fetchCurrentUser(authProvider),
+    queryFn: fetchCurrentUser,
     enabled: isConnected,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
     retry: false,
   });
 
@@ -169,35 +117,29 @@ export const useSplitwise = () => {
   // ── Connect mutation ──────────────────────────────────────────────────────
   const connectMutation = useMutation({
     mutationFn: async () => {
-      if (!request) {
-        throw new Error(SPLITWISE_STRINGS.connectFailedBody);
-      }
+      if (!request) throw new Error(SPLITWISE_STRINGS.connectFailedBody);
 
       const result = await promptAsync();
-
-      if (result.type !== 'success') {
-        throw new Error(SPLITWISE_STRINGS.authCancelledMessage);
-      }
+      if (result.type !== 'success') throw new Error(SPLITWISE_STRINGS.authCancelledMessage);
 
       const code = result.params.code;
       const codeVerifier = request.codeVerifier;
+      if (!code || !codeVerifier) throw new Error(SPLITWISE_STRINGS.connectFailedBody);
 
-      if (!code || !codeVerifier) {
-        throw new Error(SPLITWISE_STRINGS.connectFailedBody);
-      }
-
-      await exchangeCodeForTokens({
+      await splitwiseAuth.exchangeCodeForTokens({
         code,
         codeVerifier,
         redirectUri,
         clientId: getClientId(),
-        clientSecret: getClientSecret(),
+        clientSecret: process.env.EXPO_PUBLIC_SPLITWISE_CLIENT_SECRET ?? '',
       });
+
+      await splitwiseAuth.clearReconnectRequired();
     },
     onSuccess: () => {
-      setReconnectRequired(false);
       queryClient.invalidateQueries({ queryKey: SPLITWISE_CONNECTION_QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: SPLITWISE_CURRENT_USER_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: SPLITWISE_RECONNECT_REQUIRED_QUERY_KEY });
     },
     onError: (error) => {
       console.error('[useSplitwise] connect failed:', error);
@@ -207,21 +149,18 @@ export const useSplitwise = () => {
   // ── Disconnect mutation ───────────────────────────────────────────────────
   const disconnectMutation = useMutation({
     mutationFn: async () => {
-      await clearTokens();
+      await splitwiseAuth.clearTokens();
+      await splitwiseAuth.clearReconnectRequired();
     },
     onSuccess: () => {
-      setReconnectRequired(false);
       queryClient.invalidateQueries({ queryKey: SPLITWISE_CONNECTION_QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: SPLITWISE_CURRENT_USER_QUERY_KEY });
+      queryClient.invalidateQueries({ queryKey: SPLITWISE_RECONNECT_REQUIRED_QUERY_KEY });
     },
     onError: (error) => {
       console.error('[useSplitwise] disconnect failed:', error);
     },
   });
-
-  // ── Connect async (for chat mutation map) ────────────────────────────────
-  const connectAsync = connectMutation.mutateAsync;
-  const disconnectAsync = disconnectMutation.mutateAsync;
 
   return {
     // Connection state
@@ -240,13 +179,13 @@ export const useSplitwise = () => {
 
     // Connect
     connect: connectMutation.mutate,
-    connectAsync,
+    connectAsync: connectMutation.mutateAsync,
     isConnecting: connectMutation.isPending,
     connectError: connectMutation.error,
 
     // Disconnect
     disconnect: disconnectMutation.mutate,
-    disconnectAsync,
+    disconnectAsync: disconnectMutation.mutateAsync,
     isDisconnecting: disconnectMutation.isPending,
     disconnectError: disconnectMutation.error,
   };

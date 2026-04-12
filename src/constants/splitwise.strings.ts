@@ -26,6 +26,16 @@ export const SPLITWISE_STRINGS = {
   disconnectFailedBody: 'Could not disconnect from Splitwise. Please try again.',
   authCancelledMessage: 'Splitwise connection was cancelled.',
 
+  // Transaction badge
+  transactionBadge: 'Splitwise',
+
+  // Sync
+  chatSyncTitle: 'Sync Splitwise',
+  chatSyncSuccess: 'Splitwise expenses have been synced.',
+  chatSyncFailure: 'Failed to sync Splitwise expenses.',
+  chatSyncCancelled: 'Splitwise sync was cancelled.',
+  syncButton: 'Sync Now',
+
   // Chat intents
   chatConnectTitle: 'Connect Splitwise',
   chatConnectSuccess: 'Your Splitwise account is now connected.',

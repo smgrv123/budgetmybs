@@ -34,3 +34,32 @@ export const HTTP_CLIENT_RATE_LIMIT_DELAY_MS = 1000;
 
 /** Default request timeout in ms. */
 export const HTTP_CLIENT_TIMEOUT_MS = 10_000;
+
+/**
+ * Splitwise sync endpoints
+ */
+export const SPLITWISE_SYNC_ENDPOINTS = {
+  GET_EXPENSES: `${SPLITWISE_API_BASE_URL}/get_expenses`,
+  CURRENT_USER: `${SPLITWISE_API_BASE_URL}/get_current_user`,
+} as const;
+
+/**
+ * How long (ms) before a cached sync is considered stale and triggers auto-sync on dashboard mount.
+ * 5 minutes.
+ */
+export const SPLITWISE_STALE_THRESHOLD_MS = 5 * 60 * 1000;
+
+/**
+ * Delay in ms between sequential Splitwise API calls to respect rate limits.
+ */
+export const SPLITWISE_API_CALL_DELAY_MS = 250;
+
+/**
+ * Maximum number of expenses to fetch per sync.
+ */
+export const SPLITWISE_SYNC_EXPENSE_LIMIT = 200;
+
+/**
+ * Secure store key for caching the local Splitwise user ID.
+ */
+export const SPLITWISE_USER_ID_KEY = 'splitwise_user_id';

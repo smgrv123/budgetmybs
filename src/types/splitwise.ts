@@ -47,3 +47,13 @@ export type SplitwiseConnectionState = {
   status: SplitwiseConnectionStatusType;
   currentUser: SplitwiseUser | null;
 };
+
+// ============================================
+// SYNC RESULT
+// ============================================
+
+export type SplitwiseSyncResult = {
+  synced: number;
+  skipped: number;
+  errors: number;
+};

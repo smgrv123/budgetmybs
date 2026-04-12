@@ -4,7 +4,7 @@ import { BButton, BIcon, BLink, BSafeAreaView, BText, BView, ScreenHeader } from
 import { CREDIT_CARD_PROVIDER_COLORS } from '@/src/constants/credit-cards.config';
 import { ButtonVariant, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
 import { ALL_TRANSACTIONS_STRINGS } from '@/src/constants/transactions.strings';
-import { useAllExpenses, useCategories, useCreditCards } from '@/src/hooks';
+import { useAllExpenses, useCategories, useCreditCards, useSplitwise, useSplitwiseSync } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { ExpenseFilter, TransactionListItem } from '@/src/types';
 import { DEFAULT_EXPENSE_FILTER } from '@/src/types';
@@ -22,6 +22,9 @@ export default function AllTransactionsScreen() {
 
   const { items, hasActiveFilter, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useAllExpenses(appliedFilter);
+
+  const { isConnected: isSplitwiseConnected } = useSplitwise();
+  const { syncSplitwise, isSyncing: isSplitwiseSyncing } = useSplitwiseSync();
 
   const handleApply = (filter: ExpenseFilter) => {
     setAppliedFilter(filter);
@@ -78,6 +81,7 @@ export default function AllTransactionsScreen() {
           creditCardLast4={expense.creditCard?.last4 ?? null}
           creditCardColor={creditCardColor ?? null}
           isBillPay={expense.creditCardTxnType === CreditCardTxnTypeEnum.PAYMENT}
+          isFromSplitwise={Boolean(expense.isFromSplitwise)}
         />
       </BLink>
     );
@@ -170,8 +174,13 @@ export default function AllTransactionsScreen() {
             ListFooterComponent={renderFooter}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
-            onRefresh={refetch}
-            refreshing={isLoading}
+            onRefresh={() => {
+              refetch();
+              if (isSplitwiseConnected) {
+                syncSplitwise({ fullSync: true });
+              }
+            }}
+            refreshing={isLoading || isSplitwiseSyncing}
             onEndReached={handleEndReached}
             onEndReachedThreshold={0.5}
           />

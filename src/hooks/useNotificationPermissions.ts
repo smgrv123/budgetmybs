@@ -94,17 +94,13 @@ export const useNotificationPermissions = () => {
     const { status: current } = await Notifications.getPermissionsAsync();
 
     if (current === 'denied') {
-      Alert.alert(
-        IMPULSE_STRINGS.permissionDeniedTitle,
-        IMPULSE_STRINGS.permissionDeniedMessage,
-        [
-          { text: IMPULSE_STRINGS.permissionDeniedCancel, style: 'cancel' },
-          {
-            text: IMPULSE_STRINGS.permissionDeniedOpenSettings,
-            onPress: () => Linking.openSettings(),
-          },
-        ]
-      );
+      Alert.alert(IMPULSE_STRINGS.permissionDeniedTitle, IMPULSE_STRINGS.permissionDeniedMessage, [
+        { text: IMPULSE_STRINGS.permissionDeniedCancel, style: 'cancel' },
+        {
+          text: IMPULSE_STRINGS.permissionDeniedOpenSettings,
+          onPress: () => Linking.openSettings(),
+        },
+      ]);
       return false;
     }
 

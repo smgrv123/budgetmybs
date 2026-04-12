@@ -14,6 +14,10 @@ export const AsyncStorageKeys = {
   PENDING_IMPULSE_PURCHASES: 'pendingImpulsePurchases',
   // Number of times the impulse toggle has been activated (used for permission ask gating)
   IMPULSE_PERMISSION_ASK_COUNT: 'impulsePermissionAskCount',
+  // ISO timestamp of the last successful Splitwise sync
+  SPLITWISE_LAST_SYNCED_AT: 'splitwiseLastSyncedAt',
+  // Set to 'true' when a silent token refresh fails — cleared on reconnect/disconnect
+  SPLITWISE_RECONNECT_REQUIRED: 'splitwiseReconnectRequired',
 } as const;
 
 export type AsyncStorageKey = (typeof AsyncStorageKeys)[keyof typeof AsyncStorageKeys];

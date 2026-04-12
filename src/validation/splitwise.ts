@@ -58,3 +58,55 @@ export const SplitwiseTokenResponseSchema = z
 
 export type SplitwiseTokenResponse = z.infer<typeof SplitwiseTokenResponseSchema>;
 export type SplitwiseCurrentUserResponse = z.infer<typeof SplitwiseCurrentUserResponseSchema>;
+
+// ============================================
+// EXPENSE USER SCHEMA
+// ============================================
+
+export const SplitwiseExpenseUserSchema = z
+  .object({
+    user_id: z.number(),
+    paid_share: z.string(),
+    owed_share: z.string(),
+    user: z
+      .object({
+        id: z.number(),
+        first_name: z.string(),
+      })
+      .loose(),
+  })
+  .loose();
+
+// ============================================
+// EXPENSE SCHEMA
+// ============================================
+
+export const SplitwiseExpenseSchema = z
+  .object({
+    id: z.number(),
+    description: z.string(),
+    cost: z.string(),
+    currency_code: z.string(),
+    date: z.string(),
+    deleted_at: z.string().nullable().optional(),
+    payment: z.boolean(),
+    updated_at: z.string(),
+    category: z
+      .object({
+        id: z.number(),
+        name: z.string(),
+      })
+      .loose(),
+    users: z.array(SplitwiseExpenseUserSchema),
+  })
+  .loose();
+
+export const SplitwiseExpensesResponseSchema = z
+  .object({
+    expenses: z.array(SplitwiseExpenseSchema),
+  })
+  .loose();
+
+export type SplitwiseExpensesResponse = z.infer<typeof SplitwiseExpensesResponseSchema>;
+export type SplitwiseExpenseData = z.infer<typeof SplitwiseExpenseSchema>;
+export type SplitwiseCurrentUserApiResponse = z.infer<typeof SplitwiseCurrentUserResponseSchema>;

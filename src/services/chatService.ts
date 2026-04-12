@@ -229,6 +229,10 @@ CAPABILITIES — what you CAN do:
     Triggered by: "disconnect Splitwise", "unlink my Splitwise", "remove Splitwise", "disconnect my Splitwise account"
     - No data fields required. The app clears the stored tokens.
 
+27. SYNC SPLITWISE
+    Triggered by: "sync Splitwise", "sync my Splitwise expenses", "pull Splitwise expenses", "refresh Splitwise", "import from Splitwise", "fetch Splitwise"
+    - No data fields required. The app triggers a full sync from the Splitwise API.
+
 ══════════════════════════════════
 RESPONSE FORMAT — ALWAYS valid JSON:
 ══════════════════════════════════
@@ -307,6 +311,9 @@ Connect Splitwise:
 
 Disconnect Splitwise:
 { "intent": "disconnect_splitwise", "data": {}, "message": "Got it! Disconnecting your Splitwise account now." }
+
+Sync Splitwise:
+{ "intent": "sync_splitwise", "data": {}, "message": "Sure! Syncing your Splitwise expenses now." }
 
 General / advice:
 { "intent": "general", "message": "..." }

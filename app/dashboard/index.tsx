@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { CreditCardTxnTypeEnum, RecurringSourceTypeEnum } from '@/db/types';
@@ -44,6 +44,8 @@ import {
   useProfile,
   useRecurringStatus,
   useSavingsGoals,
+  useSplitwise,
+  useSplitwiseSync,
 } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { QuickStatTypeValue } from '@/src/types/dashboard';
@@ -65,6 +67,17 @@ export default function DashboardScreen() {
   const { creditCards, creditCardSummaries } = useCreditCards();
   const { isItemProcessed } = useRecurringStatus();
   const { snapshot, rollover, additionalIncome, resetRollover, isResettingRollover } = useMonthlyBudget();
+  const { isConnected: isSplitwiseConnected } = useSplitwise();
+  const { triggerStaleGatedSync } = useSplitwiseSync();
+
+  // Auto-sync Splitwise on mount (or when connection state changes) if connected and stale
+  useEffect(() => {
+    if (isSplitwiseConnected) {
+      triggerStaleGatedSync();
+    }
+    // triggerStaleGatedSync is stable (no useCallback needed — React Compiler memoizes)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSplitwiseConnected]);
 
   // Gradient colors (theme-aware)
   const HEADER_GRADIENT: [string, string, string] = [
@@ -446,6 +459,7 @@ export default function DashboardScreen() {
                       isBillPay={
                         'creditCardTxnType' in item ? item.creditCardTxnType === CreditCardTxnTypeEnum.PAYMENT : false
                       }
+                      isFromSplitwise={'isFromSplitwise' in item ? Boolean(item.isFromSplitwise) : false}
                     />
                   </BLink>
                 </BView>

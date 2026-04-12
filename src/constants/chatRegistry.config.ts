@@ -2326,6 +2326,30 @@ const deleteCreditCardEntry: IntentRegistryEntry = {
 // SPLITWISE REGISTRY ENTRIES
 // ============================================
 
+const syncSplitwiseEntry: IntentRegistryEntry = {
+  intent: ChatIntentEnum.SYNC_SPLITWISE,
+  title: SPLITWISE_STRINGS.chatSyncTitle,
+  formType: 'default',
+  buttonVariant: ButtonVariant.PRIMARY,
+  submitLabel: SPLITWISE_STRINGS.syncButton,
+  fields: [],
+  mutations: [
+    {
+      key: 'syncSplitwise',
+      transformData: () => ({}),
+      errorLog: 'Failed to sync Splitwise:',
+    },
+  ],
+  messages: {
+    success: SPLITWISE_STRINGS.chatSyncSuccess,
+    failure: SPLITWISE_STRINGS.chatSyncFailure,
+    cancelled: SPLITWISE_STRINGS.chatSyncCancelled,
+  },
+  invalidations: [],
+  validate: () => null,
+  getInitialValues: () => ({}),
+};
+
 const connectSplitwiseEntry: IntentRegistryEntry = {
   intent: ChatIntentEnum.CONNECT_SPLITWISE,
   title: SPLITWISE_STRINGS.chatConnectTitle,
@@ -2392,6 +2416,7 @@ export const INTENT_REGISTRY: Readonly<Record<string, IntentRegistryEntry>> = {
   [ChatIntentEnum.DELETE_CREDIT_CARD]: deleteCreditCardEntry,
   [ChatIntentEnum.CONNECT_SPLITWISE]: connectSplitwiseEntry,
   [ChatIntentEnum.DISCONNECT_SPLITWISE]: disconnectSplitwiseEntry,
+  [ChatIntentEnum.SYNC_SPLITWISE]: syncSplitwiseEntry,
 };
 
 /** The set of intent values that have been migrated to the registry. */
