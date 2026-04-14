@@ -151,10 +151,12 @@ export const getExpenseById = async (id: string) => {
         last4: creditCardsTable.last4,
         provider: creditCardsTable.provider,
       },
+      receivableAmount: splitwiseExpensesTable.receivableAmount,
     })
     .from(expensesTable)
     .leftJoin(categoriesTable, eq(expensesTable.categoryId, categoriesTable.id))
     .leftJoin(creditCardsTable, eq(expensesTable.creditCardId, creditCardsTable.id))
+    .leftJoin(splitwiseExpensesTable, eq(expensesTable.id, splitwiseExpensesTable.expenseId))
     .where(eq(expensesTable.id, id))
     .limit(1);
 

@@ -43,6 +43,7 @@ budgetmybs/
 │   │   ├── useSplitwiseSync.ts      # Splitwise inbound sync hook (syncSplitwise, isSyncing, lastSyncedAt, triggerStaleGatedSync)
 │   │   ├── useSplitTargets.ts       # Splitwise friends/groups for split form picker (TanStack Query)
 │   │   ├── useSplitExpense.ts       # Splitwise outbound push mutation (used by useMutationMap)
+│   │   ├── useSplitwiseReceivables.ts  # Fetch receivableAmount for a given expenseId (payer breakdown)
 │   │   ├── queryKeys.ts          # Shared query keys (breaks circular deps between useExpenses/useCreditCards)
 │   │   ├── theme-hooks/          # Theme-related hooks
 │   │   └── index.ts              # Barrel exports with query keys

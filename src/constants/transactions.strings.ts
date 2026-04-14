@@ -57,6 +57,8 @@ export const ALL_TRANSACTIONS_STRINGS = {
 
 export const TRANSACTION_DETAIL_STRINGS = {
   screenTitle: 'Transaction Details',
+  splitwisePaidLabel: 'paid',
+  splitwiseShareLabel: 'your share',
   loadingLabel: 'Loading transaction...',
   notFoundLabel: 'Transaction not found',
   recurringReadOnlyBadge: 'Auto-generated · Read-only',

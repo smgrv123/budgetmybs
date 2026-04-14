@@ -155,10 +155,15 @@ export const syncSplitwiseExpenses = async (options: { fullSync?: boolean } = {}
 
       let expenseId: string;
 
+      // Full cash outflow model:
+      // - Payer: amount = what they actually paid out (userPaidShare)
+      // - Non-payer: amount = what they owe (userOwedShare)
+      const expenseAmount = userPaidShare > 0 ? userPaidShare : userOwedShare;
+
       if (existingSplitwiseRow) {
         // Update the linked local expense in-place
         await updateExpense(existingSplitwiseRow.expenseId, {
-          amount: userOwedShare,
+          amount: expenseAmount,
           description: expense.description || null,
           date: expenseDate,
           categoryId: localCategory?.id ?? null,
@@ -166,9 +171,8 @@ export const syncSplitwiseExpenses = async (options: { fullSync?: boolean } = {}
         expenseId = existingSplitwiseRow.expenseId;
       } else {
         // Create a new local expense row
-        // We use userOwedShare as the amount (the user's actual share of the expense)
         const localExpense = await createExpense({
-          amount: userOwedShare,
+          amount: expenseAmount,
           description: expense.description || null,
           date: expenseDate,
           categoryId: localCategory?.id ?? null,

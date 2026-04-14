@@ -1,7 +1,7 @@
 import type { UpdateExpenseInput } from '@/db/schema-types';
 import { CreditCardTxnTypeEnum } from '@/db/types';
-import { BButton, BCard, BIcon, BInput, BSafeAreaView, BText, BToast, BView, ScreenHeader } from '@/src/components/ui';
 import { DetailsCard, DetailsCardDivider } from '@/src/components';
+import { BButton, BCard, BIcon, BInput, BSafeAreaView, BText, BToast, BView, ScreenHeader } from '@/src/components/ui';
 import { CREDIT_CARD_PROVIDER_COLORS } from '@/src/constants/credit-cards.config';
 import type { ToastVariantType } from '@/src/constants/theme';
 import { ButtonVariant, CardVariant, Spacing, SpacingValue, TextVariant, ToastVariant } from '@/src/constants/theme';
@@ -39,6 +39,7 @@ export default function TransactionDetailScreen() {
   const { allCategories } = useCategories();
   const { updateExpense, isUpdatingExpense, removeExpense } = useExpenses();
   const { expense, isExpenseLoading } = useExpenseById(id);
+  const receivableAmount = expense?.receivableAmount ?? null;
 
   const [isEditing, setIsEditing] = useState(false);
   const [editAmount, setEditAmount] = useState('');
@@ -246,10 +247,18 @@ export default function TransactionDetailScreen() {
               containerStyle={{ marginTop: Spacing.xs }}
             />
           ) : (
-            <BText variant={TextVariant.HEADING} style={{ color: amountColor }}>
-              {amountPrefix}
-              {formatCurrency(expense.amount)}
-            </BText>
+            <>
+              <BText variant={TextVariant.HEADING} style={{ color: amountColor }}>
+                {amountPrefix}
+                {formatCurrency(expense.amount)}
+              </BText>
+              {receivableAmount !== null && (
+                <BText variant={TextVariant.CAPTION} muted style={{ marginTop: Spacing.xxs }}>
+                  {formatCurrency(expense.amount)} {TRANSACTION_DETAIL_STRINGS.splitwisePaidLabel} ·{' '}
+                  {formatCurrency(expense.amount - receivableAmount)} {TRANSACTION_DETAIL_STRINGS.splitwiseShareLabel}
+                </BText>
+              )}
+            </>
           )}
         </BCard>
 
