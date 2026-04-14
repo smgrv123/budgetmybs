@@ -29,6 +29,9 @@ export const useMutationMap = (): MutationMap => {
   const { createCreditCardAsync, updateCreditCardAsync, removeCreditCardAsync } = useCreditCards();
   const { connectAsync, disconnectAsync } = useSplitwise();
   const { syncSplitwiseAsync } = useSplitwiseSync();
+  // Phase 4 (stashed): const { totalOwedToYou, totalYouOwe, friendBalances } = useSplitwiseBalances();
+  // Phase 5 (stashed): const { splitExpenseAsync } = useSplitExpense();
+  // Phase 4 (stashed): checkBalancesAsync function — restore when Phase 4 is popped
 
   return {
     createExpense: createExpenseAsync,
@@ -53,5 +56,7 @@ export const useMutationMap = (): MutationMap => {
     connectSplitwise: connectAsync,
     disconnectSplitwise: disconnectAsync,
     syncSplitwise: syncSplitwiseAsync,
+    // Phase 4 (stashed): checkBalances: checkBalancesAsync,
+    // Phase 5 (stashed): splitExpense: splitExpenseAsync,
   };
 };

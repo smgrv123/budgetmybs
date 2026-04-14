@@ -33,6 +33,8 @@ import { CHAT_REGISTRY_STRINGS } from './chat.registry.strings';
 import { CHAT_PROFILE_FIELD_LABELS } from './chat';
 import { ButtonVariant } from './theme';
 import { SPLITWISE_STRINGS } from './splitwise.strings';
+// Phase 4 (stashed): import { SPLITWISE_BALANCES_STRINGS } from './splitwise-balances.strings';
+// Phase 5 (stashed): import { SPLITWISE_OUTBOUND_STRINGS } from './splitwise-outbound.strings';
 import dayjs from 'dayjs';
 import { z } from 'zod';
 
@@ -146,6 +148,12 @@ export const WithdrawSavingsFieldKey = {
   // hidden keys to carry IDs
   SAVINGS_GOAL_ID: '_savingsGoalId',
   SAVINGS_TYPE: '_savingsType',
+} as const;
+
+export const SplitExpenseFieldKey = {
+  AMOUNT: 'amount',
+  DESCRIPTION: 'description',
+  FRIEND_NAME: 'friendName',
 } as const;
 
 // ============================================
@@ -2386,6 +2394,10 @@ const disconnectSplitwiseEntry: IntentRegistryEntry = {
   getInitialValues: () => ({}),
 };
 
+// Phase 4 (stashed): checkBalancesEntry — uncomment when Phase 4 is popped
+
+// Phase 5 (stashed): splitExpenseEntry — uncomment when Phase 5 is popped
+
 // ============================================
 // REGISTRY MAP
 // ============================================
@@ -2417,6 +2429,8 @@ export const INTENT_REGISTRY: Readonly<Record<string, IntentRegistryEntry>> = {
   [ChatIntentEnum.CONNECT_SPLITWISE]: connectSplitwiseEntry,
   [ChatIntentEnum.DISCONNECT_SPLITWISE]: disconnectSplitwiseEntry,
   [ChatIntentEnum.SYNC_SPLITWISE]: syncSplitwiseEntry,
+  // Phase 5 (stashed): [ChatIntentEnum.SPLIT_EXPENSE]: splitExpenseEntry,
+  // Phase 4 (stashed): [ChatIntentEnum.CHECK_BALANCES]: checkBalancesEntry,
 };
 
 /** The set of intent values that have been migrated to the registry. */

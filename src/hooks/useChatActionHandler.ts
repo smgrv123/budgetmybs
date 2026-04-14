@@ -23,6 +23,7 @@ import {
   pickMessage,
 } from '@/src/constants/chat.registry.strings';
 import { SPLITWISE_STRINGS } from '@/src/constants/splitwise.strings';
+// Phase 4 (stashed): import { SPLITWISE_BALANCES_STRINGS } from '@/src/constants/splitwise-balances.strings';
 import { ChatActionStatusEnum, ChatIntentEnum, CreditCardTxnTypeEnum } from '@/db/types';
 import { formatDate as formatDbDate } from '@/db/utils';
 import { scheduleImpulseNotification } from '@/src/services/notificationService';
@@ -279,6 +280,8 @@ export const useChatActionHandler = (pendingAction: RegistryPendingAction | null
       setIsSubmitting(false);
       return;
     }
+
+    // Phase 4 (stashed): CHECK_BALANCES special case — restore when Phase 4 is popped
 
     // Run mutations sequentially; bail on first failure
     let allSucceeded = true;

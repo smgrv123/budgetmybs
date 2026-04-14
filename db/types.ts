@@ -292,6 +292,7 @@ export const ChatActionTypeEnum = {
   CONNECT_SPLITWISE: 'connect_splitwise',
   DISCONNECT_SPLITWISE: 'disconnect_splitwise',
   SYNC_SPLITWISE: 'sync_splitwise',
+  CHECK_BALANCES: 'check_balances',
 } as const;
 export type ChatActionType = (typeof ChatActionTypeEnum)[keyof typeof ChatActionTypeEnum];
 export const CHAT_ACTION_TYPES = Object.values(ChatActionTypeEnum);
@@ -338,6 +339,8 @@ export const ChatIntentEnum = {
   CONNECT_SPLITWISE: 'connect_splitwise',
   DISCONNECT_SPLITWISE: 'disconnect_splitwise',
   SYNC_SPLITWISE: 'sync_splitwise',
+  SPLIT_EXPENSE: 'split_expense',
+  CHECK_BALANCES: 'check_balances',
   GENERAL: 'general',
 } as const;
 export type ChatIntent = (typeof ChatIntentEnum)[keyof typeof ChatIntentEnum];
