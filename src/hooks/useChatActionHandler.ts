@@ -23,7 +23,7 @@ import {
   pickMessage,
 } from '@/src/constants/chat.registry.strings';
 import { SPLITWISE_STRINGS } from '@/src/constants/splitwise.strings';
-// Phase 4 (stashed): import { SPLITWISE_BALANCES_STRINGS } from '@/src/constants/splitwise-balances.strings';
+import { SPLITWISE_BALANCES_STRINGS } from '@/src/constants/splitwise-balances.strings';
 import { ChatActionStatusEnum, ChatIntentEnum, CreditCardTxnTypeEnum } from '@/db/types';
 import { formatDate as formatDbDate } from '@/db/utils';
 import { scheduleImpulseNotification } from '@/src/services/notificationService';
@@ -281,7 +281,34 @@ export const useChatActionHandler = (pendingAction: RegistryPendingAction | null
       return;
     }
 
-    // Phase 4 (stashed): CHECK_BALANCES special case — restore when Phase 4 is popped
+    // ── Special case: CHECK_BALANCES ──────────────────────────────────────────
+    // Reads balance data via the mutation map and returns a formatted summary string.
+    if (pendingAction.intent === ChatIntentEnum.CHECK_BALANCES) {
+      const checkFn = mutationMap['checkBalances'];
+      let resultMessage: string = SPLITWISE_BALANCES_STRINGS.checkBalancesEmpty;
+
+      if (!checkFn) {
+        console.error('[useChatActionHandler] checkBalances not found in mutation map');
+      } else {
+        try {
+          const result = await checkFn(undefined);
+          if (typeof result === 'string' && result.length > 0) {
+            resultMessage = result;
+          }
+        } catch (err) {
+          console.error('[useChatActionHandler] CHECK_BALANCES failed:', err);
+        }
+      }
+
+      await replaceMessageAsync({
+        id: pendingAction.messageId,
+        content: resultMessage,
+        actionStatus: ChatActionStatusEnum.COMPLETED,
+      });
+
+      setIsSubmitting(false);
+      return;
+    }
 
     // Run mutations sequentially; bail on first failure
     let allSucceeded = true;

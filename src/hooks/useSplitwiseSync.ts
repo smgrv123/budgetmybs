@@ -17,6 +17,7 @@ import { getLastSyncedAt, syncSplitwiseExpenses } from '@/src/services/splitwise
 import type { SplitwiseSyncResult } from '@/src/types/splitwise';
 import { SPLITWISE_STALE_THRESHOLD_MS } from '@/src/constants/splitwise.config';
 import { ALL_EXPENSES_QUERY_KEY } from '@/src/hooks/useAllExpenses';
+import { SPLITWISE_FRIEND_BALANCES_QUERY_KEY } from '@/src/hooks/useSplitwiseBalances';
 
 // ============================================
 // QUERY KEYS
@@ -44,7 +45,7 @@ export const useSplitwiseSync = () => {
   // ── Sync mutation ─────────────────────────────────────────────────────────
   const syncMutation = useMutation<SplitwiseSyncResult, Error, { fullSync?: boolean } | undefined>({
     mutationFn: (options) => syncSplitwiseExpenses(options ?? {}),
-    onSuccess: () => {
+    onSuccess: async () => {
       // Invalidate expense queries so UI refreshes with new data
       queryClient.invalidateQueries({ queryKey: EXPENSES_QUERY_KEY });
       queryClient.invalidateQueries({ queryKey: ONE_OFF_SAVINGS_QUERY_KEY });
@@ -52,6 +53,8 @@ export const useSplitwiseSync = () => {
       queryClient.invalidateQueries({ queryKey: ALL_EXPENSES_QUERY_KEY });
       // Refresh the last-synced-at display
       queryClient.invalidateQueries({ queryKey: SPLITWISE_LAST_SYNCED_AT_QUERY_KEY });
+      // Let useSplitwiseBalances refetch naturally when its cache goes stale
+      queryClient.invalidateQueries({ queryKey: SPLITWISE_FRIEND_BALANCES_QUERY_KEY });
     },
     onError: (error) => {
       console.error('[useSplitwiseSync] Sync failed:', error);

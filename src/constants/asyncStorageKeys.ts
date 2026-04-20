@@ -18,6 +18,10 @@ export const AsyncStorageKeys = {
   SPLITWISE_LAST_SYNCED_AT: 'splitwiseLastSyncedAt',
   // Set to 'true' when a silent token refresh fails — cleared on reconnect/disconnect
   SPLITWISE_RECONNECT_REQUIRED: 'splitwiseReconnectRequired',
+  // JSON array of pending Splitwise push items (SplitwisePushQueueItem[])
+  SPLITWISE_PUSH_QUEUE: 'splitwisePushQueue',
+  // JSON cache of friend balances fetched from /get_friends (SplitwiseFriendBalanceCache)
+  SPLITWISE_FRIEND_BALANCES: 'splitwiseFriendBalances',
 } as const;
 
 export type AsyncStorageKey = (typeof AsyncStorageKeys)[keyof typeof AsyncStorageKeys];

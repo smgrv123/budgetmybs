@@ -2,6 +2,10 @@
  * Splitwise integration type definitions.
  */
 
+import { SplitwiseConnectionStatus } from '@/src/constants/splitwise-outbound.strings';
+
+export { SplitwiseConnectionStatus };
+
 // ============================================
 // USER
 // ============================================
@@ -34,13 +38,6 @@ export type SplitwiseTokens = {
 // CONNECTION STATE
 // ============================================
 
-export const SplitwiseConnectionStatus = {
-  DISCONNECTED: 'disconnected',
-  CONNECTING: 'connecting',
-  CONNECTED: 'connected',
-  RECONNECT_REQUIRED: 'reconnect_required',
-} as const;
-
 export type SplitwiseConnectionStatusType = (typeof SplitwiseConnectionStatus)[keyof typeof SplitwiseConnectionStatus];
 
 export type SplitwiseConnectionState = {
@@ -56,4 +53,25 @@ export type SplitwiseSyncResult = {
   synced: number;
   skipped: number;
   errors: number;
+  settlements: number;
+};
+
+// ============================================
+// FRIEND BALANCE CACHE
+// ============================================
+
+export type SplitwiseFriendBalanceEntry = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  /** Positive = they owe you; negative = you owe them (INR only) */
+  netAmount: number;
+  /** Medium-size profile picture URL from Splitwise, if available */
+  avatarUrl: string | null;
+};
+
+export type SplitwiseFriendBalanceCache = {
+  /** ISO timestamp of when this cache was last populated */
+  fetchedAt: string;
+  friends: SplitwiseFriendBalanceEntry[];
 };

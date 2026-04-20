@@ -37,9 +37,14 @@ export {
   useSplitwise,
 } from './useSplitwise';
 export { SPLITWISE_LAST_SYNCED_AT_QUERY_KEY, useSplitwiseSync } from './useSplitwiseSync';
-// Phase 4 (stashed): export { SPLITWISE_BALANCE_BY_FRIEND_QUERY_KEY, SPLITWISE_BALANCE_SUMMARY_QUERY_KEY, useSplitwiseBalances } from './useSplitwiseBalances';
-// Phase 5 (stashed): export { SPLITWISE_FRIENDS_QUERY_KEY, SPLITWISE_GROUPS_QUERY_KEY, useSplitTargets } from './useSplitTargets';
-// Phase 5 (stashed): export { useSplitExpense } from './useSplitExpense';
+export {
+  SPLITWISE_BALANCE_BY_FRIEND_QUERY_KEY,
+  SPLITWISE_BALANCE_SUMMARY_QUERY_KEY,
+  SPLITWISE_FRIEND_BALANCES_QUERY_KEY,
+  useSplitwiseBalances,
+} from './useSplitwiseBalances';
+export { SPLITWISE_FRIENDS_QUERY_KEY, SPLITWISE_GROUPS_QUERY_KEY, useSplitTargets } from './useSplitTargets';
+export { useSplitExpense } from './useSplitExpense';
 export { useExpiredImpulseCheck } from './useExpiredImpulseCheck';
 export { useImpulsePermission } from './useImpulsePermission';
 export { useNotificationPermissions } from './useNotificationPermissions';

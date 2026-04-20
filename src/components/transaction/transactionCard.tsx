@@ -38,6 +38,8 @@ export interface TransactionCardProps {
   isBillPay?: boolean;
   /** True if this expense was imported from Splitwise */
   isFromSplitwise?: boolean;
+  /** True if this is a Splitwise settlement (someone paid you back) */
+  isSettlement?: boolean;
 }
 
 const TransactionCard: FC<TransactionCardProps> = ({
@@ -54,6 +56,7 @@ const TransactionCard: FC<TransactionCardProps> = ({
   creditCardColor,
   isBillPay = false,
   isFromSplitwise = false,
+  isSettlement = false,
 }) => {
   const themeColors = useThemeColors();
 
@@ -98,6 +101,7 @@ const TransactionCard: FC<TransactionCardProps> = ({
               </BText>
               {isBillPay && <TransactionCardPill pillString={TRANSACTION_CARD_STRINGS.billPayBadge} />}
               {isFromSplitwise && <TransactionCardPill pillString={SPLITWISE_STRINGS.transactionBadge} />}
+              {isSettlement && <TransactionCardPill pillString={SPLITWISE_STRINGS.settlementBadge} />}
             </BView>
             {/* Subtitle row: date · category [· dot cardname ••last4] */}
             <BView row align="center" gap={SpacingValue.XS} style={{ flexWrap: 'wrap' }}>

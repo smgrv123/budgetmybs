@@ -25,7 +25,7 @@ import { splitwiseAuth } from '@/src/services/splitwise';
 import { createHttpClient } from '@/src/services/api';
 import type { SplitwiseCurrentUserApiResponse } from '@/src/validation/splitwise';
 import type { SplitwiseConnectionStatusType, SplitwiseTokens, SplitwiseUser } from '@/src/types/splitwise';
-import { SplitwiseConnectionStatus } from '@/src/types/splitwise';
+import { SplitwiseConnectionStatus } from '@/src/constants/splitwise-outbound.strings';
 
 // Enables expo-web-browser warm-up for smoother OAuth experience
 WebBrowser.maybeCompleteAuthSession();

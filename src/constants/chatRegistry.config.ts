@@ -33,8 +33,8 @@ import { CHAT_REGISTRY_STRINGS } from './chat.registry.strings';
 import { CHAT_PROFILE_FIELD_LABELS } from './chat';
 import { ButtonVariant } from './theme';
 import { SPLITWISE_STRINGS } from './splitwise.strings';
-// Phase 4 (stashed): import { SPLITWISE_BALANCES_STRINGS } from './splitwise-balances.strings';
-// Phase 5 (stashed): import { SPLITWISE_OUTBOUND_STRINGS } from './splitwise-outbound.strings';
+import { SPLITWISE_BALANCES_STRINGS } from './splitwise-balances.strings';
+import { SPLITWISE_OUTBOUND_STRINGS } from './splitwise-outbound.strings';
 import dayjs from 'dayjs';
 import { z } from 'zod';
 
@@ -2394,9 +2394,75 @@ const disconnectSplitwiseEntry: IntentRegistryEntry = {
   getInitialValues: () => ({}),
 };
 
-// Phase 4 (stashed): checkBalancesEntry — uncomment when Phase 4 is popped
+const checkBalancesEntry: IntentRegistryEntry = {
+  intent: ChatIntentEnum.CHECK_BALANCES,
+  title: SPLITWISE_BALANCES_STRINGS.checkBalancesTitle,
+  formType: 'default',
+  buttonVariant: ButtonVariant.PRIMARY,
+  submitLabel: SPLITWISE_BALANCES_STRINGS.checkBalancesButton,
+  fields: [],
+  mutations: [],
+  messages: {
+    success: SPLITWISE_BALANCES_STRINGS.checkBalancesEmpty,
+    failure: SPLITWISE_BALANCES_STRINGS.checkBalancesEmpty,
+    cancelled: SPLITWISE_BALANCES_STRINGS.checkBalancesEmpty,
+  },
+  invalidations: [],
+  validate: () => null,
+  getInitialValues: () => ({}),
+};
 
-// Phase 5 (stashed): splitExpenseEntry — uncomment when Phase 5 is popped
+const splitExpenseEntry: IntentRegistryEntry = {
+  intent: ChatIntentEnum.SPLIT_EXPENSE,
+  title: SPLITWISE_OUTBOUND_STRINGS.chatSplitTitle,
+  formType: 'default',
+  buttonVariant: ButtonVariant.PRIMARY,
+  submitLabel: SPLITWISE_OUTBOUND_STRINGS.chatSplitSubmit,
+  fields: [
+    {
+      key: 'amount',
+      label: SPLITWISE_OUTBOUND_STRINGS.chatSplitAmountLabel,
+      placeholder: SPLITWISE_OUTBOUND_STRINGS.chatSplitAmountPlaceholder,
+      type: 'currency',
+      required: true,
+    },
+    {
+      key: 'description',
+      label: SPLITWISE_OUTBOUND_STRINGS.chatSplitDescriptionLabel,
+      placeholder: SPLITWISE_OUTBOUND_STRINGS.chatSplitDescriptionPlaceholder,
+      type: 'text',
+      required: true,
+    },
+    {
+      key: 'friendName',
+      label: SPLITWISE_OUTBOUND_STRINGS.chatSplitFriendLabel,
+      placeholder: SPLITWISE_OUTBOUND_STRINGS.chatSplitFriendPlaceholder,
+      type: 'text',
+      required: true,
+    },
+  ],
+  mutations: [
+    {
+      key: 'splitExpense',
+      transformData: (formValues) => ({
+        expenseId: '',
+        friendId: 0,
+        payerUserId: 0,
+        totalAmount: parseFloat(formValues['amount'] ?? '0'),
+        description: formValues['description'] ?? '',
+      }),
+      errorLog: '[chatRegistry] SPLIT_EXPENSE mutation failed:',
+    },
+  ],
+  messages: {
+    success: SPLITWISE_OUTBOUND_STRINGS.chatSplitSuccess,
+    failure: SPLITWISE_OUTBOUND_STRINGS.chatSplitFailure,
+    cancelled: SPLITWISE_OUTBOUND_STRINGS.chatSplitCancelled,
+  },
+  invalidations: [],
+  validate: () => null,
+  getInitialValues: () => ({}),
+};
 
 // ============================================
 // REGISTRY MAP
@@ -2429,8 +2495,8 @@ export const INTENT_REGISTRY: Readonly<Record<string, IntentRegistryEntry>> = {
   [ChatIntentEnum.CONNECT_SPLITWISE]: connectSplitwiseEntry,
   [ChatIntentEnum.DISCONNECT_SPLITWISE]: disconnectSplitwiseEntry,
   [ChatIntentEnum.SYNC_SPLITWISE]: syncSplitwiseEntry,
-  // Phase 5 (stashed): [ChatIntentEnum.SPLIT_EXPENSE]: splitExpenseEntry,
-  // Phase 4 (stashed): [ChatIntentEnum.CHECK_BALANCES]: checkBalancesEntry,
+  [ChatIntentEnum.SPLIT_EXPENSE]: splitExpenseEntry,
+  [ChatIntentEnum.CHECK_BALANCES]: checkBalancesEntry,
 };
 
 /** The set of intent values that have been migrated to the registry. */

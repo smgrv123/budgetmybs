@@ -81,6 +81,15 @@ export const TRANSACTION_DETAIL_STRINGS = {
   deleteAlertCancel: 'Cancel',
   deleteAlertConfirm: 'Delete',
   creditCardLabel: 'Credit Card',
+
+  // Splitwise edit conflict
+  splitwiseConflictToast: 'This expense was updated on Splitwise. The form has been refreshed with the latest data.',
+  splitwiseEditPushFailed: 'Failed to update expense on Splitwise. Please try again.',
+  splitwiseEditPushSuccess: 'Expense updated on Splitwise.',
+  splitwiseFetchFailed: 'Could not check Splitwise for updates. Please try again.',
+  splitwiseFieldDisabledOffline: 'Connect to the internet to edit Splitwise-synced fields.',
+  splitwiseBadge: 'Synced from Splitwise',
+  splitwiseLocalSavedRemoteFailed: 'Saved locally. Splitwise sync failed — will retry on next sync.',
 } as const;
 
 export const ADD_TRANSACTION_STRINGS = {

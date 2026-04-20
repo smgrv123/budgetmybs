@@ -45,6 +45,7 @@ import {
   useRecurringStatus,
   useSavingsGoals,
   useSplitwise,
+  useSplitwiseBalances,
   useSplitwiseSync,
 } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
@@ -69,6 +70,7 @@ export default function DashboardScreen() {
   const { snapshot, rollover, additionalIncome, resetRollover, isResettingRollover } = useMonthlyBudget();
   const { isConnected: isSplitwiseConnected } = useSplitwise();
   const { triggerStaleGatedSync } = useSplitwiseSync();
+  const { totalOwedToYou, totalYouOwe } = useSplitwiseBalances();
 
   // Auto-sync Splitwise on mount (or when connection state changes) if connected and stale
   useEffect(() => {
@@ -274,6 +276,11 @@ export default function DashboardScreen() {
               budgetRemaining={budgetRemaining}
               budgetUsedPercent={budgetUsedPercent}
               carouselLength={Boolean(creditCards.length)}
+              totalReceivable={totalOwedToYou}
+              effectiveBudget={effectiveBudget}
+              totalOwedToYou={totalOwedToYou}
+              totalYouOwe={totalYouOwe}
+              onBalancesPress={() => router.push('/splitwise-balances')}
             />
 
             {creditCards.map((card, index) => {

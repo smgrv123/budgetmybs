@@ -9,6 +9,9 @@ export const SPLITWISE_TOKEN_URL = 'https://secure.splitwise.com/oauth/token';
 
 export const SPLITWISE_ENDPOINTS = {
   CURRENT_USER: `${SPLITWISE_API_BASE_URL}/get_current_user`,
+  FRIENDS: `${SPLITWISE_API_BASE_URL}/get_friends`,
+  GROUPS: `${SPLITWISE_API_BASE_URL}/get_groups`,
+  CREATE_EXPENSE: `${SPLITWISE_API_BASE_URL}/create_expense`,
 } as const;
 
 export const SPLITWISE_REDIRECT_URI = 'budgetmybs://auth/splitwise';
@@ -40,6 +43,8 @@ export const HTTP_CLIENT_TIMEOUT_MS = 10_000;
  */
 export const SPLITWISE_SYNC_ENDPOINTS = {
   GET_EXPENSES: `${SPLITWISE_API_BASE_URL}/get_expenses`,
+  GET_EXPENSE: `${SPLITWISE_API_BASE_URL}/get_expense`,
+  UPDATE_EXPENSE: `${SPLITWISE_API_BASE_URL}/update_expense`,
   CURRENT_USER: `${SPLITWISE_API_BASE_URL}/get_current_user`,
 } as const;
 

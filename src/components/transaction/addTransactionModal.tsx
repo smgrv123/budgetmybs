@@ -5,23 +5,29 @@ import { Alert, ScrollView, StyleSheet } from 'react-native';
 import { z } from 'zod';
 
 import { CreditCardTxnTypeEnum } from '@/db/types';
-import { BButton, BDropdown, BInput, BModal, BText, BView } from '@/src/components/ui';
+import { SplitForm } from '@/src/components/splitwise';
+import { BButton, BDropdown, BInput, BModal, BSwitch, BText, BToast, BView } from '@/src/components/ui';
 import { CREDIT_CARD_PROVIDER_OPTIONS } from '@/src/constants/credit-cards.config';
 import { CooldownPreset, CooldownUnit, PRESET_DEFINITIONS, toMinutes } from '@/src/constants/impulse.config';
 import { IMPULSE_STRINGS } from '@/src/constants/impulse.strings';
 import { CREDIT_CARDS_SETTINGS_STRINGS } from '@/src/constants/settings.strings';
-import { ButtonVariant, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
+import { SPLITWISE_OUTBOUND_STRINGS, SplitType } from '@/src/constants/splitwise-outbound.strings';
+import { ButtonVariant, Spacing, SpacingValue, TextVariant, ToastVariant } from '@/src/constants/theme';
 import { TRANSACTION_TAB_CONFIGS } from '@/src/constants/transactionForm.config';
 import { TransactionTab } from '@/src/constants/transactionModal';
 import { ADD_TRANSACTION_STRINGS, TRANSACTION_VALIDATION_STRINGS } from '@/src/constants/transactions.strings';
-import { useCategories, useCreditCards, useExpenses, useImpulsePermission } from '@/src/hooks';
+import { useCategories, useCreditCards, useExpenses, useImpulsePermission, useSplitwise } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
+import { scheduleImpulseNotification } from '@/src/services/notificationService';
+import { enqueueFailedPush, pushExpenseToSplitwise } from '@/src/services/splitwise';
 import type { CooldownPresetType, CooldownUnitType } from '@/src/types/impulse';
+import type { SplitFormState } from '@/src/types/splitwise-outbound';
 import { TransactionFieldKey, TransactionFieldType, type TransactionFieldKeyValue } from '@/src/types/transaction';
 import { formatLocalDateToISO } from '@/src/utils/date';
 import { generateUUID } from '@/src/utils/id';
 import { saveImpulsePurchase, updateNotificationId } from '@/src/utils/impulseAsyncStore';
-import { scheduleImpulseNotification } from '@/src/services/notificationService';
+import { checkNetworkConnection } from '@/src/utils/network';
+import { buildSplitPayload } from '@/src/utils/splitwisePushPayload';
 import dayjs from 'dayjs';
 import ImpulseCooldownSection from './ImpulseCooldownSection';
 import { createTransactionFields } from './transactionForm';
@@ -44,6 +50,7 @@ type AddTransactionModalProps = {
 const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, onExpenseCreated }) => {
   const themeColors = useThemeColors();
   const scrollViewRef = useRef<ScrollViewType>(null);
+  const [scrollOffset, setScrollOffset] = useState(0);
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState('');
   const [creditCardId, setCreditCardId] = useState('');
@@ -58,10 +65,27 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
   const [customValue, setCustomValue] = useState('');
   const [customUnit, setCustomUnit] = useState<CooldownUnitType>(CooldownUnit.MINUTES);
 
+  // ─── Split state ────────────────────────────────────────────────────────────
+  const [isSplit, setIsSplit] = useState(false);
+  const [splitState, setSplitState] = useState<SplitFormState>({
+    splitType: SplitType.EQUAL,
+    friendId: null,
+    groupId: null,
+    yourExactAmount: '',
+    friendExactAmount: '',
+    yourPercentage: '',
+    friendPercentage: '',
+    yourShares: '',
+    friendShares: '',
+  });
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
   const { allCategories } = useCategories();
   const { creditCards } = useCreditCards();
   const { createExpense, isCreatingExpense } = useExpenses();
   const { notificationsGranted, onImpulseToggleActivated } = useImpulsePermission();
+  const { isConnected, currentUser } = useSplitwise();
 
   // When the user returns from Settings with notifications now granted, clear direct mode
   useEffect(() => {
@@ -149,6 +173,42 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
     return validationResult.data;
   };
 
+  /** Attempt to push to Splitwise after a local save. Shows toast on failure. */
+  const attemptSplitwisePush = async (expenseId: string, amount: number, desc: string) => {
+    if (!isSplit || !splitState.friendId || !currentUser) return;
+
+    const friendId = parseInt(splitState.friendId, 10);
+    if (isNaN(friendId)) return;
+
+    const payload = buildSplitPayload({
+      totalAmount: amount,
+      description: desc ?? '',
+      currencyCode: 'INR',
+      payerUserId: currentUser.id,
+      friendUserId: friendId,
+      splitState,
+      groupId: splitState.groupId ? parseInt(splitState.groupId, 10) : undefined,
+    });
+
+    if (!payload) return;
+
+    const isOnline = await checkNetworkConnection();
+    if (!isOnline) {
+      await enqueueFailedPush(expenseId, payload as Record<string, unknown>);
+      setToastMessage(SPLITWISE_OUTBOUND_STRINGS.toastOffline);
+      setToastVisible(true);
+      return;
+    }
+
+    try {
+      await pushExpenseToSplitwise(payload as Record<string, unknown>);
+    } catch {
+      await enqueueFailedPush(expenseId, payload as Record<string, unknown>);
+      setToastMessage(SPLITWISE_OUTBOUND_STRINGS.toastApiFailed);
+      setToastVisible(true);
+    }
+  };
+
   /** Save directly to DB — used both for normal submit and impulse override */
   const saveToDatabase = (wasImpulse: boolean) => {
     const data = buildValidatedExpenseData();
@@ -165,8 +225,11 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
         wasImpulse: wasImpulse ? 1 : 0,
       },
       {
-        onSuccess: () => {
+        onSuccess: (createdExpense) => {
           onExpenseCreated?.(data.amount);
+          if (createdExpense) {
+            void attemptSplitwisePush(createdExpense.id, data.amount, data.description ?? '');
+          }
           handleClose();
         },
         onError: (error) => {
@@ -246,6 +309,23 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
     saveToDatabase(true);
   };
 
+  const resetSplitState = () => {
+    setIsSplit(false);
+    setSplitState({
+      splitType: SplitType.EQUAL,
+      friendId: null,
+      groupId: null,
+      yourExactAmount: '',
+      friendExactAmount: '',
+      yourPercentage: '',
+      friendPercentage: '',
+      yourShares: '',
+      friendShares: '',
+    });
+    setToastVisible(false);
+    setToastMessage('');
+  };
+
   const handleClose = () => {
     setAmount('');
     setCategory('');
@@ -257,7 +337,12 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
     setSelectedPreset(null);
     setCustomValue('');
     setCustomUnit(CooldownUnit.MINUTES);
+    resetSplitState();
     onClose();
+  };
+
+  const handleScrollTo = (p: { x: number; y: number; animated: boolean }) => {
+    scrollViewRef.current?.scrollTo(p);
   };
 
   const canSubmit = parseFloat(amount) > 0 && category;
@@ -274,9 +359,23 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
   });
 
   return (
-    <BModal isVisible={visible} onClose={handleClose} title={currentConfig.title} position="bottom">
+    <BModal
+      isVisible={visible}
+      onClose={handleClose}
+      title={currentConfig.title}
+      position="bottom"
+      scrollTo={handleScrollTo}
+      scrollOffset={scrollOffset}
+      scrollOffsetMax={300}
+    >
       {/* Data-driven form fields + impulse section */}
-      <ScrollView ref={scrollViewRef} style={styles.fieldsContainer} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        ref={scrollViewRef}
+        style={styles.fieldsContainer}
+        showsVerticalScrollIndicator={false}
+        onScroll={(e) => setScrollOffset(e.nativeEvent.contentOffset.y)}
+        scrollEventThrottle={16}
+      >
         {transactionFields.map((item) => (
           <BView key={item.key} gap={SpacingValue.XS} marginY={SpacingValue.SM}>
             <BText variant={TextVariant.LABEL}>{item.label}</BText>
@@ -319,7 +418,44 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
           onOverridePress={handleOverride}
           notificationsDenied={impulseDirectMode}
         />
+
+        {/* Split with Splitwise toggle (only when connected) */}
+        {isConnected && (
+          <BView row align="center" justify="space-between" marginY={SpacingValue.SM}>
+            <BText variant={TextVariant.LABEL}>{SPLITWISE_OUTBOUND_STRINGS.splitToggleLabel}</BText>
+            <BSwitch
+              value={isSplit}
+              onValueChange={(val) => {
+                setIsSplit(val);
+                if (val) {
+                  setTimeout(() => {
+                    scrollViewRef.current?.scrollToEnd({ animated: true });
+                  }, 100);
+                } else {
+                  resetSplitState();
+                }
+              }}
+            />
+          </BView>
+        )}
+
+        {/* Split form (only when toggle is on) */}
+        {isConnected && isSplit && (
+          <SplitForm
+            state={splitState}
+            onChange={(updates) => setSplitState((prev) => ({ ...prev, ...updates }))}
+            totalAmount={parseFloat(amount) || 0}
+          />
+        )}
       </ScrollView>
+
+      {/* Splitwise sync toast */}
+      <BToast
+        visible={toastVisible}
+        message={toastMessage}
+        variant={ToastVariant.WARNING}
+        onDismiss={() => setToastVisible(false)}
+      />
 
       {/* Submit Button */}
       <BView style={[styles.submitContainer, { borderTopColor: themeColors.border }]}>
@@ -341,7 +477,7 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
 
 const styles = StyleSheet.create({
   fieldsContainer: {
-    maxHeight: 500,
+    maxHeight: 600,
   },
   submitContainer: {
     marginTop: Spacing.md,

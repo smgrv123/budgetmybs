@@ -91,6 +91,7 @@ export const SplitwiseExpenseSchema = z
     deleted_at: z.string().nullable().optional(),
     payment: z.boolean(),
     updated_at: z.string(),
+    group_id: z.number().nullable().optional(),
     category: z
       .object({
         id: z.number(),
@@ -107,6 +108,55 @@ export const SplitwiseExpensesResponseSchema = z
   })
   .loose();
 
+export const SplitwiseSingleExpenseResponseSchema = z
+  .object({
+    expense: SplitwiseExpenseSchema,
+  })
+  .loose();
+
+/**
+ * POST /update_expense/:id returns { expenses: [...], errors: {} }
+ * 200 OK does NOT mean success — must check that `errors` is empty.
+ */
+export const SplitwiseUpdateExpenseResponseSchema = z
+  .object({
+    expenses: z.array(SplitwiseExpenseSchema),
+    errors: z.record(z.string(), z.unknown()).default({}),
+  })
+  .loose();
+
 export type SplitwiseExpensesResponse = z.infer<typeof SplitwiseExpensesResponseSchema>;
+export type SplitwiseSingleExpenseResponse = z.infer<typeof SplitwiseSingleExpenseResponseSchema>;
+export type SplitwiseUpdateExpenseResponse = z.infer<typeof SplitwiseUpdateExpenseResponseSchema>;
 export type SplitwiseExpenseData = z.infer<typeof SplitwiseExpenseSchema>;
 export type SplitwiseCurrentUserApiResponse = z.infer<typeof SplitwiseCurrentUserResponseSchema>;
+
+// ============================================
+// FRIEND BALANCE SCHEMA (for /get_friends)
+// ============================================
+
+export const SplitwiseFriendBalanceEntrySchema = z
+  .object({
+    currency_code: z.string({ error: 'currency_code must be a string.' }),
+    amount: z.string({ error: 'amount must be a string.' }),
+  })
+  .loose();
+
+export const SplitwiseFriendWithBalanceSchema = z
+  .object({
+    id: z.number({ error: 'Friend id must be a number.' }),
+    first_name: z.string({ error: 'first_name must be a string.' }),
+    last_name: z.string().nullable().optional(),
+    picture: SplitwisePictureSchema.nullable().optional(),
+    balance: z.array(SplitwiseFriendBalanceEntrySchema).default([]),
+  })
+  .loose();
+
+export const SplitwiseFriendsWithBalanceResponseSchema = z
+  .object({
+    friends: z.array(SplitwiseFriendWithBalanceSchema),
+  })
+  .loose();
+
+export type SplitwiseFriendWithBalance = z.infer<typeof SplitwiseFriendWithBalanceSchema>;
+export type SplitwiseFriendsWithBalanceResponse = z.infer<typeof SplitwiseFriendsWithBalanceResponseSchema>;

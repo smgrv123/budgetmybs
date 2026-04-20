@@ -26,8 +26,14 @@ export const SPLITWISE_STRINGS = {
   disconnectFailedBody: 'Could not disconnect from Splitwise. Please try again.',
   authCancelledMessage: 'Splitwise connection was cancelled.',
 
-  // Transaction badge
+  // Transaction badges
   transactionBadge: 'Splitwise',
+  settlementBadge: 'Settlement',
+
+  // Settlement descriptions (used in income entries and dummy expense rows)
+  settlementIncomePrefix: 'Splitwise settlement from',
+  settlementExpenseFallback: 'Splitwise settlement',
+  settlementPayerFallback: 'Friend',
 
   // Sync
   chatSyncTitle: 'Sync Splitwise',

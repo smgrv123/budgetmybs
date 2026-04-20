@@ -13,7 +13,7 @@ import type { FC } from 'react';
 import { SPLITWISE_STRINGS } from '@/src/constants/splitwise.strings';
 import { ButtonVariant, CardVariant, IconSize, SpacingValue, TextVariant } from '@/src/constants/theme';
 import { useSplitwise } from '@/src/hooks/useSplitwise';
-import { SplitwiseConnectionStatus } from '@/src/types/splitwise';
+import { SplitwiseConnectionStatus } from '@/src/constants/splitwise-outbound.strings';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { BButton, BCard, BIcon, BText, BView } from '@/src/components/ui';
 

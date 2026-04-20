@@ -72,7 +72,7 @@ budgetmybs/
 │   │   ├── impulse.ts            # Types for Impulse Buy Cooldown (PendingImpulsePurchase, CooldownPreset, CooldownUnit)
 │   │   ├── income.ts             # IncomeEntryData type for income settings screen
 │   │   ├── splitwise.ts          # SplitwiseUser, SplitwiseTokens, SplitwiseConnectionState types
-│   │   ├── splitwise-outbound.ts # SplitType, SplitFormState, SplitwiseCreateExpensePayload types
+│   │   ├── splitwise-outbound.ts # SplitTypeValue, SplitFormState, SplitwiseCreateExpensePayload types
 │   │   ├── {domain}.ts
 │   │   └── index.ts
 │   │
@@ -90,7 +90,7 @@ budgetmybs/
 │   │   ├── onboarding-splitwise.strings.ts  # Strings for the Splitwise onboarding step screen
 │   │   ├── splitwise.strings.ts          # Strings for Splitwise integration (connect, disconnect, chat intents)
 │   │   ├── splitwise-balances.strings.ts # Strings for Splitwise Balances dashboard card and friends screen
-│   │   ├── splitwise-outbound.strings.ts # Strings for Splitwise outbound split feature (split toggle, toast, chat intent)
+│   │   ├── splitwise-outbound.strings.ts # Strings + SplitType const for Splitwise outbound split feature (split toggle, toast, chat intent)
 │   │   ├── splitwise.config.ts   # Splitwise API base URL, endpoints, token storage keys, timeouts
 │   │   ├── {feature}.config.ts   # Structural configuration
 │   │   └── asyncStorageKeys.ts   # AsyncStorage key constants (includes PENDING_IMPULSE_PURCHASES)
