@@ -34,6 +34,18 @@ export type SplitFormState = {
   friendShares: string;
 };
 
+export const INITIAL_SPLIT_STATE: SplitFormState = {
+  splitType: SplitType.EQUAL,
+  friendId: null,
+  groupId: null,
+  yourExactAmount: '',
+  friendExactAmount: '',
+  yourPercentage: '',
+  friendPercentage: '',
+  yourShares: '',
+  friendShares: '',
+};
+
 // ============================================
 // SPLIT PUSH PAYLOAD
 // ============================================

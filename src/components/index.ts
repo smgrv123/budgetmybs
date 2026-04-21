@@ -4,6 +4,8 @@ export * from './ui';
 // Re-export shared components
 export { default as DetailRow } from './DetailRow';
 export { default as DetailsCard, Divider as DetailsCardDivider } from './DetailsCard';
+export { default as InfoBadge } from './InfoBadge';
+export type { InfoBadgeProps } from './InfoBadge';
 
 // Re-export income components
 export * from './income';

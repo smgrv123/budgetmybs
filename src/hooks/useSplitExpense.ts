@@ -11,8 +11,8 @@
 import { useMutation } from '@tanstack/react-query';
 
 import { enqueueFailedPush, pushExpenseToSplitwise } from '@/src/services/splitwise';
-import { SplitType } from '@/src/constants/splitwise-outbound.strings';
 import { buildSplitPayload } from '@/src/utils/splitwisePushPayload';
+import { INITIAL_SPLIT_STATE } from '@/src/types/splitwise-outbound';
 import { useSplitwise } from './useSplitwise';
 
 type SplitExpenseArgs = {
@@ -35,17 +35,7 @@ export const useSplitExpense = () => {
         currencyCode: args.currencyCode ?? 'INR',
         payerUserId: args.payerUserId,
         friendUserId: args.friendId,
-        splitState: {
-          splitType: SplitType.EQUAL,
-          friendId: String(args.friendId),
-          groupId: null,
-          yourExactAmount: '',
-          friendExactAmount: '',
-          yourPercentage: '',
-          friendPercentage: '',
-          yourShares: '',
-          friendShares: '',
-        },
+        splitState: { ...INITIAL_SPLIT_STATE, friendId: String(args.friendId) },
       });
 
       if (!payload) {
@@ -63,17 +53,7 @@ export const useSplitExpense = () => {
         currencyCode: variables.currencyCode ?? 'INR',
         payerUserId: variables.payerUserId,
         friendUserId: variables.friendId,
-        splitState: {
-          splitType: SplitType.EQUAL,
-          friendId: String(variables.friendId),
-          groupId: null,
-          yourExactAmount: '',
-          friendExactAmount: '',
-          yourPercentage: '',
-          friendPercentage: '',
-          yourShares: '',
-          friendShares: '',
-        },
+        splitState: { ...INITIAL_SPLIT_STATE, friendId: String(variables.friendId) },
       });
 
       if (payload) {

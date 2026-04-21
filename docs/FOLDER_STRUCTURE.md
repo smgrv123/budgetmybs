@@ -10,7 +10,7 @@ budgetmybs/
 │   ├── dashboard/                # Dashboard screens
 │   ├── onboarding/               # Onboarding flow screens (welcome → setup → confirmation → splitwise-connect → success)
 │   ├── settings/                 # Settings screens (fixed-expenses, debts, savings, credit-cards)
-│   ├── transaction-detail.tsx    # Modal screen
+│   ├── transaction-detail.tsx    # Transaction detail coordinator (data fetch, view/edit routing, delete handling)
 │   ├── impulse-confirm.tsx       # Impulse Buy Cooldown — confirm/skip screen (single & list mode)
 │   ├── all-transactions.tsx      # Modal screen
 │   ├── all-income.tsx            # All income entries for the current month
@@ -20,14 +20,22 @@ budgetmybs/
 │
 ├── src/                          # Application source code
 │   ├── components/
-│   │   ├── ui/                   # B* primitives (BButton, BText, BView, etc.)
+│   │   ├── ui/                   # B* primitives (BButton, BText, BView, BMultiSelect, etc.)
 │   │   ├── {feature}/            # Feature-scoped components (transaction/, dashboard/, chat/)
 │   │   ├── chat/                 # Chat components (ChatBubble, ChatHeader, ChatInput, GenericInlineForm)
 │   │   ├── dashboard/            # Dashboard components (QuickActionsSection, QuickStatSheet, heroCard, ExtraIncomeSection, SavingsChecklistCard)
 │   │   ├── income/               # Income components (IncomeForm)
 │   │   ├── savings/              # Savings components (SavingsDepositForm, SavingsDepositTab, SavingsSummary, SavingsWithdrawalForm, SavingsWithdrawTab, SavingsGoalCard, AdHocSavingsAccordion, SavingsOverviewTab)
-│   │   ├── splitwise/            # Splitwise components (SplitwiseConnectionCard, SplitBalancesCard, SplitForm)
-│   │   ├── transaction/          # Transaction components (AddTransactionModal, ImpulseCooldownSection, TransactionCard, TransactionFilterModal)
+│   │   ├── splitwise/            # Splitwise components (SplitwiseConnectionCard, SplitConfig, SplitForm)
+│   │   ├── transaction/          # Transaction components
+│   │   │   ├── addTransactionModal/  # Add expense modal (AddTransactionModal coordinator, ExpenseFormContent)
+│   │   │   ├── transactionDetail/    # Transaction detail screen (ViewMode, EditMode, useTransactionSave)
+│   │   │   ├── ExpenseFormFields.tsx  # Shared expense form fields (amount, category, date, description, credit card)
+│   │   │   ├── ImpulseCooldownSection.tsx  # Impulse cooldown toggle & timer UI
+│   │   │   ├── transactionCard.tsx   # Transaction list item card
+│   │   │   ├── transactionFilterModal.tsx  # Transaction filter modal
+│   │   │   └── index.ts             # Barrel exports
+│   │   ├── InfoBadge.tsx         # Shared read-only badge (icon + text stack; variant: warning | primary)
 │   │   ├── {SharedName}.tsx      # Shared non-primitive components (used across features)
 │   │   └── index.ts              # Barrel exports
 │   │
@@ -43,6 +51,7 @@ budgetmybs/
 │   │   ├── useSplitwiseSync.ts      # Splitwise inbound sync hook (syncSplitwise, isSyncing, lastSyncedAt, triggerStaleGatedSync)
 │   │   ├── useSplitTargets.ts       # Splitwise friends/groups for split form picker (TanStack Query)
 │   │   ├── useSplitExpense.ts       # Splitwise outbound push mutation (used by useMutationMap)
+│   │   ├── usePushExpense.ts        # Thin mutation wrapper around pushExpenseToSplitwise (UI layer)
 │   │   ├── useSplitwiseReceivables.ts  # Fetch receivableAmount for a given expenseId (payer breakdown)
 │   │   ├── queryKeys.ts          # Shared query keys (breaks circular deps between useExpenses/useCreditCards)
 │   │   ├── theme-hooks/          # Theme-related hooks

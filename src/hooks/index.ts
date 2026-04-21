@@ -45,6 +45,7 @@ export {
 } from './useSplitwiseBalances';
 export { SPLITWISE_FRIENDS_QUERY_KEY, SPLITWISE_GROUPS_QUERY_KEY, useSplitTargets } from './useSplitTargets';
 export { useSplitExpense } from './useSplitExpense';
+export { usePushExpense } from './usePushExpense';
 export { useExpiredImpulseCheck } from './useExpiredImpulseCheck';
 export { useImpulsePermission } from './useImpulsePermission';
 export { useNotificationPermissions } from './useNotificationPermissions';

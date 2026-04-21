@@ -478,3 +478,58 @@ Modified: `src/components/transaction/transactionDetail/EditMode.tsx` (retroacti
 - [ ] For linked expenses, split config is pre-populated and always visible
 - [ ] Save on linked expenses triggers conflict detection + `update_expense` push
 - [ ] `pnpm run lint` and `pnpm run typecheck` pass with no errors
+
+---
+
+## Phase 15: Push Queue Infrastructure Upgrade
+
+**User stories**: 75, 76
+
+### What to build
+
+Upgrade the outbound push queue to support multiple operation types and wire it into the sync pipeline. Currently `SplitwisePushQueueItem` has no action discriminator — all items are implicitly create operations — and `drainPushQueue()` is exported but never called anywhere, meaning failed pushes are enqueued but never retried.
+
+Add an `action: 'create' | 'update' | 'delete'` field to the queue item schema. Update `drainPushQueue()` to route each item to the correct Splitwise API endpoint based on its action (`POST /create_expense`, `POST /update_expense/:id`, or `DELETE /delete_expense/:id`). Backfill all existing `enqueueFailedPush` call sites with `action: 'create'`. Add a new `deleteExpenseOnSplitwise()` service function for the delete API call.
+
+Wire `drainPushQueue()` into the top of `syncSplitwiseExpenses()` so that every sync trigger (auto-sync on mount, pull-to-refresh, chat intent) flushes the queue before fetching new data. This ensures pending creates, updates, and deletes propagate before fresh data is pulled in, preventing conflicts and resurrection of deleted expenses.
+
+Modified: `src/validation/splitwisePush.ts` (queue item schema + action field), `src/services/splitwise/push.ts` (drain routing, delete service function, enqueue signature), `src/services/splitwise/sync.ts` (drain call at top of sync), `src/hooks/useSplitExpense.ts` and `src/hooks/usePushExpense.ts` (backfill action: 'create' on enqueue calls), `src/components/transaction/addTransactionModal/AddTransactionModal.tsx` (backfill action on enqueue).
+
+### Acceptance criteria
+
+- [ ] `SplitwisePushQueueItem` schema has `action: 'create' | 'update' | 'delete'` field
+- [ ] `drainPushQueue()` routes to correct API endpoint based on `action`
+- [ ] All existing `enqueueFailedPush` call sites pass `action: 'create'`
+- [ ] `deleteExpenseOnSplitwise(splitwiseId)` service function calls `DELETE /delete_expense/:id`
+- [ ] `drainPushQueue()` called at the top of `syncSplitwiseExpenses()` before any fetch
+- [ ] Queue drain runs on auto-sync, pull-to-refresh, and chat sync triggers
+- [ ] Failed queue items stay in queue with incremented `attempts` (existing behavior preserved)
+- [ ] `pnpm run lint` and `pnpm run typecheck` pass with no errors
+
+---
+
+## Phase 16: Delete Synced Expenses
+
+**User stories**: 70, 71, 72, 73, 74, 77
+
+### What to build
+
+End-to-end delete flow for Splitwise-synced expenses. Permission is based on who paid: only the payer (`splitwiseRow.paidByUserId === currentSplitwiseUserId`) can delete. The delete button is always visible on synced expenses regardless of permission — the check happens on tap. Non-payers see a toast ("You can't delete expenses you didn't pay for"). Payers see the standard confirmation dialog.
+
+On confirmation: the local `expenses` row and linked `splitwise_expenses` row are deleted in a single DB transaction (cascade delete), and a remote `DELETE /delete_expense/:id` is enqueued in the push queue with `action: 'delete'`. If the queue hasn't flushed before the next sync and the expense is pulled back from Splitwise, it gets temporarily recreated — the next queue flush sends the delete, and the subsequent sync skips the now-deleted expense. This resurrection is transient and self-resolving.
+
+Chat intent `delete_splitwise_expense` handles "Delete my Splitwise grocery expense" style requests with the same permission check.
+
+Modified: `db/queries/expenses.ts` (cascade delete of `splitwise_expenses` row in `deleteExpense` transaction), `app/transaction-detail.tsx` (permission check, toast for non-payer, enqueue delete for payer), `src/services/splitwise/push.ts` (enqueue with `action: 'delete'`), `src/constants/chatRegistry.config.ts` (new intent), `src/hooks/useMutationMap.ts` (new mutation), `src/constants/transactions.strings.ts` (toast string for non-payer).
+
+### Acceptance criteria
+
+- [ ] `deleteExpense()` cascades to delete linked `splitwise_expenses` row in the same transaction
+- [ ] Delete button visible on all synced expenses regardless of who paid
+- [ ] Tapping delete as non-payer shows toast "You can't delete expenses you didn't pay for"
+- [ ] Tapping delete as payer shows confirmation dialog
+- [ ] On confirm: local `expenses` + `splitwise_expenses` rows deleted, remote delete enqueued with `action: 'delete'`
+- [ ] Queued delete is flushed on next sync (via Phase 15 drain wiring)
+- [ ] If expense is recreated by sync before flush, next flush + sync cycle cleans it up
+- [ ] Chat intent `delete_splitwise_expense` resolves "Delete my Splitwise [expense]" with permission check
+- [ ] `pnpm run lint` and `pnpm run typecheck` pass with no errors
