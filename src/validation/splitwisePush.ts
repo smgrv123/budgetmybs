@@ -7,6 +7,8 @@
  */
 import { z } from 'zod';
 
+import { SplitwisePushAction } from '@/src/constants/splitwise.config';
+
 // ============================================
 // FRIENDS API RESPONSE
 // ============================================
@@ -81,9 +83,16 @@ export type SplitwiseCreateExpenseResponse = z.infer<typeof SplitwiseCreateExpen
 // PUSH QUEUE ITEM
 // ============================================
 
+export const SplitwisePushActionSchema = z.enum([
+  SplitwisePushAction.CREATE,
+  SplitwisePushAction.UPDATE,
+  SplitwisePushAction.DELETE,
+] as [string, ...string[]]);
+
 export const SplitwisePushQueueItemSchema = z
   .object({
     expenseId: z.string({ error: 'expenseId must be a string.' }),
+    action: SplitwisePushActionSchema,
     payload: z.record(z.string(), z.unknown()),
     queuedAt: z.string({ error: 'queuedAt must be a string.' }),
     attempts: z.number({ error: 'attempts must be a number.' }),

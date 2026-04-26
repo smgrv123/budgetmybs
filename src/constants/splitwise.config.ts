@@ -45,6 +45,7 @@ export const SPLITWISE_SYNC_ENDPOINTS = {
   GET_EXPENSES: `${SPLITWISE_API_BASE_URL}/get_expenses`,
   GET_EXPENSE: `${SPLITWISE_API_BASE_URL}/get_expense`,
   UPDATE_EXPENSE: `${SPLITWISE_API_BASE_URL}/update_expense`,
+  DELETE_EXPENSE: `${SPLITWISE_API_BASE_URL}/delete_expense`,
   CURRENT_USER: `${SPLITWISE_API_BASE_URL}/get_current_user`,
 } as const;
 
@@ -68,3 +69,14 @@ export const SPLITWISE_SYNC_EXPENSE_LIMIT = 200;
  * Secure store key for caching the local Splitwise user ID.
  */
 export const SPLITWISE_USER_ID_KEY = 'splitwise_user_id';
+
+/**
+ * Push action types for the Splitwise outbound queue.
+ */
+export const SplitwisePushAction = {
+  CREATE: 'create',
+  UPDATE: 'update',
+  DELETE: 'delete',
+} as const;
+
+export type SplitwisePushActionType = (typeof SplitwisePushAction)[keyof typeof SplitwisePushAction];

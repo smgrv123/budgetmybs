@@ -1,11 +1,11 @@
+export { mapSplitwiseCategoryToLocal } from './categoryMap';
+export { drainPushQueue, enqueueFailedPush, pushExpenseToSplitwise } from './push';
 export { splitwiseAuth } from './SplitwiseAuthService';
 export {
-  syncSplitwiseExpenses,
-  getLastSyncedAt,
-  fetchSplitwiseExpense,
-  updateSplitwiseExpenseRemote,
   fetchFriendBalances,
+  fetchSplitwiseExpense,
+  getLastSyncedAt,
+  syncSplitwiseExpenses,
+  updateSplitwiseExpenseRemote,
 } from './sync';
 export type { SplitwiseUpdateExpensePayload } from './sync';
-export { mapSplitwiseCategoryToLocal } from './categoryMap';
-export { pushExpenseToSplitwise, enqueueFailedPush, drainPushQueue } from './push';

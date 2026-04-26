@@ -53,6 +53,7 @@ import type {
   SplitwiseFriendsWithBalanceResponse,
 } from '@/src/validation/splitwise';
 import type { SplitwiseFriendBalanceEntry, SplitwiseSyncResult } from '@/src/types/splitwise';
+import { drainPushQueue } from '@/src/services/splitwise/push';
 
 // ============================================
 // HELPERS
@@ -93,6 +94,9 @@ const getLocalSplitwiseUserId = async (client: ReturnType<typeof createHttpClien
  */
 export const syncSplitwiseExpenses = async (options: { fullSync?: boolean } = {}): Promise<SplitwiseSyncResult> => {
   await ensureNetworkAvailable();
+
+  // Flush any queued outbound pushes before fetching new data
+  await drainPushQueue();
 
   const result: SplitwiseSyncResult = { synced: 0, skipped: 0, errors: 0, settlements: 0 };
 

@@ -2446,7 +2446,7 @@ const splitExpenseEntry: IntentRegistryEntry = {
       key: 'splitExpense',
       transformData: (formValues) => ({
         expenseId: '',
-        friendId: 0,
+        friendUserId: 0,
         payerUserId: 0,
         totalAmount: parseFloat(formValues['amount'] ?? '0'),
         description: formValues['description'] ?? '',

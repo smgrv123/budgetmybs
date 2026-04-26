@@ -398,17 +398,17 @@ Updated: `app/transaction-detail.tsx` becomes a thin route wrapper delegating to
 
 ### Acceptance criteria
 
-- [ ] `addTransactionModal.tsx` refactored into `addTransactionModal/` folder with `AddTransactionModal.tsx`, `ExpenseStep.tsx`, `SplitStep.tsx`, `index.ts`
-- [ ] `transaction-detail.tsx` refactored into `transactionDetail/` folder with `TransactionDetailScreen.tsx`, `ViewMode.tsx`, `EditMode.tsx`, `useTransactionSave.ts`, `index.ts`
-- [ ] `ExpenseFormFields.tsx` extracted and shared between modal and detail
-- [ ] `SplitConfig.tsx` replaces `SplitForm.tsx` as the single reusable split configuration component
-- [ ] `SplitwiseInfoBadge.tsx` created for read-only split display in `ViewMode`
-- [ ] `BMultiSelect` in `src/components/ui/multi-select.tsx` is a proper B\* primitive
-- [ ] `app/transaction-detail.tsx` is a thin route wrapper only
-- [ ] All existing behavior preserved — no regressions
-- [ ] All barrel exports updated (`src/components/transaction/index.ts`, `src/components/splitwise/index.ts`)
-- [ ] `docs/FOLDER_STRUCTURE.md` updated to reflect new directory structure
-- [ ] `pnpm run lint` and `pnpm run typecheck` pass with no errors
+- [x] `addTransactionModal.tsx` refactored into `addTransactionModal/` folder with `AddTransactionModal.tsx`, `ExpenseFormContent.tsx`, `index.ts`
+- [x] `transaction-detail.tsx` refactored into `transactionDetail/` folder with `ViewMode.tsx`, `EditMode.tsx`, `useTransactionSave.ts`, `index.ts`
+- [x] `ExpenseFormFields.tsx` extracted and shared between modal and detail
+- [x] `SplitConfig.tsx` replaces `SplitForm.tsx` as the single reusable split configuration component
+- [x] `InfoBadge.tsx` created as shared reusable badge component (replaces SplitwiseInfoBadge)
+- [x] `BMultiSelect` in `src/components/ui/multi-select.tsx` is a proper B\* primitive
+- [x] `app/transaction-detail.tsx` is the coordinator (not a thin wrapper — houses all logic)
+- [x] All existing behavior preserved — no regressions
+- [x] All barrel exports updated (`src/components/transaction/index.ts`, `src/components/splitwise/index.ts`)
+- [x] `docs/FOLDER_STRUCTURE.md` updated to reflect new directory structure
+- [x] `pnpm run lint` and `pnpm run typecheck` pass with no errors
 
 ---
 

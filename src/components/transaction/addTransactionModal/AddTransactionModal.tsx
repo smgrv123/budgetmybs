@@ -10,8 +10,8 @@ import { CREDIT_CARD_PROVIDER_OPTIONS } from '@/src/constants/credit-cards.confi
 import { CooldownPreset, CooldownUnit, PRESET_DEFINITIONS, toMinutes } from '@/src/constants/impulse.config';
 import { IMPULSE_STRINGS } from '@/src/constants/impulse.strings';
 import { CREDIT_CARDS_SETTINGS_STRINGS } from '@/src/constants/settings.strings';
-import { enqueueFailedPush } from '@/src/services/splitwise';
 import { SPLITWISE_OUTBOUND_STRINGS } from '@/src/constants/splitwise-outbound.strings';
+import { SplitwisePushAction } from '@/src/constants/splitwise.config';
 import { ButtonVariant, Spacing, TextVariant, ToastVariant } from '@/src/constants/theme';
 import { TRANSACTION_TAB_CONFIGS } from '@/src/constants/transactionForm.config';
 import { TransactionTab } from '@/src/constants/transactionModal';
@@ -26,9 +26,10 @@ import {
 } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { scheduleImpulseNotification } from '@/src/services/notificationService';
+import { enqueueFailedPush } from '@/src/services/splitwise';
 import type { CooldownPresetType, CooldownUnitType } from '@/src/types/impulse';
-import { INITIAL_SPLIT_STATE } from '@/src/types/splitwise-outbound';
 import type { SplitFormState } from '@/src/types/splitwise-outbound';
+import { INITIAL_SPLIT_STATE } from '@/src/types/splitwise-outbound';
 import type { TransactionFieldKeyValue } from '@/src/types/transaction';
 import { TransactionFieldKey } from '@/src/types/transaction';
 import { formatLocalDateToISO } from '@/src/utils/date';
@@ -185,17 +186,28 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
 
   /** Attempt to push to Splitwise after a local save. Shows toast on failure. */
   const attemptSplitwisePush = async (expenseId: string, amount: number, desc: string) => {
-    if (!isSplit || !splitState.friendId || !currentUser) return;
+    if (!isSplit || !currentUser) return;
 
-    const friendId = parseInt(splitState.friendId, 10);
-    if (isNaN(friendId)) return;
+    // Participants = group members (selectedMemberIds) + direct friends (friendIds)
+    const groupMemberIds: number[] = splitState.selectedMemberIds
+      .map((id) => parseInt(id, 10))
+      .filter((id) => !isNaN(id));
+
+    const directFriendIds: number[] = (splitState.friendIds ?? [])
+      .map((id) => parseInt(id, 10))
+      .filter((id) => !isNaN(id));
+
+    // Deduplicate union; payer is added by buildSplitPayload
+    const participantUserIds: number[] = [...new Set([...groupMemberIds, ...directFriendIds])];
+
+    if (participantUserIds.length === 0) return;
 
     const payload = buildSplitPayload({
       totalAmount: amount,
       description: desc ?? '',
       currencyCode: 'INR',
       payerUserId: currentUser.id,
-      friendUserId: friendId,
+      participantUserIds,
       splitState,
       groupId: splitState.groupId ? parseInt(splitState.groupId, 10) : undefined,
     });
@@ -204,14 +216,14 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
 
     const isOnline = await checkNetworkConnection();
     if (!isOnline) {
-      await enqueueFailedPush(expenseId, payload as Record<string, unknown>);
+      await enqueueFailedPush(expenseId, SplitwisePushAction.CREATE, payload);
       setToastMessage(SPLITWISE_OUTBOUND_STRINGS.toastOffline);
       setToastVisible(true);
       return;
     }
 
     try {
-      await pushExpenseAsync({ expenseId, payload: payload as Record<string, unknown> });
+      await pushExpenseAsync({ expenseId, payload: payload });
     } catch {
       setToastMessage(SPLITWISE_OUTBOUND_STRINGS.toastApiFailed);
       setToastVisible(true);

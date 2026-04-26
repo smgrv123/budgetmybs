@@ -20,20 +20,23 @@ export const SPLITWISE_OUTBOUND_STRINGS = {
   // Toggle
   splitToggleLabel: 'Split with Splitwise',
 
-  // Friend picker (kept for backwards compat with chat flow)
-  friendPickerLabel: 'Split with',
-  friendPickerPlaceholder: 'Select a friend',
-  friendPickerModalTitle: 'Select Friend',
-
   // Group/friend combined picker
-  groupPickerLabel: 'Split with',
-  groupPickerPlaceholder: 'Select group or friend',
-  groupPickerModalTitle: 'Select Group or Friend',
-  groupMemberPickerLabel: 'Split with member',
-  groupMemberPickerPlaceholder: 'Select a group member',
-  groupMemberPickerModalTitle: 'Select Group Member',
+  groupMemberPickerLabel: 'Split with members',
+  groupMemberPickerPlaceholder: 'Select members (default: all)',
+  groupMemberPickerModalTitle: 'Select Group Members',
   loadingGroups: 'Loading\u2026',
-  noGroupsOrFriendsFound: 'No groups or friends found',
+
+  // Separate group picker
+  groupOnlyPickerLabel: 'Split with group',
+  groupOnlyPickerPlaceholder: 'Select a group (optional)',
+  groupOnlyPickerModalTitle: 'Select Group',
+  groupOnlyPickerClear: 'Clear',
+  noGroupsFound: 'No groups found',
+
+  // Friends multi-select
+  friendsMultiSelectLabel: 'Split with friends',
+  friendsMultiSelectPlaceholder: 'Select friends',
+  friendsMultiSelectModalTitle: 'Select Friends',
 
   // Split type
   splitTypeLabel: 'Split type',
@@ -42,34 +45,16 @@ export const SPLITWISE_OUTBOUND_STRINGS = {
   splitTypePercentage: 'Percentage',
   splitTypeShares: 'Shares',
 
-  // Exact split
-  yourExactAmountLabel: 'Your amount (₹)',
-  yourExactAmountPlaceholder: '0.00',
-  friendExactAmountLabel: 'Friend amount (₹)',
-  friendExactAmountPlaceholder: '0.00',
-
-  // Percentage split
-  yourPercentageLabel: 'Your percentage (%)',
-  yourPercentagePlaceholder: '50',
-  friendPercentageLabel: 'Friend percentage (%)',
-  friendPercentagePlaceholder: '50',
-
-  // Shares split
-  yourSharesLabel: 'Your shares',
-  yourSharesPlaceholder: '1',
-  friendSharesLabel: 'Friend shares',
-  friendSharesPlaceholder: '1',
+  // N-person split
+  equalSharePreviewLabel: 'Each person owes',
+  memberAmountPlaceholder: '0.00',
+  memberPercentagePlaceholder: '0',
+  memberSharesPlaceholder: '1',
+  memberRowYouSuffix: ' (you)',
 
   // Toast messages
   toastOffline: 'Saved locally — will sync with Splitwise when back online',
   toastApiFailed: 'Saved locally — Splitwise sync failed, will retry automatically',
-
-  // Validation
-  validationFriendRequired: 'Please select who to split with',
-  validationExactAmountsMismatch: 'Exact amounts must add up to the total expense amount',
-  validationPercentagesMustSum100: 'Percentages must add up to 100',
-  validationSharesMustBePositive: 'Share counts must be positive numbers',
-  validationAmountRequired: 'Amount is required',
 
   // Loading states
   loadingFriends: 'Loading friends…',

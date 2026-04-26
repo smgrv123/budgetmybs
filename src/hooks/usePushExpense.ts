@@ -22,7 +22,7 @@ export const usePushExpense = () => {
     mutationFn: ({ payload }: PushExpenseArgs) => pushExpenseToSplitwise(payload),
     onError: async (error, variables) => {
       console.error('[usePushExpense] push failed:', error);
-      await enqueueFailedPush(variables.expenseId, variables.payload);
+      await enqueueFailedPush(variables.expenseId, 'create', variables.payload);
     },
   });
 

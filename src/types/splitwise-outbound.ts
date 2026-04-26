@@ -1,5 +1,5 @@
 /**
- * Types for the Splitwise outbound split feature (Phase 5).
+ * Types for the Splitwise outbound split feature (Phase 5 / Phase 13a).
  */
 
 import { SplitType } from '@/src/constants/splitwise-outbound.strings';
@@ -14,36 +14,43 @@ export type SplitTypeValue = (typeof SplitType)[keyof typeof SplitType];
 // SPLIT FORM STATE
 // ============================================
 
+/**
+ * Per-member input values (keyed by Splitwise user ID as string).
+ * Used for exact, percentage, and shares split types.
+ */
+export type MemberInputMap = Record<string, string>;
+
 export type SplitFormState = {
   splitType: SplitTypeValue;
-  /** Splitwise user ID of the friend (or group member) to split with */
-  friendId: string | null;
+  /**
+   * Splitwise user IDs for direct-friend multi-select (not group members).
+   * When `groupId` is null and `friendIds.length > 0`, these are the participants.
+   * When `groupId` is set, `selectedMemberIds` drives the group members instead.
+   */
+  friendIds: string[];
   /** Splitwise group ID — null when splitting with a friend directly */
   groupId: string | null;
-  /** Exact split: payer's amount */
-  yourExactAmount: string;
-  /** Exact split: friend's amount */
-  friendExactAmount: string;
-  /** Percentage split: payer's percentage */
-  yourPercentage: string;
-  /** Percentage split: friend's percentage */
-  friendPercentage: string;
-  /** Shares split: payer's shares */
-  yourShares: string;
-  /** Shares split: friend's shares */
-  friendShares: string;
+  /**
+   * Selected member IDs (Splitwise user IDs as strings).
+   * When empty and a group is selected, all group members are used.
+   */
+  selectedMemberIds: string[];
+  /** Exact split: per-member amount (member user ID → amount string) */
+  exactAmounts: MemberInputMap;
+  /** Percentage split: per-member percentage (member user ID → pct string) */
+  percentages: MemberInputMap;
+  /** Shares split: per-member shares (member user ID → shares string) */
+  shares: MemberInputMap;
 };
 
 export const INITIAL_SPLIT_STATE: SplitFormState = {
   splitType: SplitType.EQUAL,
-  friendId: null,
+  friendIds: [],
   groupId: null,
-  yourExactAmount: '',
-  friendExactAmount: '',
-  yourPercentage: '',
-  friendPercentage: '',
-  yourShares: '',
-  friendShares: '',
+  selectedMemberIds: [],
+  exactAmounts: {},
+  percentages: {},
+  shares: {},
 };
 
 // ============================================

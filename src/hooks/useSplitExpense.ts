@@ -5,19 +5,20 @@
  * The chat intent creates the local expense first (via createExpense),
  * then calls splitExpenseAsync to push to Splitwise.
  *
- * Args shape: { expenseId: string; friendId: number; totalAmount: number; description: string; currencyCode?: string }
+ * Args shape: { expenseId: string; friendUserId: number; payerUserId: number; totalAmount: number; description: string; currencyCode?: string }
  */
 
 import { useMutation } from '@tanstack/react-query';
 
 import { enqueueFailedPush, pushExpenseToSplitwise } from '@/src/services/splitwise';
-import { buildSplitPayload } from '@/src/utils/splitwisePushPayload';
 import { INITIAL_SPLIT_STATE } from '@/src/types/splitwise-outbound';
+import { buildSplitPayload } from '@/src/utils/splitwisePushPayload';
+import { SplitwisePushAction } from '../constants/splitwise.config';
 import { useSplitwise } from './useSplitwise';
 
 type SplitExpenseArgs = {
   expenseId: string;
-  friendId: number;
+  friendUserId: number;
   payerUserId: number;
   totalAmount: number;
   description: string;
@@ -34,8 +35,8 @@ export const useSplitExpense = () => {
         description: args.description,
         currencyCode: args.currencyCode ?? 'INR',
         payerUserId: args.payerUserId,
-        friendUserId: args.friendId,
-        splitState: { ...INITIAL_SPLIT_STATE, friendId: String(args.friendId) },
+        participantUserIds: [args.friendUserId],
+        splitState: INITIAL_SPLIT_STATE,
       });
 
       if (!payload) {
@@ -52,12 +53,12 @@ export const useSplitExpense = () => {
         description: variables.description,
         currencyCode: variables.currencyCode ?? 'INR',
         payerUserId: variables.payerUserId,
-        friendUserId: variables.friendId,
-        splitState: { ...INITIAL_SPLIT_STATE, friendId: String(variables.friendId) },
+        participantUserIds: [variables.friendUserId],
+        splitState: INITIAL_SPLIT_STATE,
       });
 
       if (payload) {
-        await enqueueFailedPush(variables.expenseId, payload);
+        await enqueueFailedPush(variables.expenseId, SplitwisePushAction.CREATE, payload);
       }
     },
   });
