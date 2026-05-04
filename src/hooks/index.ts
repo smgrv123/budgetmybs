@@ -30,6 +30,22 @@ export {
 } from './useIncome';
 export { MONTHLY_BUDGET_QUERY_KEY, useMonthlyBudget } from './useMonthlyBudget';
 export { useMutationMap } from './useMutationMap';
+export {
+  SPLITWISE_CONNECTION_QUERY_KEY,
+  SPLITWISE_CURRENT_USER_QUERY_KEY,
+  SPLITWISE_RECONNECT_REQUIRED_QUERY_KEY,
+  useSplitwise,
+} from './useSplitwise';
+export { SPLITWISE_LAST_SYNCED_AT_QUERY_KEY, useSplitwiseSync } from './useSplitwiseSync';
+export {
+  SPLITWISE_BALANCE_BY_FRIEND_QUERY_KEY,
+  SPLITWISE_BALANCE_SUMMARY_QUERY_KEY,
+  SPLITWISE_FRIEND_BALANCES_QUERY_KEY,
+  useSplitwiseBalances,
+} from './useSplitwiseBalances';
+export { SPLITWISE_FRIENDS_QUERY_KEY, SPLITWISE_GROUPS_QUERY_KEY, useSplitTargets } from './useSplitTargets';
+export { useSplitExpense } from './useSplitExpense';
+export { usePushExpense } from './usePushExpense';
 export { useExpiredImpulseCheck } from './useExpiredImpulseCheck';
 export { useImpulsePermission } from './useImpulsePermission';
 export { useNotificationPermissions } from './useNotificationPermissions';

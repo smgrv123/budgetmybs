@@ -1,22 +1,30 @@
-import type { UpdateExpenseInput } from '@/db/schema-types';
-import { CreditCardTxnTypeEnum } from '@/db/types';
-import { BButton, BCard, BIcon, BInput, BSafeAreaView, BText, BToast, BView, ScreenHeader } from '@/src/components/ui';
-import { DetailsCard, DetailsCardDivider } from '@/src/components';
-import { CREDIT_CARD_PROVIDER_COLORS } from '@/src/constants/credit-cards.config';
+/**
+ * TransactionDetailRoute
+ *
+ * Coordinator: data fetch, view/edit state routing.
+ * Delegates rendering to ViewMode and EditMode sub-components.
+ *
+ * Direct imports from transactionDetail/* to avoid circular barrel dependency.
+ */
+
+import type { SplitwiseExpense } from '@/db/schema-types';
+import { getSplitwiseExpenseByExpenseId } from '@/db';
+import { BIcon, BSafeAreaView, BText, BToast, BView, ScreenHeader } from '@/src/components/ui';
 import type { ToastVariantType } from '@/src/constants/theme';
-import { ButtonVariant, CardVariant, Spacing, SpacingValue, TextVariant, ToastVariant } from '@/src/constants/theme';
-import {
-  TRANSACTION_COMMON_STRINGS,
-  TRANSACTION_DETAIL_STRINGS,
-  TRANSACTION_VALIDATION_STRINGS,
-} from '@/src/constants/transactions.strings';
+import { Spacing, SpacingValue, TextVariant, ToastVariant } from '@/src/constants/theme';
+import { TRANSACTION_DETAIL_STRINGS, TRANSACTION_VALIDATION_STRINGS } from '@/src/constants/transactions.strings';
 import { useCategories, useExpenseById, useExpenses } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
-import { formatCurrency, formatIndianNumber, parseFormattedNumber } from '@/src/utils/format';
+import { checkNetworkConnection } from '@/src/utils/network';
+import { formatIndianNumber } from '@/src/utils/format';
+import { CreditCardTxnTypeEnum } from '@/db/types';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet } from 'react-native';
 import { z } from 'zod';
+import EditMode from '@/src/components/transaction/transactionDetail/EditMode';
+import { useTransactionSave } from '@/src/components/transaction/transactionDetail/useTransactionSave';
+import ViewMode from '@/src/components/transaction/transactionDetail/ViewMode';
 
 const editExpenseSchema = z.object({
   amount: z
@@ -32,13 +40,13 @@ const editExpenseSchema = z.object({
   categoryId: z.string().nullable().optional(),
 });
 
-export default function TransactionDetailScreen() {
+export default function TransactionDetailRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const themeColors = useThemeColors();
   const { allCategories } = useCategories();
-  const { updateExpense, isUpdatingExpense, removeExpense } = useExpenses();
-  const { expense, isExpenseLoading } = useExpenseById(id);
+  const { removeExpense } = useExpenses();
+  const { expense, isExpenseLoading, refetchExpense } = useExpenseById(id);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editAmount, setEditAmount] = useState('');
@@ -50,13 +58,44 @@ export default function TransactionDetailScreen() {
   const [toastMessage, setToastMessage] = useState('');
   const [toastVariant, setToastVariant] = useState<ToastVariantType>(ToastVariant.WARNING);
 
+  // Splitwise edit state
+  const [splitwiseRow, setSplitwiseRow] = useState<SplitwiseExpense | null>(null);
+  const [isSplitwiseExpense, setIsSplitwiseExpense] = useState(false);
+  const [isOnline, setIsOnline] = useState(true);
+
   const showToast = (msg: string, v: ToastVariantType = ToastVariant.WARNING) => {
     setToastMessage(msg);
     setToastVariant(v);
     setToastVisible(true);
   };
 
+  const { handleSave, isAnySaving } = useTransactionSave({
+    id,
+    showToast,
+    onSaveSuccess: () => setIsEditing(false),
+    refetchExpense,
+  });
+
   const isRecurring = Boolean(expense?.sourceType);
+
+  // Check if expense is from Splitwise and check network on mount/id change
+  useEffect(() => {
+    if (!id) return;
+
+    const checkSplitwise = async () => {
+      const row = await getSplitwiseExpenseByExpenseId(id);
+      setSplitwiseRow(row);
+      setIsSplitwiseExpense(row !== null);
+    };
+
+    const checkNetwork = async () => {
+      const connected = await checkNetworkConnection();
+      setIsOnline(connected);
+    };
+
+    checkSplitwise();
+    checkNetwork();
+  }, [id]);
 
   const enterEditMode = () => {
     if (isRecurring) {
@@ -71,7 +110,7 @@ export default function TransactionDetailScreen() {
     setIsEditing(true);
   };
 
-  const handleSave = () => {
+  const onSave = async () => {
     if (!expense || !id) return;
 
     const result = editExpenseSchema.safeParse({
@@ -86,23 +125,23 @@ export default function TransactionDetailScreen() {
       return;
     }
 
-    const updateData: UpdateExpenseInput = {
-      amount: parseFloat(result.data.amount.replace(/,/g, '')),
-      description: result.data.description || null,
-      date: result.data.date,
-      categoryId: result.data.categoryId ?? null,
-    };
-
-    updateExpense(
-      { id, data: updateData },
-      {
-        onSuccess: () => {
-          setIsEditing(false);
-          showToast(TRANSACTION_DETAIL_STRINGS.changesSavedToast, ToastVariant.SUCCESS);
-        },
-        onError: () => showToast(TRANSACTION_DETAIL_STRINGS.saveChangesFailedToast, ToastVariant.ERROR),
-      }
-    );
+    await handleSave({
+      editAmount,
+      editDate,
+      editDescription,
+      editCategoryId,
+      expense: {
+        amount: expense.amount,
+        date: expense.date,
+        description: expense.description,
+      },
+      isSplitwiseExpense,
+      splitwiseRow,
+      setSplitwiseRow,
+      setEditAmount,
+      setEditDescription,
+      setEditDate,
+    });
   };
 
   const handleDelete = () => {
@@ -151,10 +190,8 @@ export default function TransactionDetailScreen() {
     );
   }
 
-  const isSaving = expense.isSaving === 1;
-  const isBillPayment = expense.creditCardTxnType === CreditCardTxnTypeEnum.PAYMENT;
-  const amountColor = isSaving ? themeColors.success : themeColors.error;
-  const amountPrefix = isSaving ? '+' : '-';
+  // Splitwise-relevant fields are non-editable when offline
+  const splitwiseFieldsDisabled = isSplitwiseExpense && !isOnline;
 
   const headerActions = !isEditing
     ? [
@@ -173,31 +210,7 @@ export default function TransactionDetailScreen() {
 
   const categoryOptions = allCategories.map((c) => ({ label: c.name, value: c.id }));
 
-  const categoryViewLabel =
-    expense.category?.name ??
-    (isSaving ? expense.savingsType : TRANSACTION_COMMON_STRINGS.uncategorizedFallback) ??
-    TRANSACTION_COMMON_STRINGS.uncategorizedFallback;
-
-  const bottomSection =
-    !isEditing && expense.wasImpulse === 1 ? (
-      <>
-        <DetailsCardDivider />
-        <BView
-          row
-          align="center"
-          gap={SpacingValue.XS}
-          paddingX={SpacingValue.SM}
-          paddingY={SpacingValue.XS}
-          rounded="base"
-          style={{ borderWidth: 1, backgroundColor: themeColors.warningBackground, borderColor: themeColors.warning }}
-        >
-          <BIcon name="alert-circle-outline" size="sm" color={themeColors.warning} />
-          <BText variant={TextVariant.CAPTION} color={themeColors.warning}>
-            {TRANSACTION_DETAIL_STRINGS.impulseBadge}
-          </BText>
-        </BView>
-      </>
-    ) : null;
+  const isBillPayment = expense.creditCardTxnType === CreditCardTxnTypeEnum.PAYMENT;
 
   return (
     <BSafeAreaView edges={['top', 'left', 'right']}>
@@ -227,109 +240,26 @@ export default function TransactionDetailScreen() {
           </BView>
         )}
 
-        {/* Amount Card */}
-        <BCard variant={CardVariant.ELEVATED} style={styles.card}>
-          <BText variant={TextVariant.CAPTION} muted>
-            {TRANSACTION_DETAIL_STRINGS.amountLabel}
-          </BText>
-          {isEditing ? (
-            <BInput
-              value={editAmount}
-              onChangeText={(text) => setEditAmount(formatIndianNumber(parseFormattedNumber(text)))}
-              keyboardType="decimal-pad"
-              placeholder={TRANSACTION_COMMON_STRINGS.amountPlaceholder}
-              leftIcon={
-                <BText variant={TextVariant.LABEL} muted>
-                  {TRANSACTION_COMMON_STRINGS.currencySymbol}
-                </BText>
-              }
-              containerStyle={{ marginTop: Spacing.xs }}
-            />
-          ) : (
-            <BText variant={TextVariant.HEADING} style={{ color: amountColor }}>
-              {amountPrefix}
-              {formatCurrency(expense.amount)}
-            </BText>
-          )}
-        </BCard>
-
-        {/* Credit Card Attribution — read-only */}
-        {expense.creditCard && (
-          <BCard variant={CardVariant.ELEVATED} style={styles.card}>
-            <BView row align="center" gap={SpacingValue.MD}>
-              <BIcon name="card-outline" size="sm" color={themeColors.textMuted} style={{ marginTop: Spacing.xxs }} />
-              <BView flex>
-                <BText variant={TextVariant.CAPTION} muted>
-                  {TRANSACTION_DETAIL_STRINGS.creditCardLabel}
-                </BText>
-                <BView row align="center" gap={SpacingValue.XS} style={{ marginTop: Spacing.xs }}>
-                  <BView
-                    fullRounded
-                    style={{
-                      width: 8,
-                      height: 8,
-                      backgroundColor: CREDIT_CARD_PROVIDER_COLORS[expense.creditCard.provider],
-                    }}
-                  />
-                  <BText variant={TextVariant.LABEL}>
-                    {expense.creditCard.nickname} ••{expense.creditCard.last4}
-                  </BText>
-                </BView>
-              </BView>
-            </BView>
-          </BCard>
-        )}
-
-        <DetailsCard
-          isEditing={isEditing}
-          hideCategoryRow={isEditing && isBillPayment}
-          categoryLabel={TRANSACTION_DETAIL_STRINGS.categoryLabel}
-          categoryViewLabel={categoryViewLabel}
-          categoryOptions={categoryOptions}
-          categoryValue={editCategoryId ?? ''}
-          onCategoryChange={(v) => setEditCategoryId(v === '' ? null : v)}
-          categoryModalTitle={TRANSACTION_DETAIL_STRINGS.categoryModalTitle}
-          categoryIcon={expense.category?.icon ?? undefined}
-          categoryIconColor={expense.category?.color ?? themeColors.textMuted}
-          viewDate={expense.date}
-          editDate={editDate}
-          onDateChange={setEditDate}
-          dateLabel={TRANSACTION_DETAIL_STRINGS.dateLabel}
-          datePlaceholder={TRANSACTION_COMMON_STRINGS.datePlaceholderISO}
-          dateError={!editDate ? TRANSACTION_VALIDATION_STRINGS.dateRequired : undefined}
-          viewDescription={expense.description}
-          editDescription={editDescription}
-          onDescriptionChange={setEditDescription}
-          descriptionLabel={TRANSACTION_DETAIL_STRINGS.descriptionLabel}
-          descriptionPlaceholder={TRANSACTION_DETAIL_STRINGS.descriptionPlaceholder}
-          noDescriptionFallback={TRANSACTION_COMMON_STRINGS.noDescriptionFallback}
-          bottomSection={bottomSection}
-        />
-
-        {isEditing && (
-          <BView gap={SpacingValue.SM}>
-            <BButton
-              variant={ButtonVariant.PRIMARY}
-              onPress={handleSave}
-              loading={isUpdatingExpense}
-              style={styles.fullWidthButton}
-              paddingY={SpacingValue.MD}
-            >
-              <BText variant={TextVariant.LABEL} color={themeColors.white}>
-                {TRANSACTION_DETAIL_STRINGS.saveChangesButton}
-              </BText>
-            </BButton>
-            <BButton
-              variant={ButtonVariant.OUTLINE}
-              onPress={() => setIsEditing(false)}
-              style={styles.fullWidthButton}
-              paddingY={SpacingValue.MD}
-            >
-              <BText variant={TextVariant.LABEL} color={themeColors.primary}>
-                {TRANSACTION_DETAIL_STRINGS.cancelButton}
-              </BText>
-            </BButton>
-          </BView>
+        {isEditing ? (
+          <EditMode
+            expense={expense}
+            editAmount={editAmount}
+            setEditAmount={setEditAmount}
+            editDescription={editDescription}
+            setEditDescription={setEditDescription}
+            editDate={editDate}
+            setEditDate={setEditDate}
+            editCategoryId={editCategoryId}
+            setEditCategoryId={setEditCategoryId}
+            categoryOptions={categoryOptions}
+            splitwiseFieldsDisabled={splitwiseFieldsDisabled}
+            isAnySaving={isAnySaving}
+            onSave={onSave}
+            onCancel={() => setIsEditing(false)}
+            isBillPayment={isBillPayment}
+          />
+        ) : (
+          <ViewMode expense={expense} isSplitwiseExpense={isSplitwiseExpense} />
         )}
       </ScrollView>
 
@@ -347,14 +277,5 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: Spacing.lg,
     gap: Spacing.lg,
-  },
-  card: {
-    padding: Spacing.lg,
-  },
-  fullWidthButton: {
-    width: '100%',
-    justifyContent: 'center',
-    flexDirection: 'row',
-    alignItems: 'center',
   },
 });

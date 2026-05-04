@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { CreditCardTxnTypeEnum, RecurringSourceTypeEnum } from '@/db/types';
@@ -44,6 +44,9 @@ import {
   useProfile,
   useRecurringStatus,
   useSavingsGoals,
+  useSplitwise,
+  useSplitwiseBalances,
+  useSplitwiseSync,
 } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { QuickStatTypeValue } from '@/src/types/dashboard';
@@ -60,11 +63,23 @@ export default function DashboardScreen() {
   const { fixedExpenses, isFixedExpensesLoading } = useFixedExpenses();
   const { debts, isDebtsLoading } = useDebts();
   const { savingsGoals, isSavingsGoalsLoading } = useSavingsGoals();
-  const { expenses, totalSpent, totalSaved: totalOneOffSavings, oneOffSavings } = useExpenses();
+  const { totalSpent, totalSaved: totalOneOffSavings, combinedTransactions } = useExpenses();
   const { income } = useIncome();
   const { creditCards, creditCardSummaries } = useCreditCards();
   const { isItemProcessed } = useRecurringStatus();
   const { snapshot, rollover, additionalIncome, resetRollover, isResettingRollover } = useMonthlyBudget();
+  const { isConnected: isSplitwiseConnected } = useSplitwise();
+  const { triggerStaleGatedSync } = useSplitwiseSync();
+  const { totalOwedToYou, totalYouOwe } = useSplitwiseBalances();
+
+  // Auto-sync Splitwise on mount (or when connection state changes) if connected and stale
+  useEffect(() => {
+    if (isSplitwiseConnected) {
+      triggerStaleGatedSync();
+    }
+    // triggerStaleGatedSync is stable (no useCallback needed — React Compiler memoizes)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSplitwiseConnected]);
 
   // Gradient colors (theme-aware)
   const HEADER_GRADIENT: [string, string, string] = [
@@ -219,9 +234,6 @@ export default function DashboardScreen() {
       </BSafeAreaView>
     );
   }
-  // ! this should be removed. single query should be triggered for this. again to be picked in a revamp. let go for now
-  const combinedTransactions = [...expenses, ...oneOffSavings];
-
   const dashboardSections = [
     {
       key: 'header',
@@ -264,6 +276,11 @@ export default function DashboardScreen() {
               budgetRemaining={budgetRemaining}
               budgetUsedPercent={budgetUsedPercent}
               carouselLength={Boolean(creditCards.length)}
+              totalReceivable={totalOwedToYou}
+              effectiveBudget={effectiveBudget}
+              totalOwedToYou={totalOwedToYou}
+              totalYouOwe={totalYouOwe}
+              onBalancesPress={() => router.push('/splitwise-balances')}
             />
 
             {creditCards.map((card, index) => {
@@ -420,11 +437,9 @@ export default function DashboardScreen() {
             </BView>
           ) : (
             combinedTransactions.map((item, index) => {
-              // ! accept for now, should be picked up in the revamp
-              const creditCardColor =
-                'creditCard' in item && item.creditCard
-                  ? CREDIT_CARD_PROVIDER_COLORS[item.creditCard.provider]
-                  : undefined;
+              const creditCardColor = item.creditCard
+                ? CREDIT_CARD_PROVIDER_COLORS[item.creditCard.provider]
+                : undefined;
               return (
                 <BView key={item.id}>
                   {index > 0 && <BView style={{ height: Spacing.xxs }} />}
@@ -434,18 +449,17 @@ export default function DashboardScreen() {
                       description={item.description}
                       amount={item.amount}
                       date={item.date}
-                      categoryName={'category' in item ? item.category?.name : null}
-                      categoryIcon={'category' in item ? item.category?.icon : null}
-                      categoryColor={'category' in item ? item.category?.color : null}
-                      savingsType={'savingsType' in item ? item.savingsType : null}
-                      isSaving={'isSaving' in item ? Boolean(item.isSaving) : false}
-                      isRecurring={'sourceType' in item ? Boolean(item.sourceType) : false}
-                      creditCardNickname={'creditCard' in item ? (item.creditCard?.nickname ?? null) : null}
-                      creditCardLast4={'creditCard' in item ? (item.creditCard?.last4 ?? null) : null}
+                      categoryName={item.category?.name ?? null}
+                      categoryIcon={item.category?.icon ?? null}
+                      categoryColor={item.category?.color ?? null}
+                      savingsType={item.savingsType}
+                      isSaving={Boolean(item.isSaving)}
+                      isRecurring={Boolean(item.sourceType)}
+                      creditCardNickname={item.creditCard?.nickname ?? null}
+                      creditCardLast4={item.creditCard?.last4 ?? null}
                       creditCardColor={creditCardColor ?? null}
-                      isBillPay={
-                        'creditCardTxnType' in item ? item.creditCardTxnType === CreditCardTxnTypeEnum.PAYMENT : false
-                      }
+                      isBillPay={item.creditCardTxnType === CreditCardTxnTypeEnum.PAYMENT}
+                      isFromSplitwise={Boolean(item.isFromSplitwise)}
                     />
                   </BLink>
                 </BView>

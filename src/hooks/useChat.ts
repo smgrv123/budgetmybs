@@ -1,4 +1,10 @@
-import { clearChatHistory, createChatMessage, getChatMessages, replaceChatMessageContent, updateChatMessageAction } from '@/db';
+import {
+  clearChatHistory,
+  createChatMessage,
+  getChatMessages,
+  replaceChatMessageContent,
+  updateChatMessageAction,
+} from '@/db';
 import type { CreateChatMessageInput } from '@/db/schema-types';
 import type { ChatActionStatus } from '@/db/types';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -19,8 +25,7 @@ export const useChat = () => {
   const messagesQuery = useInfiniteQuery({
     queryKey: CHAT_MESSAGES_QUERY_KEY,
     queryFn: ({ pageParam = 0 }) => getChatMessages(PAGE_SIZE, pageParam),
-    getNextPageParam: (lastPage, allPages) =>
-      lastPage.length === PAGE_SIZE ? allPages.length * PAGE_SIZE : undefined,
+    getNextPageParam: (lastPage, allPages) => (lastPage.length === PAGE_SIZE ? allPages.length * PAGE_SIZE : undefined),
     initialPageParam: 0,
   });
 

@@ -32,6 +32,12 @@ export interface BModalProps extends Partial<RNModalProps> {
   contentStyle?: StyleProp<ViewStyle>;
   /** Override header styles */
   headerStyle?: StyleProp<ViewStyle>;
+  /** Current scroll offset — enables scroll-aware swipe dismissal */
+  scrollOffset?: number;
+  /** Callback for the modal to reset scroll position */
+  scrollTo?: (p: { x: number; y: number; animated: boolean }) => void;
+  /** Maximum scroll offset for swipe-to-dismiss calculation */
+  scrollOffsetMax?: number;
 }
 
 const BModal: FC<BModalProps> = ({
@@ -45,6 +51,9 @@ const BModal: FC<BModalProps> = ({
   containerStyle,
   contentStyle,
   headerStyle,
+  scrollOffset,
+  scrollTo,
+  scrollOffsetMax,
   style,
   ...props
 }) => {
@@ -58,6 +67,10 @@ const BModal: FC<BModalProps> = ({
       onBackButtonPress={onClose}
       onSwipeComplete={isBottom ? onClose : undefined}
       swipeDirection={isBottom ? 'down' : undefined}
+      propagateSwipe={isBottom}
+      scrollTo={scrollTo}
+      scrollOffset={scrollOffset}
+      scrollOffsetMax={scrollOffsetMax}
       style={[styles.modal, isBottom && styles.modalBottom, style]}
       backdropOpacity={Opacity.overlay}
       animationIn={isBottom ? 'slideInUp' : 'fadeIn'}
@@ -139,6 +152,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: Spacing.base,
+    flexShrink: 1,
   },
 });
 

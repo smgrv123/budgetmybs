@@ -2,6 +2,7 @@ import type { FC } from 'react';
 import { useState } from 'react';
 import { Alert } from 'react-native';
 
+import type { AmountDue } from '@/db/schema-types';
 import { BButton, BDateField, BInput, BModal, BText, BView } from '@/src/components/ui';
 import { CREDIT_CARDS_SETTINGS_STRINGS } from '@/src/constants/settings.strings';
 import { ButtonVariant, SpacingValue, TextVariant } from '@/src/constants/theme';
@@ -9,7 +10,6 @@ import { useCreditCards } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { formatLocalDateToISO } from '@/src/utils/date';
 import { formatIndianNumber } from '@/src/utils/format';
-import type { AmountDue } from '@/db/schema-types';
 
 export interface PayBillModalProps {
   isVisible: boolean;

@@ -179,4 +179,7 @@ export type ChatResponse =
   | { intent: typeof ChatIntentEnum.DELETE_CREDIT_CARD; message: string; data: ChatDeleteCreditCardData }
   | { intent: typeof ChatIntentEnum.LOG_IMPULSE_DIRECT; message: string; data: ChatExpenseData }
   | { intent: typeof ChatIntentEnum.LOG_IMPULSE_COOLDOWN; message: string; data: ChatImpulseCooldownData }
+  | { intent: typeof ChatIntentEnum.CONNECT_SPLITWISE; message: string; data?: Record<string, never> }
+  | { intent: typeof ChatIntentEnum.DISCONNECT_SPLITWISE; message: string; data?: Record<string, never> }
+  | { intent: typeof ChatIntentEnum.SYNC_SPLITWISE; message: string; data?: Record<string, never> }
   | { intent: typeof ChatIntentEnum.GENERAL; message: string; data?: undefined };

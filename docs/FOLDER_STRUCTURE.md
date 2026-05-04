@@ -8,24 +8,34 @@ budgetmybs/
 │   ├── _layout.tsx               # Root layout (providers)
 │   ├── index.tsx                 # Entry — redirects to dashboard or onboarding
 │   ├── dashboard/                # Dashboard screens
-│   ├── onboarding/               # Onboarding flow screens
+│   ├── onboarding/               # Onboarding flow screens (welcome → setup → confirmation → splitwise-connect → success)
 │   ├── settings/                 # Settings screens (fixed-expenses, debts, savings, credit-cards)
-│   ├── transaction-detail.tsx    # Modal screen
+│   ├── transaction-detail.tsx    # Transaction detail coordinator (data fetch, view/edit routing, delete handling)
 │   ├── impulse-confirm.tsx       # Impulse Buy Cooldown — confirm/skip screen (single & list mode)
 │   ├── all-transactions.tsx      # Modal screen
 │   ├── all-income.tsx            # All income entries for the current month
 │   ├── income-detail.tsx         # Income entry detail (view/edit/delete)
-│   └── savings.tsx               # Dedicated savings screen (gradient header + tabs)
+│   ├── savings.tsx               # Dedicated savings screen (gradient header + tabs)
+│   └── splitwise-balances.tsx    # Splitwise per-friend balance breakdown screen
 │
 ├── src/                          # Application source code
 │   ├── components/
-│   │   ├── ui/                   # B* primitives (BButton, BText, BView, etc.)
+│   │   ├── ui/                   # B* primitives (BButton, BText, BView, BMultiSelect, etc.)
 │   │   ├── {feature}/            # Feature-scoped components (transaction/, dashboard/, chat/)
 │   │   ├── chat/                 # Chat components (ChatBubble, ChatHeader, ChatInput, GenericInlineForm)
 │   │   ├── dashboard/            # Dashboard components (QuickActionsSection, QuickStatSheet, heroCard, ExtraIncomeSection, SavingsChecklistCard)
 │   │   ├── income/               # Income components (IncomeForm)
 │   │   ├── savings/              # Savings components (SavingsDepositForm, SavingsDepositTab, SavingsSummary, SavingsWithdrawalForm, SavingsWithdrawTab, SavingsGoalCard, AdHocSavingsAccordion, SavingsOverviewTab)
-│   │   ├── transaction/          # Transaction components (AddTransactionModal, ImpulseCooldownSection, TransactionCard, TransactionFilterModal)
+│   │   ├── splitwise/            # Splitwise components (SplitwiseConnectionCard, SplitConfig, SplitForm)
+│   │   ├── transaction/          # Transaction components
+│   │   │   ├── addTransactionModal/  # Add expense modal (AddTransactionModal coordinator, ExpenseFormContent step 1, SplitStep step 2)
+│   │   │   ├── transactionDetail/    # Transaction detail screen (ViewMode, EditMode, useTransactionSave)
+│   │   │   ├── ExpenseFormFields.tsx  # Shared expense form fields (amount, category, date, description, credit card)
+│   │   │   ├── ImpulseCooldownSection.tsx  # Impulse cooldown toggle & timer UI
+│   │   │   ├── transactionCard.tsx   # Transaction list item card
+│   │   │   ├── transactionFilterModal.tsx  # Transaction filter modal
+│   │   │   └── index.ts             # Barrel exports
+│   │   ├── InfoBadge.tsx         # Shared read-only badge (icon + text stack; variant: warning | primary)
 │   │   ├── {SharedName}.tsx      # Shared non-primitive components (used across features)
 │   │   └── index.ts              # Barrel exports
 │   │
@@ -36,6 +46,13 @@ budgetmybs/
 │   │   ├── useExpiredImpulseCheck.ts # App-open hook: navigates to impulse-confirm if expired purchases exist
 │   ├── useImpulsePermission.ts  # Notification permission gating for Impulse Buy Cooldown feature
 │   │   ├── useMutationMap.ts        # String-keyed map of all async mutation functions
+│   │   ├── useSplitwise.ts          # Splitwise connection state, connect/disconnect mutations, TanStack Query
+│   │   ├── useSplitwiseBalances.ts  # Splitwise balance totals and per-friend breakdown from local DB
+│   │   ├── useSplitwiseSync.ts      # Splitwise inbound sync hook (syncSplitwise, isSyncing, lastSyncedAt, triggerStaleGatedSync)
+│   │   ├── useSplitTargets.ts       # Splitwise friends/groups for split form picker (TanStack Query)
+│   │   ├── useSplitExpense.ts       # Splitwise outbound push mutation (used by useMutationMap)
+│   │   ├── usePushExpense.ts        # Thin mutation wrapper around pushExpenseToSplitwise (UI layer)
+│   │   ├── useSplitwiseReceivables.ts  # Fetch receivableAmount for a given expenseId (payer breakdown)
 │   │   ├── queryKeys.ts          # Shared query keys (breaks circular deps between useExpenses/useCreditCards)
 │   │   ├── theme-hooks/          # Theme-related hooks
 │   │   └── index.ts              # Barrel exports with query keys
@@ -47,12 +64,24 @@ budgetmybs/
 │   ├── services/                 # External API integrations only
 │   │   ├── chatService.ts
 │   │   ├── gemini.ts
-│   │   └── financialPlanService.ts
+│   │   ├── financialPlanService.ts
+│   │   ├── api/                  # Generic typed HTTP client
+│   │   │   ├── httpClient.ts     # createHttpClient factory (get/post/put/patch/delete, retry, auth, timeout)
+│   │   │   ├── types.ts          # AuthProvider interface + typed errors (NetworkError, AuthError, RateLimitError, ApiError)
+│   │   │   └── index.ts          # Barrel export
+│   │   └── splitwise/            # Splitwise API integration
+│   │       ├── auth.ts           # OAuth helpers, token storage (expo-secure-store), silent refresh
+│   │       ├── categoryMap.ts    # Static Splitwise category name → local CategoryType mapping
+│   │       ├── sync.ts           # Inbound sync engine (syncSplitwiseExpenses, getLastSyncedAt)
+│   │       ├── push.ts           # Outbound push (pushExpenseToSplitwise, enqueueFailedPush, drainPushQueue)
+│   │       └── index.ts          # Barrel export
 │   │
 │   ├── types/                    # TypeScript type definitions
 │   │   ├── chatRegistry.ts       # Types for intent registry (IntentRegistryEntry, MutationMap, etc.)
 │   │   ├── impulse.ts            # Types for Impulse Buy Cooldown (PendingImpulsePurchase, CooldownPreset, CooldownUnit)
 │   │   ├── income.ts             # IncomeEntryData type for income settings screen
+│   │   ├── splitwise.ts          # SplitwiseUser, SplitwiseTokens, SplitwiseConnectionState types
+│   │   ├── splitwise-outbound.ts # SplitTypeValue, SplitFormState, SplitwiseCreateExpensePayload types
 │   │   ├── {domain}.ts
 │   │   └── index.ts
 │   │
@@ -67,6 +96,11 @@ budgetmybs/
 │   │   ├── savings-deposit.strings.ts  # Strings for savings deposit form and summary
 │   │   ├── savings-icons.config.ts     # SavingsType → Ionicons icon name mapping
 │   │   ├── savings-screen.strings.ts   # Strings for the dedicated savings screen (header, tabs, overview)
+│   │   ├── onboarding-splitwise.strings.ts  # Strings for the Splitwise onboarding step screen
+│   │   ├── splitwise.strings.ts          # Strings for Splitwise integration (connect, disconnect, chat intents)
+│   │   ├── splitwise-balances.strings.ts # Strings for Splitwise Balances dashboard card and friends screen
+│   │   ├── splitwise-outbound.strings.ts # Strings + SplitType const for Splitwise outbound split feature (split toggle, toast, chat intent)
+│   │   ├── splitwise.config.ts   # Splitwise API base URL, endpoints, token storage keys, timeouts
 │   │   ├── {feature}.config.ts   # Structural configuration
 │   │   └── asyncStorageKeys.ts   # AsyncStorage key constants (includes PENDING_IMPULSE_PURCHASES)
 │   │
@@ -74,6 +108,8 @@ budgetmybs/
 │   │   ├── income.ts             # Zod schema for income log form
 │   │   ├── savings-deposit.ts    # Zod schema for savings deposit form
 │   │   ├── savings-withdrawal.ts # Zod schema for savings withdrawal form
+│   │   ├── splitwise.ts          # Zod schemas for Splitwise API responses (user, tokens)
+│   │   ├── splitwisePush.ts      # Zod schemas for Splitwise outbound push (friends, groups, create expense, push queue)
 │   │   └── {feature}.ts
 │   │
 │   ├── utils/                    # Pure utility functions
@@ -83,7 +119,8 @@ budgetmybs/
 │   │   ├── id.ts
 │   │   ├── impulseAsyncStore.ts  # AsyncStorage-backed store for pending impulse purchases (save/getAll/getExpired/remove/updateNotificationId)
 │   │   ├── network.ts
-│   │   └── normalize.ts
+│   │   ├── normalize.ts
+│   │   └── splitwisePushPayload.ts  # Builds flat Splitwise create_expense payload from SplitFormState (equal/exact/percentage/shares)
 │   │
 │   └── config/
 │       └── env.ts                # Environment configuration
@@ -101,6 +138,7 @@ budgetmybs/
 │   │   ├── income.ts             # Income CRUD + monthly sum
 │   │   ├── profile.ts
 │   │   ├── categories.ts
+│   │   ├── splitwiseExpenses.ts  # Splitwise expenses CRUD + balance summary queries (getSplitwiseBalanceSummary, getSplitwiseBalancesByFriend)
 │   │   └── ...
 │   └── index.ts                  # Barrel exports
 │

@@ -1,0 +1,225 @@
+import type { DropdownOption } from '@/src/types';
+import type { FC } from 'react';
+import { useMemo, useState } from 'react';
+import type { StyleProp, ViewStyle } from 'react-native';
+import { FlatList, Pressable, StyleSheet } from 'react-native';
+
+import type { ComponentSizeType } from '@/src/constants/theme';
+import { BorderRadius, ComponentHeight, ComponentSize, FontSize, Opacity, Spacing } from '@/src/constants/theme';
+import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
+import BButton from './button';
+import BIcon from './icon';
+import BInput from './input';
+import BModal from './modal';
+import BText from './text';
+import BView from './view';
+
+export type BMultiSelectProps = {
+  options: DropdownOption[];
+  value: (string | number)[];
+  onValueChange: (values: (string | number)[]) => void;
+  placeholder?: string;
+  size?: ComponentSizeType;
+  label?: string;
+  error?: string;
+  disabled?: boolean;
+  modalTitle?: string;
+  style?: StyleProp<ViewStyle>;
+  containerStyle?: StyleProp<ViewStyle>;
+  searchable?: boolean;
+  leftIcon?: string;
+};
+
+const sizeStyles: Record<ComponentSizeType, { height: number; fontSize: number; paddingHorizontal: number }> = {
+  [ComponentSize.SM]: { height: ComponentHeight.sm, fontSize: FontSize.sm, paddingHorizontal: Spacing.sm },
+  [ComponentSize.MD]: { height: ComponentHeight.md, fontSize: FontSize.base, paddingHorizontal: Spacing.md },
+  [ComponentSize.LG]: { height: ComponentHeight.lg, fontSize: FontSize.md, paddingHorizontal: Spacing.base },
+};
+
+const BMultiSelect: FC<BMultiSelectProps> = ({
+  options,
+  value,
+  onValueChange,
+  placeholder = 'Select options',
+  size = ComponentSize.MD,
+  label,
+  error,
+  disabled = false,
+  modalTitle = 'Select Options',
+  style,
+  containerStyle,
+  searchable = false,
+  leftIcon,
+}) => {
+  const themeColors = useThemeColors();
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const selectedOptions = options.filter((opt) => value.includes(opt.value));
+
+  const filteredOptions = useMemo(() => {
+    if (!searchable || !searchQuery) return options;
+    return options.filter((opt) => opt.label.toLowerCase().includes(searchQuery.toLowerCase()));
+  }, [options, searchable, searchQuery]);
+
+  const handleToggle = (option: DropdownOption) => {
+    const isSelected = value.includes(option.value);
+    if (isSelected) {
+      onValueChange(value.filter((v) => v !== option.value));
+    } else {
+      onValueChange([...value, option.value]);
+    }
+  };
+
+  const currentSize = sizeStyles[size];
+
+  const displayText = selectedOptions.length > 0 ? selectedOptions.map((opt) => opt.label).join(', ') : null;
+
+  const renderOption = ({ item }: { item: DropdownOption }) => {
+    const isSelected = value.includes(item.value);
+
+    return (
+      <BButton
+        variant="ghost"
+        onPress={() => handleToggle(item)}
+        style={[styles.option, isSelected && styles.optionSelected]}
+      >
+        <BText style={[styles.optionText, { fontSize: currentSize.fontSize }, isSelected && styles.optionTextSelected]}>
+          {item.label}
+        </BText>
+        {isSelected && <BIcon name="checkmark" size="sm" color={themeColors.primary} />}
+      </BButton>
+    );
+  };
+
+  return (
+    <BView style={[styles.container, containerStyle]}>
+      {label && (
+        <BText variant="label" style={styles.label}>
+          {label}
+        </BText>
+      )}
+      <Pressable
+        onPress={() => !disabled && setIsOpen(true)}
+        disabled={disabled}
+        style={({ pressed }) => [
+          styles.trigger,
+          {
+            height: currentSize.height,
+            paddingHorizontal: currentSize.paddingHorizontal,
+            opacity: disabled ? Opacity.disabled : pressed ? Opacity.pressed : Opacity.full,
+            borderColor: error ? themeColors.error : themeColors.border,
+            backgroundColor: themeColors.background,
+          },
+          style,
+        ]}
+      >
+        <BView row align="center" gap="sm" flex>
+          {leftIcon && <BIcon name={leftIcon as any} size="sm" color={themeColors.textMuted} />}
+          <BText
+            style={{ fontSize: currentSize.fontSize }}
+            color={displayText ? themeColors.text : themeColors.textMuted}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {displayText ?? placeholder}
+          </BText>
+        </BView>
+        <BIcon name="chevron-down" size="sm" color={themeColors.textSecondary} />
+      </Pressable>
+      {error && (
+        <BText variant="caption" color={themeColors.error} style={styles.error}>
+          {error}
+        </BText>
+      )}
+      <BModal
+        isVisible={isOpen}
+        onClose={() => {
+          setIsOpen(false);
+          setSearchQuery('');
+        }}
+        title={modalTitle}
+        position="bottom"
+        showCloseButton={true}
+        closeOnBackdrop={true}
+        swipeDirection={undefined}
+        animationIn="fadeIn"
+        animationOut="fadeOut"
+      >
+        <BView style={styles.optionsList}>
+          {searchable && (
+            <BInput
+              placeholder="Search..."
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              containerStyle={styles.searchInput}
+              size={ComponentSize.SM}
+              leftIcon={<BIcon name="search" size="sm" color={themeColors.textMuted} />}
+            />
+          )}
+          <FlatList
+            data={filteredOptions}
+            keyExtractor={(item) => String(item.value)}
+            renderItem={renderOption}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={true}
+            nestedScrollEnabled={true}
+            bounces={true}
+            contentContainerStyle={styles.optionsContent}
+            ListEmptyComponent={
+              <BText center muted style={{ padding: Spacing.md }}>
+                No options found
+              </BText>
+            }
+          />
+        </BView>
+      </BModal>
+    </BView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    width: '100%',
+  },
+  label: {
+    marginBottom: Spacing.xs,
+  },
+  trigger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderRadius: BorderRadius.base,
+  },
+  error: {
+    marginTop: Spacing.xs,
+  },
+  optionsList: {
+    maxHeight: 400,
+  },
+  searchInput: {
+    marginBottom: Spacing.sm,
+  },
+  optionsContent: {
+    paddingBottom: Spacing.sm,
+  },
+  option: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+  },
+  optionSelected: {},
+  optionText: {
+    flex: 1,
+    textAlign: 'left',
+  },
+  optionTextSelected: {
+    fontWeight: '600',
+  },
+});
+
+export default BMultiSelect;

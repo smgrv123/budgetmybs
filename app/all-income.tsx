@@ -30,6 +30,7 @@ export default function AllIncomeScreen() {
           date={item.date}
           isSaving
           categoryIcon="cash-outline"
+          isSettlement={item.type === IncomeTypeEnum.SPLITWISE_SETTLEMENT}
         />
       </BLink>
     );
