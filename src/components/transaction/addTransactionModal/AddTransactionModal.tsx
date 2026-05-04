@@ -1,18 +1,18 @@
-import type { FC } from 'react';
+import type { FC, ReactNode } from 'react';
 import { useEffect, useRef, useState } from 'react';
-import type { ScrollView as ScrollViewType } from 'react-native';
-import { Alert, StyleSheet } from 'react-native';
+import type { ScrollView as ScrollViewType, ViewStyle } from 'react-native';
+import { Alert, Animated, StyleSheet } from 'react-native';
 import { z } from 'zod';
 
 import { CreditCardTxnTypeEnum } from '@/db/types';
-import { BButton, BModal, BText, BToast, BView } from '@/src/components/ui';
+import { BModal, BToast, BView } from '@/src/components/ui';
 import { CREDIT_CARD_PROVIDER_OPTIONS } from '@/src/constants/credit-cards.config';
-import { CooldownPreset, CooldownUnit, PRESET_DEFINITIONS, toMinutes } from '@/src/constants/impulse.config';
+import { CooldownUnit } from '@/src/constants/impulse.config';
 import { IMPULSE_STRINGS } from '@/src/constants/impulse.strings';
 import { CREDIT_CARDS_SETTINGS_STRINGS } from '@/src/constants/settings.strings';
 import { SPLITWISE_OUTBOUND_STRINGS } from '@/src/constants/splitwise-outbound.strings';
 import { SplitwisePushAction } from '@/src/constants/splitwise.config';
-import { ButtonVariant, Spacing, TextVariant, ToastVariant } from '@/src/constants/theme';
+import { Spacing, SpacingValue, ToastVariant } from '@/src/constants/theme';
 import { TRANSACTION_TAB_CONFIGS } from '@/src/constants/transactionForm.config';
 import { TransactionTab } from '@/src/constants/transactionModal';
 import { ADD_TRANSACTION_STRINGS, TRANSACTION_VALIDATION_STRINGS } from '@/src/constants/transactions.strings';
@@ -24,7 +24,6 @@ import {
   usePushExpense,
   useSplitwise,
 } from '@/src/hooks';
-import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { scheduleImpulseNotification } from '@/src/services/notificationService';
 import { enqueueFailedPush } from '@/src/services/splitwise';
 import type { CooldownPresetType, CooldownUnitType } from '@/src/types/impulse';
@@ -32,14 +31,18 @@ import type { SplitFormState } from '@/src/types/splitwise-outbound';
 import { INITIAL_SPLIT_STATE } from '@/src/types/splitwise-outbound';
 import type { TransactionFieldKeyValue } from '@/src/types/transaction';
 import { TransactionFieldKey } from '@/src/types/transaction';
+import { buildImpulseEntry, buildValidatedExpenseData, resolveCooldownMinutes } from '@/src/utils/addExpenseUtils';
 import { formatLocalDateToISO } from '@/src/utils/date';
-import { generateUUID } from '@/src/utils/id';
 import { saveImpulsePurchase, updateNotificationId } from '@/src/utils/impulseAsyncStore';
 import { checkNetworkConnection } from '@/src/utils/network';
+import { screenWidth } from '@/src/utils/normalize';
 import { buildSplitPayload } from '@/src/utils/splitwisePushPayload';
 import dayjs from 'dayjs';
 import { createTransactionFields } from '../transactionForm';
 import ExpenseFormContent from './ExpenseFormContent';
+import SplitStep from './SplitStep';
+
+const CAROUSEL_ANIMATION_DURATION = 250;
 
 const expenseSchema = z.object({
   amount: z.number().positive(TRANSACTION_VALIDATION_STRINGS.amountGreaterThanZero),
@@ -49,6 +52,8 @@ const expenseSchema = z.object({
   creditCardId: z.string().optional(),
 });
 
+type Step = 'expense' | 'split';
+
 type AddTransactionModalProps = {
   visible: boolean;
   onClose: () => void;
@@ -57,7 +62,6 @@ type AddTransactionModalProps = {
 };
 
 const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, onExpenseCreated }) => {
-  const themeColors = useThemeColors();
   const scrollViewRef = useRef<ScrollViewType>(null);
   const [scrollOffset, setScrollOffset] = useState(0);
   const [amount, setAmount] = useState('');
@@ -65,6 +69,10 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
   const [creditCardId, setCreditCardId] = useState('');
   const [description, setDescription] = useState('');
   const [date, setDate] = useState(formatLocalDateToISO(new Date()));
+
+  // ─── Carousel state ─────────────────────────────────────────────────────────
+  const [step, setStep] = useState<Step>('expense');
+  const slideAnim = useRef(new Animated.Value(0)).current;
 
   // ─── Impulse state ──────────────────────────────────────────────────────────
   const [isImpulse, setIsImpulse] = useState(false);
@@ -75,7 +83,6 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
   const [customUnit, setCustomUnit] = useState<CooldownUnitType>(CooldownUnit.MINUTES);
 
   // ─── Split state ────────────────────────────────────────────────────────────
-  const [isSplit, setIsSplit] = useState(false);
   const [splitState, setSplitState] = useState<SplitFormState>(INITIAL_SPLIT_STATE);
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -143,50 +150,33 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
     }
   };
 
-  const handleToggleSplit = (val: boolean) => {
-    setIsSplit(val);
-    if (val) {
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 100);
-    } else {
+  // ─── Carousel navigation ─────────────────────────────────────────────────────
+
+  /** Animate to Step 2 (slide left) */
+  const goToSplitStep = () => {
+    setStep('split');
+    Animated.timing(slideAnim, {
+      toValue: -slideWidth,
+      duration: CAROUSEL_ANIMATION_DURATION,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  /** Animate back to Step 1 (slide right) and reset split state */
+  const goBackToExpenseStep = () => {
+    Animated.timing(slideAnim, {
+      toValue: 0,
+      duration: CAROUSEL_ANIMATION_DURATION,
+      useNativeDriver: true,
+    }).start(() => {
+      setStep('expense');
       resetSplitState();
-    }
-  };
-
-  /** Resolve cooldown to minutes based on selected preset and custom values */
-  const resolveCooldownMinutes = (): number | null => {
-    if (!selectedPreset) return null;
-
-    if (selectedPreset !== CooldownPreset.CUSTOM) {
-      const preset = PRESET_DEFINITIONS.find((p) => p.preset === selectedPreset);
-      return preset?.minutes ?? null;
-    }
-
-    // Custom
-    const numVal = parseInt(customValue, 10);
-    if (!customValue || isNaN(numVal) || numVal <= 0) return null;
-    return toMinutes(numVal, customUnit);
-  };
-
-  /** Build and validate the expense data. Returns null if validation fails. */
-  const buildValidatedExpenseData = () => {
-    const amountNum = parseFloat(amount);
-    const normalizedCreditCardId = creditCardId.trim() || undefined;
-    const validationResult = expenseSchema.safeParse({
-      amount: amountNum,
-      category,
-      description: description || undefined,
-      date,
-      creditCardId: normalizedCreditCardId,
     });
-    if (!validationResult.success) return null;
-    return validationResult.data;
   };
 
   /** Attempt to push to Splitwise after a local save. Shows toast on failure. */
-  const attemptSplitwisePush = async (expenseId: string, amount: number, desc: string) => {
-    if (!isSplit || !currentUser) return;
+  const attemptSplitwisePush = async (expenseId: string, expenseAmount: number, desc: string) => {
+    if (!currentUser) return;
 
     // Participants = group members (selectedMemberIds) + direct friends (friendIds)
     const groupMemberIds: number[] = splitState.selectedMemberIds
@@ -203,7 +193,7 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
     if (participantUserIds.length === 0) return;
 
     const payload = buildSplitPayload({
-      totalAmount: amount,
+      totalAmount: expenseAmount,
       description: desc ?? '',
       currencyCode: 'INR',
       payerUserId: currentUser.id,
@@ -230,9 +220,13 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
     }
   };
 
-  /** Save directly to DB — used both for normal submit and impulse override */
-  const saveToDatabase = (wasImpulse: boolean) => {
-    const data = buildValidatedExpenseData();
+  /**
+   * Save directly to DB.
+   * @param wasImpulse — whether the impulse override path triggered this save
+   * @param withSplit — whether to push to Splitwise after local save
+   */
+  const saveToDatabase = (wasImpulse: boolean, withSplit: boolean) => {
+    const data = buildValidatedExpenseData({ amount, category, description, date, creditCardId }, expenseSchema);
     if (!data) return;
 
     createExpense(
@@ -248,7 +242,7 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
       {
         onSuccess: (createdExpense) => {
           onExpenseCreated?.(data.amount);
-          if (createdExpense) {
+          if (withSplit && createdExpense) {
             void attemptSplitwisePush(createdExpense.id, data.amount, data.description ?? '');
           }
           handleClose();
@@ -260,33 +254,26 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
     );
   };
 
-  const handleSubmit = async () => {
-    const data = buildValidatedExpenseData();
+  /** "Add Expense" CTA — local save only, no Splitwise push */
+  const handleAddExpense = async () => {
+    const data = buildValidatedExpenseData({ amount, category, description, date, creditCardId }, expenseSchema);
     if (!data) return;
 
     if (isImpulse) {
       // Notifications denied at toggle time: log directly to DB with impulse flag
       if (impulseDirectMode) {
-        saveToDatabase(true);
+        saveToDatabase(true, false);
         return;
       }
 
       // Impulse path: validate cooldown, then save to AsyncStorage
-      const cooldownMinutes = resolveCooldownMinutes();
+      const cooldownMinutes = resolveCooldownMinutes(selectedPreset, customValue, customUnit);
       if (cooldownMinutes === null) {
         Alert.alert(IMPULSE_STRINGS.cooldownRequired);
         return;
       }
 
-      const now = dayjs();
-      const entry = {
-        id: generateUUID(),
-        purchaseData: (({ category, ...rest }) => ({ ...rest, categoryId: category }))(data),
-        cooldownMinutes,
-        expiresAt: now.add(cooldownMinutes, 'minute').toISOString(),
-        notificationId: null,
-        createdAt: now.toISOString(),
-      };
+      const entry = buildImpulseEntry(data, cooldownMinutes);
 
       try {
         await saveImpulsePurchase(entry);
@@ -297,7 +284,7 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
             entryId: entry.id,
             description: entry.purchaseData.description,
             amount: entry.purchaseData.amount,
-            triggerDate: now.add(cooldownMinutes, 'minute').toDate(),
+            triggerDate: dayjs(entry.expiresAt).toDate(),
           });
           await updateNotificationId(entry.id, notificationId);
         } catch (error: unknown) {
@@ -312,26 +299,33 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
       return;
     }
 
-    // Normal path: save directly to DB
-    saveToDatabase(false);
+    // Normal path: save directly to DB, no Splitwise push
+    saveToDatabase(false, false);
+  };
+
+  /** "Add & Split" CTA — local save then Splitwise push */
+  const handleAddAndSplit = () => {
+    saveToDatabase(false, true);
   };
 
   /** Override: log the impulse purchase directly to DB (bypasses cooldown) */
   const handleOverride = () => {
-    const data = buildValidatedExpenseData();
+    const data = buildValidatedExpenseData({ amount, category, description, date, creditCardId }, expenseSchema);
     if (!data) return;
     console.log(IMPULSE_STRINGS.savedOverrideLog);
-    saveToDatabase(true);
+    saveToDatabase(true, false);
   };
 
   const resetSplitState = () => {
-    setIsSplit(false);
     setSplitState(INITIAL_SPLIT_STATE);
     setToastVisible(false);
     setToastMessage('');
   };
 
   const handleClose = () => {
+    // Reset carousel immediately (no animation needed on close)
+    slideAnim.setValue(0);
+    setStep('expense');
     setAmount('');
     setCategory('');
     setCreditCardId('');
@@ -350,7 +344,7 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
     scrollViewRef.current?.scrollTo(p);
   };
 
-  const canSubmit = parseFloat(amount) > 0 && category;
+  const canSubmit = Boolean(parseFloat(amount) > 0 && category);
 
   const currentConfig = TRANSACTION_TAB_CONFIGS[TransactionTab.EXPENSE];
   const transactionFields = createTransactionFields({
@@ -363,6 +357,55 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
     },
   });
 
+  // ─── Carousel steps ──────────────────────────────────────────────────────────
+  type StepConfig = { key: Step; renderContent: () => ReactNode; overrideStyles?: ViewStyle };
+
+  const STEPS: StepConfig[] = [
+    {
+      key: 'expense',
+      renderContent: () => (
+        <ExpenseFormContent
+          scrollViewRef={scrollViewRef}
+          onScroll={setScrollOffset}
+          fields={transactionFields}
+          isImpulse={isImpulse}
+          onToggleImpulse={handleToggleImpulse}
+          selectedPreset={selectedPreset}
+          onPresetChange={setSelectedPreset}
+          customValue={customValue}
+          onCustomValueChange={setCustomValue}
+          customUnit={customUnit}
+          onCustomUnitChange={setCustomUnit}
+          onOverridePress={handleOverride}
+          impulseDirectMode={impulseDirectMode}
+          isConnected={isConnected}
+          canSubmit={canSubmit}
+          isSubmitting={isCreatingExpense}
+          onAddExpense={handleAddExpense}
+          onSplitThis={goToSplitStep}
+        />
+      ),
+    },
+    {
+      key: 'split',
+      renderContent: () =>
+        step === 'split' ? (
+          <SplitStep
+            splitState={splitState}
+            onSplitChange={(updates) => setSplitState((prev) => ({ ...prev, ...updates }))}
+            totalAmount={parseFloat(amount) || 0}
+            isSubmitting={isCreatingExpense}
+            canSubmit={canSubmit}
+            onAddAndSplit={handleAddAndSplit}
+            onBack={goBackToExpenseStep}
+          />
+        ) : null,
+      overrideStyles: { paddingTop: Spacing.none },
+    },
+  ];
+
+  const slideWidth = screenWidth - 2 * Spacing.base;
+
   return (
     <BModal
       isVisible={visible}
@@ -372,29 +415,25 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
       scrollTo={handleScrollTo}
       scrollOffset={scrollOffset}
       scrollOffsetMax={300}
+      contentStyle={{ paddingTop: Spacing.none }}
     >
-      {/* Data-driven form fields + impulse section */}
-      <ExpenseFormContent
-        scrollViewRef={scrollViewRef}
-        onScroll={setScrollOffset}
-        fields={transactionFields}
-        isImpulse={isImpulse}
-        onToggleImpulse={handleToggleImpulse}
-        selectedPreset={selectedPreset}
-        onPresetChange={setSelectedPreset}
-        customValue={customValue}
-        onCustomValueChange={setCustomValue}
-        customUnit={customUnit}
-        onCustomUnitChange={setCustomUnit}
-        onOverridePress={handleOverride}
-        impulseDirectMode={impulseDirectMode}
-        isConnected={isConnected}
-        isSplit={isSplit}
-        onToggleSplit={handleToggleSplit}
-        splitState={splitState}
-        onSplitChange={(updates) => setSplitState((prev) => ({ ...prev, ...updates }))}
-        totalAmount={parseFloat(amount) || 0}
-      />
+      {/* Carousel container — both steps rendered side by side, animated via translateX */}
+      <BView style={styles.carouselContainer}>
+        <Animated.View
+          style={[styles.carouselTrack, { transform: [{ translateX: slideAnim }], width: slideWidth * 2 }]}
+        >
+          {STEPS.map(({ key, renderContent, overrideStyles }) => (
+            <BView
+              key={key}
+              flex
+              padding={SpacingValue.BASE}
+              style={[styles.carouselSlide, { width: slideWidth }, overrideStyles && overrideStyles]}
+            >
+              {renderContent()}
+            </BView>
+          ))}
+        </Animated.View>
+      </BView>
 
       {/* Splitwise sync toast */}
       <BToast
@@ -403,33 +442,19 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
         variant={ToastVariant.WARNING}
         onDismiss={() => setToastVisible(false)}
       />
-
-      {/* Submit Button */}
-      <BView style={[styles.submitContainer, { borderTopColor: themeColors.border }]}>
-        <BButton
-          variant={ButtonVariant.PRIMARY}
-          onPress={handleSubmit}
-          loading={isCreatingExpense}
-          disabled={!canSubmit || isCreatingExpense}
-          fullWidth
-        >
-          <BText variant={TextVariant.LABEL} color={themeColors.white}>
-            {currentConfig.submitLabel}
-          </BText>
-        </BButton>
-      </BView>
     </BModal>
   );
 };
 
 const styles = StyleSheet.create({
-  submitContainer: {
-    marginTop: Spacing.md,
+  carouselContainer: {
+    overflow: 'hidden',
+  },
+  carouselTrack: {
+    flexDirection: 'row',
+  },
+  carouselSlide: {
     marginHorizontal: -Spacing.base,
-    paddingHorizontal: Spacing.base,
-    paddingTop: Spacing.md,
-    paddingBottom: Spacing.base,
-    borderTopWidth: 1,
   },
 });
 

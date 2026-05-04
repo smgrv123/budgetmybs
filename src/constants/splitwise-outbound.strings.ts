@@ -17,8 +17,14 @@ export const SplitwiseConnectionStatus = {
 } as const;
 
 export const SPLITWISE_OUTBOUND_STRINGS = {
-  // Toggle
+  // Toggle (legacy — kept for SplitConfig header label)
   splitToggleLabel: 'Split with Splitwise',
+
+  // Carousel CTAs (Phase 13b)
+  addExpenseCta: 'Add Expense',
+  splitThisCta: 'Split this →',
+  addAndSplitCta: 'Add & Split',
+  backToExpense: '← Back',
 
   // Group/friend combined picker
   groupMemberPickerLabel: 'Split with members',

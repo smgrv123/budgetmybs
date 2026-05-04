@@ -28,7 +28,7 @@ budgetmybs/
 │   │   ├── savings/              # Savings components (SavingsDepositForm, SavingsDepositTab, SavingsSummary, SavingsWithdrawalForm, SavingsWithdrawTab, SavingsGoalCard, AdHocSavingsAccordion, SavingsOverviewTab)
 │   │   ├── splitwise/            # Splitwise components (SplitwiseConnectionCard, SplitConfig, SplitForm)
 │   │   ├── transaction/          # Transaction components
-│   │   │   ├── addTransactionModal/  # Add expense modal (AddTransactionModal coordinator, ExpenseFormContent)
+│   │   │   ├── addTransactionModal/  # Add expense modal (AddTransactionModal coordinator, ExpenseFormContent step 1, SplitStep step 2)
 │   │   │   ├── transactionDetail/    # Transaction detail screen (ViewMode, EditMode, useTransactionSave)
 │   │   │   ├── ExpenseFormFields.tsx  # Shared expense form fields (amount, category, date, description, credit card)
 │   │   │   ├── ImpulseCooldownSection.tsx  # Impulse cooldown toggle & timer UI

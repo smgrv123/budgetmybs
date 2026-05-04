@@ -226,10 +226,6 @@ const SplitConfig: FC<SplitConfigProps> = ({ state, onChange, totalAmount }) => 
 
   return (
     <BView gap={SpacingValue.SM} style={[styles.container, { borderColor: themeColors.border }]}>
-      <BText variant={TextVariant.LABEL} color={themeColors.primary}>
-        {SPLITWISE_OUTBOUND_STRINGS.splitToggleLabel}
-      </BText>
-
       {/* Group picker (single-select, optional) */}
       <BView gap={SpacingValue.XS}>
         <BView row align="center" justify="space-between">
