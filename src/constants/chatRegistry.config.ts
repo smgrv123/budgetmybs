@@ -2464,6 +2464,58 @@ const splitExpenseEntry: IntentRegistryEntry = {
   getInitialValues: () => ({}),
 };
 
+const settleSplitwiseEntry: IntentRegistryEntry = {
+  intent: ChatIntentEnum.SETTLE_SPLITWISE,
+  title: SPLITWISE_BALANCES_STRINGS.chatSettleTitle,
+  formType: 'default',
+  buttonVariant: ButtonVariant.PRIMARY,
+  submitLabel: SPLITWISE_BALANCES_STRINGS.chatSettleSubmit,
+  fields: [
+    {
+      key: 'friendName',
+      label: SPLITWISE_BALANCES_STRINGS.chatSettleFriendLabel,
+      placeholder: SPLITWISE_BALANCES_STRINGS.chatSettleFriendPlaceholder,
+      type: 'text',
+      required: true,
+    },
+    {
+      key: 'amount',
+      label: SPLITWISE_BALANCES_STRINGS.chatSettleAmountLabel,
+      placeholder: SPLITWISE_BALANCES_STRINGS.chatSettleAmountPlaceholder,
+      type: 'currency',
+      required: false,
+    },
+  ],
+  mutations: [
+    {
+      key: 'settleSplitwise',
+      transformData: (formValues) => {
+        const raw = formValues['amount'];
+        const parsed = raw ? parseFloat(raw) : NaN;
+        return {
+          friendName: formValues['friendName'] ?? '',
+          amount: Number.isFinite(parsed) && parsed > 0 ? parsed : undefined,
+        };
+      },
+      errorLog: '[chatRegistry] SETTLE_SPLITWISE mutation failed:',
+    },
+  ],
+  messages: {
+    success: SPLITWISE_BALANCES_STRINGS.chatSettleSuccess,
+    failure: SPLITWISE_BALANCES_STRINGS.chatSettleFailure,
+    cancelled: SPLITWISE_BALANCES_STRINGS.chatSettleCancelled,
+  },
+  invalidations: [],
+  validate: (formValues) => {
+    const errors: Record<string, string> = {};
+    if (!formValues['friendName']?.trim()) {
+      errors['friendName'] = SPLITWISE_BALANCES_STRINGS.chatSettleFriendLabel;
+    }
+    return Object.keys(errors).length > 0 ? errors : null;
+  },
+  getInitialValues: () => ({}),
+};
+
 // ============================================
 // REGISTRY MAP
 // ============================================
@@ -2496,6 +2548,7 @@ export const INTENT_REGISTRY: Readonly<Record<string, IntentRegistryEntry>> = {
   [ChatIntentEnum.DISCONNECT_SPLITWISE]: disconnectSplitwiseEntry,
   [ChatIntentEnum.SYNC_SPLITWISE]: syncSplitwiseEntry,
   [ChatIntentEnum.SPLIT_EXPENSE]: splitExpenseEntry,
+  [ChatIntentEnum.SETTLE_SPLITWISE]: settleSplitwiseEntry,
   [ChatIntentEnum.CHECK_BALANCES]: checkBalancesEntry,
 };
 

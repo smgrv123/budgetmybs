@@ -27,6 +27,8 @@ import {
 import { createHttpClient } from '@/src/services/api';
 import { splitwiseAuth } from '@/src/services/splitwise/SplitwiseAuthService';
 import { ensureNetworkAvailable } from '@/src/utils/network';
+import type { BuildSettlementPayloadParams } from '@/src/types/splitwise-outbound';
+import { buildSettlementPayload } from '@/src/utils/splitwisePushPayload';
 import type { SplitwiseCreateExpenseResponse, SplitwisePushQueueItem } from '@/src/validation/splitwisePush';
 import { SplitwisePushQueueSchema } from '@/src/validation/splitwisePush';
 
@@ -51,6 +53,17 @@ export const pushExpenseToSplitwise = async (payload: Record<string, unknown>): 
     throw new Error('Splitwise create_expense returned no expense');
   }
   return firstExpense.id;
+};
+
+/**
+ * Push a settlement (payment: true) expense to Splitwise.
+ * Reuses the create_expense endpoint via pushExpenseToSplitwise.
+ *
+ * @returns The remote Splitwise expense ID for the settlement.
+ */
+export const pushSettlementExpense = async (params: BuildSettlementPayloadParams): Promise<number> => {
+  const payload = buildSettlementPayload(params);
+  return pushExpenseToSplitwise(payload);
 };
 
 // ============================================

@@ -16,6 +16,7 @@ import {
   useCreditCards,
   useSplitwise,
   useSplitwiseBalances,
+  useSplitwiseSettlement,
   useSplitwiseSync,
   useSplitExpense,
 } from '@/src/hooks';
@@ -34,7 +35,37 @@ export const useMutationMap = (): MutationMap => {
   const { connectAsync, disconnectAsync } = useSplitwise();
   const { syncSplitwiseAsync } = useSplitwiseSync();
   const { splitExpenseAsync } = useSplitExpense();
+  const { settleSplitwiseAsync } = useSplitwiseSettlement();
   const { totalOwedToYou, totalYouOwe, friendBalances } = useSplitwiseBalances();
+
+  /**
+   * Chat-friendly settlement mutation. Resolves a friend by displayName, then
+   * delegates to useSplitwiseSettlement. The mode is inferred from the friend's
+   * net balance: negative balance (you owe them) → settle-up; positive → mark-received.
+   */
+  const settleSplitwiseChatAsync = async (args: { friendName: string; amount?: number }): Promise<unknown> => {
+    const trimmed = args.friendName.trim().toLowerCase();
+    const friend = friendBalances.find((fb) => fb.displayName.toLowerCase().includes(trimmed));
+    if (!friend) {
+      throw new Error(SPLITWISE_BALANCES_STRINGS.chatSettleFriendNotFound(args.friendName));
+    }
+    const friendUserId = parseInt(friend.paidByUserId, 10);
+    if (Number.isNaN(friendUserId)) {
+      throw new Error(SPLITWISE_BALANCES_STRINGS.chatSettleFriendNotFound(args.friendName));
+    }
+    const mode = friend.netAmount >= 0 ? 'mark-received' : 'settle-up';
+    const defaultAmount = friend.netAmount >= 0 ? friend.owedToYou : friend.youOwe;
+    const amount = args.amount && args.amount > 0 ? args.amount : defaultAmount;
+    if (amount <= 0) {
+      throw new Error(SPLITWISE_BALANCES_STRINGS.chatSettleFailure);
+    }
+    return settleSplitwiseAsync({
+      mode,
+      friendUserId,
+      friendName: friend.displayName,
+      amount,
+    });
+  };
 
   const checkBalancesAsync = async (_args: unknown): Promise<string> => {
     if (totalOwedToYou === 0 && totalYouOwe === 0) {
@@ -84,5 +115,6 @@ export const useMutationMap = (): MutationMap => {
     syncSplitwise: syncSplitwiseAsync,
     checkBalances: checkBalancesAsync,
     splitExpense: splitExpenseAsync,
+    settleSplitwise: settleSplitwiseChatAsync,
   };
 };

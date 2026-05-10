@@ -69,3 +69,32 @@ export type SplitwiseCreateExpensePayload = {
   group_id?: number;
   [key: string]: unknown;
 };
+
+// ============================================
+// SETTLEMENT PAYLOAD
+// ============================================
+
+/**
+ * Flat payload for POST /api/v3.0/create_expense with `payment: true`.
+ * Used for manual settlements ("Settle up" / "Mark as received").
+ *
+ * The payer (users__0) paid the full cost; the recipient (users__1) owes the full cost.
+ * Splitwise records this as a settlement entry that zeros out the corresponding balance.
+ */
+export type SplitwiseSettlementPayload = {
+  payment: true;
+  cost: string;
+  description: string;
+  currency_code: string;
+  [key: string]: unknown;
+};
+
+export type BuildSettlementPayloadParams = {
+  amount: number;
+  description: string;
+  currencyCode: string;
+  /** Splitwise user ID who is paying out (transferring cash) */
+  payerUserId: number;
+  /** Splitwise user ID who is receiving the money */
+  recipientUserId: number;
+};

@@ -46,6 +46,8 @@ export {
 export { SPLITWISE_FRIENDS_QUERY_KEY, SPLITWISE_GROUPS_QUERY_KEY, useSplitTargets } from './useSplitTargets';
 export { useSplitExpense } from './useSplitExpense';
 export { usePushExpense } from './usePushExpense';
+export { useSplitwiseSettlement } from './useSplitwiseSettlement';
+export type { SettlementArgs, SettlementMode } from './useSplitwiseSettlement';
 export { useExpiredImpulseCheck } from './useExpiredImpulseCheck';
 export { useImpulsePermission } from './useImpulsePermission';
 export { useNotificationPermissions } from './useNotificationPermissions';

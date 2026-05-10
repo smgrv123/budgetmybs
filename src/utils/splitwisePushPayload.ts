@@ -9,7 +9,12 @@
  */
 
 import { SplitType } from '@/src/constants/splitwise-outbound.strings';
-import type { SplitFormState, SplitwiseCreateExpensePayload } from '@/src/types/splitwise-outbound';
+import type {
+  BuildSettlementPayloadParams,
+  SplitFormState,
+  SplitwiseCreateExpensePayload,
+  SplitwiseSettlementPayload,
+} from '@/src/types/splitwise-outbound';
 
 // ============================================
 // TYPES
@@ -190,4 +195,37 @@ export const buildSplitPayload = ({
     default:
       return null;
   }
+};
+
+// ============================================
+// SETTLEMENT PAYLOAD BUILDER
+// ============================================
+
+/**
+ * Build a `payment: true` settlement payload for /create_expense.
+ *
+ * The payer (users__0) paid the full cost; the recipient (users__1) owes the
+ * full cost. Splitwise records this entry and zeros out the corresponding
+ * balance between the two users.
+ */
+export const buildSettlementPayload = ({
+  amount,
+  description,
+  currencyCode,
+  payerUserId,
+  recipientUserId,
+}: BuildSettlementPayloadParams): SplitwiseSettlementPayload => {
+  const cost = amount.toFixed(2);
+  return {
+    payment: true,
+    cost,
+    description,
+    currency_code: currencyCode,
+    users__0__user_id: payerUserId,
+    users__0__paid_share: cost,
+    users__0__owed_share: '0.00',
+    users__1__user_id: recipientUserId,
+    users__1__paid_share: '0.00',
+    users__1__owed_share: cost,
+  };
 };

@@ -90,6 +90,7 @@ export const TRANSACTION_DETAIL_STRINGS = {
   splitwiseFieldDisabledOffline: 'Connect to the internet to edit Splitwise-synced fields.',
   splitwiseBadge: 'Synced from Splitwise',
   splitwiseLocalSavedRemoteFailed: 'Saved locally. Splitwise sync failed — will retry on next sync.',
+  splitwiseFriendFallback: 'this friend',
 } as const;
 
 export const ADD_TRANSACTION_STRINGS = {

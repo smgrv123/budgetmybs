@@ -9,13 +9,16 @@ import type { FC } from 'react';
 
 import DetailsCard, { Divider as DetailsCardDivider } from '@/src/components/DetailsCard';
 import InfoBadge from '@/src/components/InfoBadge';
+import { SettlementButton } from '@/src/components/splitwise';
 import { BCard, BIcon, BText, BView } from '@/src/components/ui';
+import type { SplitwiseExpense } from '@/db/schema-types';
 import type { CreditCardProvider } from '@/db/types';
 import { CREDIT_CARD_PROVIDER_COLORS } from '@/src/constants/credit-cards.config';
 import { CardVariant, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
 import { TRANSACTION_COMMON_STRINGS, TRANSACTION_DETAIL_STRINGS } from '@/src/constants/transactions.strings';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { formatCurrency } from '@/src/utils/format';
+import { resolveSettlementButtonProps } from '@/src/utils/splitwiseSettlement';
 
 type ViewModeExpense = {
   amount: number;
@@ -42,9 +45,11 @@ type ViewModeExpense = {
 export type ViewModeProps = {
   expense: ViewModeExpense;
   isSplitwiseExpense: boolean;
+  splitwiseRow?: SplitwiseExpense | null;
+  onSettled?: () => void;
 };
 
-const ViewMode: FC<ViewModeProps> = ({ expense, isSplitwiseExpense }) => {
+const ViewMode: FC<ViewModeProps> = ({ expense, isSplitwiseExpense, splitwiseRow, onSettled }) => {
   const themeColors = useThemeColors();
 
   const isSaving = expense.isSaving === 1;
@@ -81,11 +86,30 @@ const ViewMode: FC<ViewModeProps> = ({ expense, isSplitwiseExpense }) => {
     );
   }
 
+  const resolvedSettlement = resolveSettlementButtonProps(
+    splitwiseRow,
+    expense.description,
+    TRANSACTION_DETAIL_STRINGS.splitwiseFriendFallback
+  );
+  const settlementButton = resolvedSettlement ? (
+    <SettlementButton
+      mode={resolvedSettlement.mode}
+      friendName={resolvedSettlement.friendName}
+      amount={resolvedSettlement.amount}
+      friendUserId={resolvedSettlement.friendUserId}
+      splitwiseExpenseId={resolvedSettlement.splitwiseExpenseId}
+      onSettled={onSettled}
+    />
+  ) : null;
+
   const bottomSection =
-    badgeItems.length === 0 ? null : (
+    badgeItems.length === 0 && !settlementButton ? null : (
       <>
         <DetailsCardDivider />
-        <BView gap={SpacingValue.SM}>{badgeItems}</BView>
+        {badgeItems.length > 0 && <BView gap={SpacingValue.SM}>{badgeItems}</BView>}
+        {settlementButton && (
+          <BView style={{ marginTop: badgeItems.length > 0 ? Spacing.sm : 0 }}>{settlementButton}</BView>
+        )}
       </>
     );
 

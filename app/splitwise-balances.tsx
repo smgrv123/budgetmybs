@@ -1,6 +1,7 @@
 import { Image, ScrollView, StyleSheet } from 'react-native';
 
 import { BCard, BIcon, BSafeAreaView, BText, BView, ScreenHeader } from '@/src/components';
+import { SettlementButton } from '@/src/components/splitwise';
 import { SPLITWISE_BALANCES_STRINGS } from '@/src/constants/splitwise-balances.strings';
 import { BorderRadius, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
 import { useSplitwiseBalances } from '@/src/hooks';
@@ -33,47 +34,63 @@ export default function SplitwiseBalancesScreen() {
                 </BText>
               </BView>
             ) : (
-              friendBalances.map((friend) => (
-                <BCard key={friend.paidByUserId}>
-                  <BView row align="center" justify="space-between">
-                    <BView row align="center" gap={SpacingValue.SM}>
-                      <BView
-                        style={[
-                          styles.avatar,
-                          {
-                            backgroundColor:
-                              friend.netAmount >= 0 ? themeColors.successBackground : themeColors.errorBackground,
-                          },
-                        ]}
-                      >
-                        {friend.avatarUrl ? (
-                          <Image source={{ uri: friend.avatarUrl }} style={styles.avatarImage} />
-                        ) : (
-                          <BIcon
-                            name="person-outline"
-                            color={friend.netAmount >= 0 ? themeColors.success : themeColors.error}
-                            size="sm"
-                          />
-                        )}
-                      </BView>
-                      <BView>
-                        <BText variant={TextVariant.LABEL}>{friend.displayName}</BText>
-                        <BText variant={TextVariant.CAPTION} muted>
-                          {friend.netAmount >= 0
-                            ? SPLITWISE_BALANCES_STRINGS.owedByLabel
-                            : SPLITWISE_BALANCES_STRINGS.youOweThemLabel}
+              friendBalances.map((friend) => {
+                const friendUserIdNum = parseInt(friend.paidByUserId, 10);
+                const settlementAmount = Math.abs(friend.netAmount);
+                const mode = friend.netAmount >= 0 ? 'mark-received' : 'settle-up';
+                return (
+                  <BCard key={friend.paidByUserId}>
+                    <BView gap={SpacingValue.SM}>
+                      <BView row align="center" justify="space-between">
+                        <BView row align="center" gap={SpacingValue.SM}>
+                          <BView
+                            style={[
+                              styles.avatar,
+                              {
+                                backgroundColor:
+                                  friend.netAmount >= 0 ? themeColors.successBackground : themeColors.errorBackground,
+                              },
+                            ]}
+                          >
+                            {friend.avatarUrl ? (
+                              <Image source={{ uri: friend.avatarUrl }} style={styles.avatarImage} />
+                            ) : (
+                              <BIcon
+                                name="person-outline"
+                                color={friend.netAmount >= 0 ? themeColors.success : themeColors.error}
+                                size="sm"
+                              />
+                            )}
+                          </BView>
+                          <BView>
+                            <BText variant={TextVariant.LABEL}>{friend.displayName}</BText>
+                            <BText variant={TextVariant.CAPTION} muted>
+                              {friend.netAmount >= 0
+                                ? SPLITWISE_BALANCES_STRINGS.owedByLabel
+                                : SPLITWISE_BALANCES_STRINGS.youOweThemLabel}
+                            </BText>
+                          </BView>
+                        </BView>
+                        <BText
+                          variant={TextVariant.LABEL}
+                          style={{ color: friend.netAmount >= 0 ? themeColors.success : themeColors.error }}
+                        >
+                          {formatCurrency(settlementAmount)}
                         </BText>
                       </BView>
+
+                      {!Number.isNaN(friendUserIdNum) && settlementAmount > 0 && (
+                        <SettlementButton
+                          mode={mode}
+                          friendName={friend.displayName}
+                          amount={settlementAmount}
+                          friendUserId={friendUserIdNum}
+                        />
+                      )}
                     </BView>
-                    <BText
-                      variant={TextVariant.LABEL}
-                      style={{ color: friend.netAmount >= 0 ? themeColors.success : themeColors.error }}
-                    >
-                      {formatCurrency(Math.abs(friend.netAmount))}
-                    </BText>
-                  </BView>
-                </BCard>
-              ))
+                  </BCard>
+                );
+              })
             )}
           </BView>
         </ScrollView>

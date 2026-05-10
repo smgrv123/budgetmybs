@@ -259,7 +259,16 @@ export default function TransactionDetailRoute() {
             isBillPayment={isBillPayment}
           />
         ) : (
-          <ViewMode expense={expense} isSplitwiseExpense={isSplitwiseExpense} />
+          <ViewMode
+            expense={expense}
+            isSplitwiseExpense={isSplitwiseExpense}
+            splitwiseRow={splitwiseRow}
+            onSettled={async () => {
+              const row = await getSplitwiseExpenseByExpenseId(id!);
+              setSplitwiseRow(row);
+              refetchExpense();
+            }}
+          />
         )}
       </ScrollView>
 
