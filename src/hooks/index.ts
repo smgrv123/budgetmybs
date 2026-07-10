@@ -18,6 +18,7 @@ export { useChatActionHandler } from './useChatActionHandler';
 export type { RegistryPendingAction } from './useChatActionHandler';
 export { useCreditCards } from './useCreditCards';
 export { DEBTS_QUERY_KEY, TOTAL_EMI_QUERY_KEY, TOTAL_REMAINING_QUERY_KEY, useDebts } from './useDebts';
+export { useDeleteSplitwiseExpense } from './useDeleteSplitwiseExpense';
 export { useExpenseById, useExpenses } from './useExpenses';
 export { FIXED_EXPENSES_QUERY_KEY, TOTAL_FIXED_EXPENSES_QUERY_KEY, useFixedExpenses } from './useFixedExpenses';
 export { useFormOptionSources } from './useFormOptionSources';

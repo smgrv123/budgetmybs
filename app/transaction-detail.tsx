@@ -13,7 +13,7 @@ import { BIcon, BSafeAreaView, BText, BToast, BView, ScreenHeader } from '@/src/
 import type { ToastVariantType } from '@/src/constants/theme';
 import { Spacing, SpacingValue, TextVariant, ToastVariant } from '@/src/constants/theme';
 import { TRANSACTION_DETAIL_STRINGS, TRANSACTION_VALIDATION_STRINGS } from '@/src/constants/transactions.strings';
-import { useCategories, useExpenseById, useExpenses } from '@/src/hooks';
+import { useCategories, useDeleteSplitwiseExpense, useExpenseById } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { checkNetworkConnection } from '@/src/utils/network';
 import { formatIndianNumber } from '@/src/utils/format';
@@ -45,7 +45,7 @@ export default function TransactionDetailRoute() {
   const router = useRouter();
   const themeColors = useThemeColors();
   const { allCategories } = useCategories();
-  const { removeExpense } = useExpenses();
+  const { canDeleteSplitwiseExpense, deleteExpenseWithSplitwiseAsync } = useDeleteSplitwiseExpense();
   const { expense, isExpenseLoading, refetchExpense } = useExpenseById(id);
 
   const [isEditing, setIsEditing] = useState(false);
@@ -149,16 +149,27 @@ export default function TransactionDetailRoute() {
       showToast(TRANSACTION_DETAIL_STRINGS.recurringDeleteDisabled);
       return;
     }
+    // Block deletes on Splitwise-synced expenses where the local user is not the payer.
+    if (splitwiseRow && !canDeleteSplitwiseExpense(splitwiseRow.paidByUserId)) {
+      showToast(TRANSACTION_DETAIL_STRINGS.splitwiseDeleteNonPayerToast);
+      return;
+    }
     Alert.alert(TRANSACTION_DETAIL_STRINGS.deleteAlertTitle, TRANSACTION_DETAIL_STRINGS.deleteAlertBody, [
       { text: TRANSACTION_DETAIL_STRINGS.deleteAlertCancel, style: 'cancel' },
       {
         text: TRANSACTION_DETAIL_STRINGS.deleteAlertConfirm,
         style: 'destructive',
-        onPress: () =>
-          removeExpense(id!, {
-            onSuccess: () => router.back(),
-            onError: () => showToast(TRANSACTION_DETAIL_STRINGS.deleteFailedToast, ToastVariant.ERROR),
-          }),
+        onPress: async () => {
+          try {
+            await deleteExpenseWithSplitwiseAsync({
+              expenseId: id!,
+              splitwiseId: splitwiseRow?.splitwiseId ?? null,
+            });
+            router.back();
+          } catch {
+            showToast(TRANSACTION_DETAIL_STRINGS.deleteFailedToast, ToastVariant.ERROR);
+          }
+        },
       },
     ]);
   };

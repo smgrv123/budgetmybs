@@ -341,6 +341,7 @@ export const ChatIntentEnum = {
   SYNC_SPLITWISE: 'sync_splitwise',
   SPLIT_EXPENSE: 'split_expense',
   SETTLE_SPLITWISE: 'settle_splitwise',
+  DELETE_SPLITWISE_EXPENSE: 'delete_splitwise_expense',
   CHECK_BALANCES: 'check_balances',
   GENERAL: 'general',
 } as const;

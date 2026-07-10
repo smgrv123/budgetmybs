@@ -58,7 +58,7 @@ export const useSplitExpense = () => {
       });
 
       if (payload) {
-        await enqueueFailedPush(variables.expenseId, SplitwisePushAction.CREATE, payload);
+        await enqueueFailedPush({ action: SplitwisePushAction.CREATE, expenseId: variables.expenseId, payload });
       }
     },
   });

@@ -14,6 +14,7 @@ import {
   useSavingsGoals,
   useProfile,
   useCreditCards,
+  useDeleteSplitwiseExpense,
   useSplitwise,
   useSplitwiseBalances,
   useSplitwiseSettlement,
@@ -21,6 +22,8 @@ import {
   useSplitExpense,
 } from '@/src/hooks';
 import { SPLITWISE_BALANCES_STRINGS } from '@/src/constants/splitwise-balances.strings';
+import { SPLITWISE_OUTBOUND_STRINGS } from '@/src/constants/splitwise-outbound.strings';
+import { getMostRecentSplitwiseLinkedExpense } from '@/db';
 import { formatCurrency } from '@/src/utils/format';
 import type { MutationMap } from '@/src/types';
 
@@ -37,6 +40,7 @@ export const useMutationMap = (): MutationMap => {
   const { splitExpenseAsync } = useSplitExpense();
   const { settleSplitwiseAsync } = useSplitwiseSettlement();
   const { totalOwedToYou, totalYouOwe, friendBalances } = useSplitwiseBalances();
+  const { canDeleteSplitwiseExpense, deleteExpenseWithSplitwiseAsync } = useDeleteSplitwiseExpense();
 
   /**
    * Chat-friendly settlement mutation. Resolves a friend by displayName, then
@@ -90,6 +94,32 @@ export const useMutationMap = (): MutationMap => {
     return lines.join('\n');
   };
 
+  /**
+   * Chat-friendly delete of a Splitwise-synced expense. Finds the most recent
+   * expense whose description contains the given fragment AND has a linked
+   * splitwise_expenses row, via the shared delete-with-Splitwise flow (same
+   * payer check and enqueue-only remote delete as the transaction detail screen).
+   */
+  const deleteSplitwiseExpenseAsync = async (args: { descriptionFragment: string }): Promise<string> => {
+    const fragment = args.descriptionFragment?.trim();
+    if (!fragment) {
+      throw new Error(SPLITWISE_OUTBOUND_STRINGS.chatDeleteFailure);
+    }
+
+    const match = await getMostRecentSplitwiseLinkedExpense(fragment);
+    if (!match) {
+      throw new Error(SPLITWISE_OUTBOUND_STRINGS.chatDeleteNotFound(fragment));
+    }
+
+    if (!canDeleteSplitwiseExpense(match.paidByUserId)) {
+      return SPLITWISE_OUTBOUND_STRINGS.chatDeleteNonPayer;
+    }
+
+    await deleteExpenseWithSplitwiseAsync({ expenseId: match.expenseId, splitwiseId: match.splitwiseId });
+
+    return SPLITWISE_OUTBOUND_STRINGS.chatDeleteSuccess;
+  };
+
   return {
     createExpense: createExpenseAsync,
     updateExpense: updateExpenseAsync,
@@ -116,5 +146,6 @@ export const useMutationMap = (): MutationMap => {
     checkBalances: checkBalancesAsync,
     splitExpense: splitExpenseAsync,
     settleSplitwise: settleSplitwiseChatAsync,
+    deleteSplitwiseExpense: deleteSplitwiseExpenseAsync,
   };
 };

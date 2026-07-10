@@ -78,4 +78,16 @@ export const SPLITWISE_OUTBOUND_STRINGS = {
   chatSplitSuccess: 'Expense split with Splitwise successfully.',
   chatSplitFailure: 'Failed to split expense with Splitwise.',
   chatSplitCancelled: 'Split cancelled.',
+
+  // Chat intent (delete_splitwise_expense)
+  chatDeleteTitle: 'Delete Splitwise Expense',
+  chatDeleteSubmit: 'Delete',
+  chatDeleteDescriptionLabel: 'Description fragment',
+  chatDeleteDescriptionPlaceholder: 'e.g. Dinner',
+  chatDeleteDescriptionRequired: 'Please enter a description to identify the expense.',
+  chatDeleteSuccess: 'Splitwise expense deleted.',
+  chatDeleteFailure: 'Failed to delete Splitwise expense.',
+  chatDeleteCancelled: 'Delete cancelled.',
+  chatDeleteNotFound: (fragment: string) => `Could not find a Splitwise-synced expense matching "${fragment}".`,
+  chatDeleteNonPayer: "You can't delete expenses you didn't pay for. Ask the payer to delete it on Splitwise.",
 } as const;

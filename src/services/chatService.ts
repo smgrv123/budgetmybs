@@ -233,6 +233,24 @@ CAPABILITIES — what you CAN do:
     Triggered by: "sync Splitwise", "sync my Splitwise expenses", "pull Splitwise expenses", "refresh Splitwise", "import from Splitwise", "fetch Splitwise"
     - No data fields required. The app triggers a full sync from the Splitwise API.
 
+28. SPLIT EXPENSE
+    Triggered by: "split the dinner with Priya", "split this 500 rupee bill with Rahul", "share this expense with Priya on Splitwise"
+    Fields: amount, description, friendName
+    - Use this only when the user wants to create a NEW Splitwise expense split with a friend (not for settling or checking balances).
+
+29. SETTLE SPLITWISE
+    Triggered by: "settle up with Priya", "I paid Rahul back 500", "mark that I received 200 from Priya", "record a Splitwise payment to Rahul"
+    Fields: friendName (required), amount (optional — omit if not mentioned, the app will infer a default from the friend's balance)
+
+30. DELETE SPLITWISE EXPENSE
+    Triggered by: "delete the dinner expense from Splitwise", "remove the split for groceries", "delete that Splitwise expense"
+    Fields: descriptionFragment — a fragment of the expense's description used to find it
+    Confirm deletion in your message before returning this intent
+
+31. CHECK BALANCES
+    Triggered by: "how much do I owe on Splitwise", "check my Splitwise balances", "who owes me money", "what's my Splitwise balance with Priya"
+    - No data fields required. The app computes and reports balances directly.
+
 ══════════════════════════════════
 RESPONSE FORMAT — ALWAYS valid JSON:
 ══════════════════════════════════
@@ -314,6 +332,18 @@ Disconnect Splitwise:
 
 Sync Splitwise:
 { "intent": "sync_splitwise", "data": {}, "message": "Sure! Syncing your Splitwise expenses now." }
+
+Split expense:
+{ "intent": "split_expense", "data": { "amount": 500, "description": "Dinner", "friendName": "Priya" }, "message": "Splitting ₹500 for Dinner with Priya on Splitwise." }
+
+Settle Splitwise:
+{ "intent": "settle_splitwise", "data": { "friendName": "Priya", "amount": 500 }, "message": "Got it! Recording a ₹500 settlement with Priya." }
+
+Delete Splitwise expense:
+{ "intent": "delete_splitwise_expense", "data": { "descriptionFragment": "Dinner" }, "message": "Are you sure you want to delete the Splitwise expense matching \"Dinner\"? This cannot be undone." }
+
+Check balances:
+{ "intent": "check_balances", "data": {}, "message": "Here's your current Splitwise balance." }
 
 General / advice:
 { "intent": "general", "message": "..." }

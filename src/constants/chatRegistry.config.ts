@@ -2516,6 +2516,52 @@ const settleSplitwiseEntry: IntentRegistryEntry = {
   getInitialValues: () => ({}),
 };
 
+const deleteSplitwiseExpenseEntry: IntentRegistryEntry = {
+  intent: ChatIntentEnum.DELETE_SPLITWISE_EXPENSE,
+  title: SPLITWISE_OUTBOUND_STRINGS.chatDeleteTitle,
+  formType: 'default',
+  buttonVariant: ButtonVariant.DANGER,
+  submitLabel: SPLITWISE_OUTBOUND_STRINGS.chatDeleteSubmit,
+  fields: [
+    {
+      key: 'descriptionFragment',
+      label: SPLITWISE_OUTBOUND_STRINGS.chatDeleteDescriptionLabel,
+      placeholder: SPLITWISE_OUTBOUND_STRINGS.chatDeleteDescriptionPlaceholder,
+      type: 'text',
+      required: true,
+    },
+  ],
+  mutations: [
+    {
+      key: 'deleteSplitwiseExpense',
+      transformData: (formValues) => ({
+        descriptionFragment: formValues['descriptionFragment'] ?? '',
+      }),
+      errorLog: '[chatRegistry] DELETE_SPLITWISE_EXPENSE mutation failed:',
+    },
+  ],
+  messages: {
+    success: SPLITWISE_OUTBOUND_STRINGS.chatDeleteSuccess,
+    failure: SPLITWISE_OUTBOUND_STRINGS.chatDeleteFailure,
+    cancelled: SPLITWISE_OUTBOUND_STRINGS.chatDeleteCancelled,
+  },
+  invalidations: [EXPENSES_QUERY_KEY],
+  validate: (formValues) => {
+    if (!formValues['descriptionFragment']?.trim()) {
+      return { descriptionFragment: SPLITWISE_OUTBOUND_STRINGS.chatDeleteDescriptionRequired };
+    }
+    return null;
+  },
+  getInitialValues: (actionData) => ({
+    descriptionFragment:
+      typeof actionData['descriptionFragment'] === 'string'
+        ? actionData['descriptionFragment']
+        : typeof actionData['description'] === 'string'
+          ? actionData['description']
+          : '',
+  }),
+};
+
 // ============================================
 // REGISTRY MAP
 // ============================================
@@ -2549,6 +2595,7 @@ export const INTENT_REGISTRY: Readonly<Record<string, IntentRegistryEntry>> = {
   [ChatIntentEnum.SYNC_SPLITWISE]: syncSplitwiseEntry,
   [ChatIntentEnum.SPLIT_EXPENSE]: splitExpenseEntry,
   [ChatIntentEnum.SETTLE_SPLITWISE]: settleSplitwiseEntry,
+  [ChatIntentEnum.DELETE_SPLITWISE_EXPENSE]: deleteSplitwiseExpenseEntry,
   [ChatIntentEnum.CHECK_BALANCES]: checkBalancesEntry,
 };
 

@@ -206,7 +206,7 @@ const AddTransactionModal: FC<AddTransactionModalProps> = ({ visible, onClose, o
 
     const isOnline = await checkNetworkConnection();
     if (!isOnline) {
-      await enqueueFailedPush(expenseId, SplitwisePushAction.CREATE, payload);
+      await enqueueFailedPush({ action: SplitwisePushAction.CREATE, expenseId, payload });
       setToastMessage(SPLITWISE_OUTBOUND_STRINGS.toastOffline);
       setToastVisible(true);
       return;

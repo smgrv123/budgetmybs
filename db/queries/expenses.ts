@@ -424,6 +424,9 @@ export const deleteExpense = async (id: string): Promise<{ newUsedAmount: number
       }
     }
 
+    // Delete linked splitwise_expenses row first (FK cleanup)
+    await tx.delete(splitwiseExpensesTable).where(eq(splitwiseExpensesTable.expenseId, id));
+
     await tx.delete(expensesTable).where(eq(expensesTable.id, id));
 
     return { newUsedAmount };
@@ -624,4 +627,32 @@ export const getLastProcessedRecurringMonth = async (): Promise<string | null> =
     .limit(1);
 
   return result[0]?.sourceMonth ?? null;
+};
+
+// ============================================
+// GET MOST RECENT SPLITWISE-LINKED EXPENSE BY DESCRIPTION
+// ============================================
+
+/**
+ * Find the most recent expense whose description contains the given fragment
+ * AND has a linked splitwise_expenses row. Used by the chat delete-expense
+ * intent to resolve a natural-language description into a concrete expense.
+ * Returns null if no match exists.
+ */
+export const getMostRecentSplitwiseLinkedExpense = async (
+  descriptionFragment: string
+): Promise<{ expenseId: string; splitwiseId: string | null; paidByUserId: string } | null> => {
+  const rows = await db
+    .select({
+      expenseId: expensesTable.id,
+      splitwiseId: splitwiseExpensesTable.splitwiseId,
+      paidByUserId: splitwiseExpensesTable.paidByUserId,
+    })
+    .from(expensesTable)
+    .innerJoin(splitwiseExpensesTable, eq(splitwiseExpensesTable.expenseId, expensesTable.id))
+    .where(and(isNotNull(expensesTable.description), like(expensesTable.description, `%${descriptionFragment}%`)))
+    .orderBy(desc(expensesTable.date))
+    .limit(1);
+
+  return rows[0] ?? null;
 };

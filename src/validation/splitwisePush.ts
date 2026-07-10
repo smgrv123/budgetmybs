@@ -74,30 +74,81 @@ export const SplitwiseCreateExpenseResponseSchema = z
         })
         .loose()
     ),
+    errors: z.record(z.string(), z.unknown()).default({}),
   })
   .loose();
 
 export type SplitwiseCreateExpenseResponse = z.infer<typeof SplitwiseCreateExpenseResponseSchema>;
 
 // ============================================
+// DELETE EXPENSE RESPONSE
+// ============================================
+
+/**
+ * POST /delete_expense/:id returns { success: boolean, errors: {} }
+ * 200 OK does NOT mean success — must check that `success` is true.
+ */
+export const SplitwiseDeleteExpenseResponseSchema = z
+  .object({
+    success: z.boolean({ error: 'success must be a boolean.' }),
+  })
+  .loose();
+
+export type SplitwiseDeleteExpenseResponse = z.infer<typeof SplitwiseDeleteExpenseResponseSchema>;
+
+// ============================================
 // PUSH QUEUE ITEM
 // ============================================
 
-export const SplitwisePushActionSchema = z.enum([
-  SplitwisePushAction.CREATE,
-  SplitwisePushAction.UPDATE,
-  SplitwisePushAction.DELETE,
-] as [string, ...string[]]);
-
-export const SplitwisePushQueueItemSchema = z
+const SplitwisePushCreateRequestSchema = z
   .object({
+    action: z.literal(SplitwisePushAction.CREATE),
     expenseId: z.string({ error: 'expenseId must be a string.' }),
-    action: SplitwisePushActionSchema,
     payload: z.record(z.string(), z.unknown()),
-    queuedAt: z.string({ error: 'queuedAt must be a string.' }),
-    attempts: z.number({ error: 'attempts must be a number.' }),
   })
   .loose();
+
+const SplitwisePushUpdateRequestSchema = z
+  .object({
+    action: z.literal(SplitwisePushAction.UPDATE),
+    expenseId: z.string({ error: 'expenseId must be a string.' }),
+    payload: z.record(z.string(), z.unknown()),
+    splitwiseId: z.string({ error: 'splitwiseId must be a string.' }),
+  })
+  .loose();
+
+const SplitwisePushDeleteRequestSchema = z
+  .object({
+    action: z.literal(SplitwisePushAction.DELETE),
+    splitwiseId: z.string({ error: 'splitwiseId must be a string.' }),
+  })
+  .loose();
+
+/**
+ * Discriminated union of the arguments accepted by enqueueFailedPush().
+ * The `action` field narrows which other fields are required:
+ *  - create: expenseId + payload
+ *  - update: expenseId + payload + splitwiseId
+ *  - delete: splitwiseId only
+ */
+export const SplitwisePushRequestSchema = z.discriminatedUnion('action', [
+  SplitwisePushCreateRequestSchema,
+  SplitwisePushUpdateRequestSchema,
+  SplitwisePushDeleteRequestSchema,
+]);
+
+export type SplitwisePushRequest = z.infer<typeof SplitwisePushRequestSchema>;
+
+const queueMetaFields = {
+  queuedAt: z.string({ error: 'queuedAt must be a string.' }),
+  attempts: z.number({ error: 'attempts must be a number.' }),
+};
+
+export const SplitwisePushQueueItemSchema = z.discriminatedUnion('action', [
+  SplitwisePushCreateRequestSchema.extend(queueMetaFields),
+  SplitwisePushUpdateRequestSchema.extend(queueMetaFields),
+  SplitwisePushDeleteRequestSchema.extend(queueMetaFields),
+]);
 
 export const SplitwisePushQueueSchema = z.array(SplitwisePushQueueItemSchema);
 

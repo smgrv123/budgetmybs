@@ -10,6 +10,7 @@
 
 import { useMutation } from '@tanstack/react-query';
 
+import { SplitwisePushAction } from '@/src/constants/splitwise.config';
 import { enqueueFailedPush, pushExpenseToSplitwise } from '@/src/services/splitwise';
 
 type PushExpenseArgs = {
@@ -22,7 +23,11 @@ export const usePushExpense = () => {
     mutationFn: ({ payload }: PushExpenseArgs) => pushExpenseToSplitwise(payload),
     onError: async (error, variables) => {
       console.error('[usePushExpense] push failed:', error);
-      await enqueueFailedPush(variables.expenseId, 'create', variables.payload);
+      await enqueueFailedPush({
+        action: SplitwisePushAction.CREATE,
+        expenseId: variables.expenseId,
+        payload: variables.payload,
+      });
     },
   });
 

@@ -91,6 +91,7 @@ export const TRANSACTION_DETAIL_STRINGS = {
   splitwiseBadge: 'Synced from Splitwise',
   splitwiseLocalSavedRemoteFailed: 'Saved locally. Splitwise sync failed — will retry on next sync.',
   splitwiseFriendFallback: 'this friend',
+  splitwiseDeleteNonPayerToast: "You can't delete expenses you didn't pay for",
 } as const;
 
 export const ADD_TRANSACTION_STRINGS = {

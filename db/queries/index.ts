@@ -52,6 +52,7 @@ export {
   getExpensesWithCategory,
   getImpulsePurchaseStats,
   getLastProcessedRecurringMonth,
+  getMostRecentSplitwiseLinkedExpense,
   getOneOffSavings,
   getProcessedRecurringByMonth,
   getProcessedRecurringKeys,

@@ -45,6 +45,7 @@ budgetmybs/
 │   │   ├── useFormOptionSources.ts  # Aggregated picker option sources for generic form
 │   │   ├── useExpiredImpulseCheck.ts # App-open hook: navigates to impulse-confirm if expired purchases exist
 │   ├── useImpulsePermission.ts  # Notification permission gating for Impulse Buy Cooldown feature
+│   │   ├── useDeleteSplitwiseExpense.ts # Shared delete-with-Splitwise flow (payer check + local delete + enqueue remote delete)
 │   │   ├── useMutationMap.ts        # String-keyed map of all async mutation functions
 │   │   ├── useSplitwise.ts          # Splitwise connection state, connect/disconnect mutations, TanStack Query
 │   │   ├── useSplitwiseBalances.ts  # Splitwise balance totals and per-friend breakdown from local DB

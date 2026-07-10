@@ -103,7 +103,7 @@ export const useSplitwiseSettlement = () => {
           payerUserId,
           recipientUserId,
         });
-        await enqueueFailedPush(queuedExpenseId, SplitwisePushAction.CREATE, payload);
+        await enqueueFailedPush({ action: SplitwisePushAction.CREATE, expenseId: queuedExpenseId, payload });
         throw apiError;
       }
 

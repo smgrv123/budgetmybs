@@ -1,5 +1,11 @@
 export { mapSplitwiseCategoryToLocal } from './categoryMap';
-export { drainPushQueue, enqueueFailedPush, pushExpenseToSplitwise, pushSettlementExpense } from './push';
+export {
+  deleteExpenseOnSplitwise,
+  drainPushQueue,
+  enqueueFailedPush,
+  pushExpenseToSplitwise,
+  pushSettlementExpense,
+} from './push';
 export { splitwiseAuth } from './SplitwiseAuthService';
 export {
   fetchFriendBalances,

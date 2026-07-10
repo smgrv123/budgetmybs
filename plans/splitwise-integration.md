@@ -61,7 +61,7 @@ Durable decisions that apply across all phases:
 
 - **Chat parity**: Every Splitwise UI action is also a chat intent registered in `chatRegistry.config.ts` and handled in `useMutationMap.ts`.
 - **New packages**: `expo-auth-session`, `expo-web-browser` (add to `app.json` plugins).
-- **OpenAPI spec**: `assets/json/openapi.json` kept as dev reference, removed after integration is complete.
+- **OpenAPI spec**: no local copy kept in the repo; the live docs at https://dev.splitwise.com are the reference of record.
 
 ---
 
@@ -258,15 +258,15 @@ Modified: `app/transaction-detail.tsx` (or `src/components/transaction/transacti
 
 ### Acceptance criteria
 
-- [ ] "Settle up" button visible on transaction detail when user owes friend
-- [ ] "Mark as received" button visible when friend owes user
-- [ ] Both buttons shown per-friend on the balances screen
-- [ ] IRL warning dialog shown before confirming either action
-- [ ] Settlement pushed to Splitwise API as `payment: true`
-- [ ] Local settlement income entry created with `excludeFromSpending: 1`
-- [ ] Settlement card supports view detail and edit amount
-- [ ] Chat intent `settle_splitwise` resolves "Settle up with [friend]"
-- [ ] `pnpm run lint` and `pnpm run typecheck` pass with no errors
+- [x] "Settle up" button visible on transaction detail when user owes friend
+- [x] "Mark as received" button visible when friend owes user
+- [x] Both buttons shown per-friend on the balances screen
+- [x] IRL warning dialog shown before confirming either action
+- [x] Settlement pushed to Splitwise API as `payment: true`
+- [x] Local settlement income entry created with `excludeFromSpending: 1`
+- [x] Settlement card supports view detail and edit amount
+- [x] Chat intent `settle_splitwise` resolves "Settle up with [friend]"
+- [x] `pnpm run lint` and `pnpm run typecheck` pass with no errors
 
 ---
 
@@ -424,15 +424,15 @@ Modified: `src/components/splitwise/SplitConfig.tsx` (multi-member selection via
 
 ### Acceptance criteria
 
-- [ ] `SplitConfig` uses `BMultiSelect` for group member selection
-- [ ] Multiple members can be selected within a group
-- [ ] Default: all group members selected when none explicitly chosen
-- [ ] Members not included in the split silently excluded (`owed_share` set to `0`)
-- [ ] Split types: equal, exact, percentage, shares — all functional for N people
-- [ ] Form dynamically renders N input rows per selected member
-- [ ] Group filtering: `id === 0` removed, single-member / zero-member groups removed
-- [ ] Push payload correctly built for N-person splits
-- [ ] `pnpm run lint` and `pnpm run typecheck` pass with no errors
+- [x] `SplitConfig` uses `BMultiSelect` for group member selection
+- [x] Multiple members can be selected within a group
+- [x] Default: all group members selected when none explicitly chosen
+- [x] Members not included in the split silently excluded (`owed_share` set to `0`)
+- [x] Split types: equal, exact, percentage, shares — all functional for N people
+- [x] Form dynamically renders N input rows per selected member
+- [x] Group filtering: `id === 0` removed, single-member / zero-member groups removed
+- [x] Push payload correctly built for N-person splits
+- [x] `pnpm run lint` and `pnpm run typecheck` pass with no errors
 
 ---
 
@@ -448,13 +448,13 @@ Modified: `src/components/transaction/addTransactionModal/AddTransactionModal.ts
 
 ### Acceptance criteria
 
-- [ ] Two CTAs visible: "Add Expense" (local-only save) and "Split this →" (enters split config)
-- [ ] "Split this →" hidden when Splitwise is disconnected
-- [ ] Tapping "Split this →" slides to Step 2 via navigation-push animation
-- [ ] Step 2 shows `SplitConfig` with "Add & Split" CTA and back button
-- [ ] Back button returns to Step 1 with auto-reset of all split state
-- [ ] "Add & Split" saves locally + pushes to Splitwise
-- [ ] `pnpm run lint` and `pnpm run typecheck` pass with no errors
+- [x] Two CTAs visible: "Add Expense" (local-only save) and "Split this →" (enters split config)
+- [x] "Split this →" hidden when Splitwise is disconnected
+- [x] Tapping "Split this →" slides to Step 2 via navigation-push animation
+- [x] Step 2 shows `SplitConfig` with "Add & Split" CTA and back button
+- [x] Back button returns to Step 1 with auto-reset of all split state
+- [x] "Add & Split" saves locally + pushes to Splitwise
+- [x] `pnpm run lint` and `pnpm run typecheck` pass with no errors
 
 ---
 
@@ -489,7 +489,7 @@ Modified: `src/components/transaction/transactionDetail/EditMode.tsx` (retroacti
 
 Upgrade the outbound push queue to support multiple operation types and wire it into the sync pipeline. Currently `SplitwisePushQueueItem` has no action discriminator — all items are implicitly create operations — and `drainPushQueue()` is exported but never called anywhere, meaning failed pushes are enqueued but never retried.
 
-Add an `action: 'create' | 'update' | 'delete'` field to the queue item schema. Update `drainPushQueue()` to route each item to the correct Splitwise API endpoint based on its action (`POST /create_expense`, `POST /update_expense/:id`, or `DELETE /delete_expense/:id`). Backfill all existing `enqueueFailedPush` call sites with `action: 'create'`. Add a new `deleteExpenseOnSplitwise()` service function for the delete API call.
+Add an `action: 'create' | 'update' | 'delete'` field to the queue item schema. Update `drainPushQueue()` to route each item to the correct Splitwise API endpoint based on its action (`POST /create_expense`, `POST /update_expense/:id`, or `POST /delete_expense/:id`). Backfill all existing `enqueueFailedPush` call sites with `action: 'create'`. Add a new `deleteExpenseOnSplitwise()` service function for the delete API call.
 
 Wire `drainPushQueue()` into the top of `syncSplitwiseExpenses()` so that every sync trigger (auto-sync on mount, pull-to-refresh, chat intent) flushes the queue before fetching new data. This ensures pending creates, updates, and deletes propagate before fresh data is pulled in, preventing conflicts and resurrection of deleted expenses.
 
@@ -497,14 +497,14 @@ Modified: `src/validation/splitwisePush.ts` (queue item schema + action field), 
 
 ### Acceptance criteria
 
-- [ ] `SplitwisePushQueueItem` schema has `action: 'create' | 'update' | 'delete'` field
-- [ ] `drainPushQueue()` routes to correct API endpoint based on `action`
-- [ ] All existing `enqueueFailedPush` call sites pass `action: 'create'`
-- [ ] `deleteExpenseOnSplitwise(splitwiseId)` service function calls `DELETE /delete_expense/:id`
-- [ ] `drainPushQueue()` called at the top of `syncSplitwiseExpenses()` before any fetch
-- [ ] Queue drain runs on auto-sync, pull-to-refresh, and chat sync triggers
-- [ ] Failed queue items stay in queue with incremented `attempts` (existing behavior preserved)
-- [ ] `pnpm run lint` and `pnpm run typecheck` pass with no errors
+- [x] `SplitwisePushQueueItem` schema has `action: 'create' | 'update' | 'delete'` field
+- [x] `drainPushQueue()` routes to correct API endpoint based on `action`
+- [x] All existing `enqueueFailedPush` call sites pass `action: 'create'`
+- [x] `deleteExpenseOnSplitwise(splitwiseId)` service function calls `POST /delete_expense/:id`
+- [x] `drainPushQueue()` called at the top of `syncSplitwiseExpenses()` before any fetch
+- [x] Queue drain runs on auto-sync, pull-to-refresh, and chat sync triggers
+- [x] Failed queue items stay in queue with incremented `attempts` (existing behavior preserved)
+- [x] `pnpm run lint` and `pnpm run typecheck` pass with no errors
 
 ---
 
@@ -516,7 +516,7 @@ Modified: `src/validation/splitwisePush.ts` (queue item schema + action field), 
 
 End-to-end delete flow for Splitwise-synced expenses. Permission is based on who paid: only the payer (`splitwiseRow.paidByUserId === currentSplitwiseUserId`) can delete. The delete button is always visible on synced expenses regardless of permission — the check happens on tap. Non-payers see a toast ("You can't delete expenses you didn't pay for"). Payers see the standard confirmation dialog.
 
-On confirmation: the local `expenses` row and linked `splitwise_expenses` row are deleted in a single DB transaction (cascade delete), and a remote `DELETE /delete_expense/:id` is enqueued in the push queue with `action: 'delete'`. If the queue hasn't flushed before the next sync and the expense is pulled back from Splitwise, it gets temporarily recreated — the next queue flush sends the delete, and the subsequent sync skips the now-deleted expense. This resurrection is transient and self-resolving.
+On confirmation: the local `expenses` row and linked `splitwise_expenses` row are deleted in a single DB transaction (cascade delete), and a remote `POST /delete_expense/:id` is enqueued in the push queue with `action: 'delete'`. If the queue hasn't flushed before the next sync and the expense is pulled back from Splitwise, it gets temporarily recreated — the next queue flush sends the delete, and the subsequent sync skips the now-deleted expense. This resurrection is transient and self-resolving.
 
 Chat intent `delete_splitwise_expense` handles "Delete my Splitwise grocery expense" style requests with the same permission check.
 
@@ -524,12 +524,12 @@ Modified: `db/queries/expenses.ts` (cascade delete of `splitwise_expenses` row i
 
 ### Acceptance criteria
 
-- [ ] `deleteExpense()` cascades to delete linked `splitwise_expenses` row in the same transaction
-- [ ] Delete button visible on all synced expenses regardless of who paid
-- [ ] Tapping delete as non-payer shows toast "You can't delete expenses you didn't pay for"
-- [ ] Tapping delete as payer shows confirmation dialog
-- [ ] On confirm: local `expenses` + `splitwise_expenses` rows deleted, remote delete enqueued with `action: 'delete'`
-- [ ] Queued delete is flushed on next sync (via Phase 15 drain wiring)
-- [ ] If expense is recreated by sync before flush, next flush + sync cycle cleans it up
-- [ ] Chat intent `delete_splitwise_expense` resolves "Delete my Splitwise [expense]" with permission check
-- [ ] `pnpm run lint` and `pnpm run typecheck` pass with no errors
+- [x] `deleteExpense()` cascades to delete linked `splitwise_expenses` row in the same transaction
+- [x] Delete button visible on all synced expenses regardless of who paid
+- [x] Tapping delete as non-payer shows toast "You can't delete expenses you didn't pay for"
+- [x] Tapping delete as payer shows confirmation dialog
+- [x] On confirm: local `expenses` + `splitwise_expenses` rows deleted, remote delete enqueued with `action: 'delete'`
+- [x] Queued delete is flushed on next sync (via Phase 15 drain wiring)
+- [x] If expense is recreated by sync before flush, next flush + sync cycle cleans it up
+- [x] Chat intent `delete_splitwise_expense` resolves "Delete my Splitwise [expense]" with permission check
+- [x] `pnpm run lint` and `pnpm run typecheck` pass with no errors
