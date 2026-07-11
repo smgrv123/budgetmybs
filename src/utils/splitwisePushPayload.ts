@@ -8,7 +8,7 @@
  * Members not in the split are silently excluded (owed_share = "0.00").
  */
 
-import { SplitType } from '@/src/constants/splitwise-outbound.strings';
+import { SPLITWISE_OUTBOUND_STRINGS, SplitType } from '@/src/constants/splitwise-outbound.strings';
 import type {
   BuildSettlementPayloadParams,
   SplitFormState,
@@ -74,7 +74,8 @@ export const buildSplitPayload = ({
   const cost = totalAmount.toFixed(2);
   const base: SplitwiseCreateExpensePayload = {
     cost,
-    description,
+    // Splitwise's create_expense rejects a blank description ("Description can't be blank")
+    description: description.trim() || SPLITWISE_OUTBOUND_STRINGS.defaultExpenseDescription,
     currency_code: currencyCode,
     ...(groupId !== undefined ? { group_id: groupId } : {}),
   };
@@ -219,7 +220,7 @@ export const buildSettlementPayload = ({
   return {
     payment: true,
     cost,
-    description,
+    description: description.trim() || SPLITWISE_OUTBOUND_STRINGS.defaultExpenseDescription,
     currency_code: currencyCode,
     users__0__user_id: payerUserId,
     users__0__paid_share: cost,

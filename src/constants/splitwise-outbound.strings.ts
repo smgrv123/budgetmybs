@@ -62,6 +62,9 @@ export const SPLITWISE_OUTBOUND_STRINGS = {
   toastOffline: 'Saved locally — will sync with Splitwise when back online',
   toastApiFailed: 'Saved locally — Splitwise sync failed, will retry automatically',
 
+  // Payload fallback — Splitwise's create_expense rejects a blank description
+  defaultExpenseDescription: 'Expense',
+
   // Loading states
   loadingFriends: 'Loading friends…',
   noFriendsFound: 'No friends found on Splitwise',
