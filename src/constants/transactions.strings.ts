@@ -91,6 +91,7 @@ export const TRANSACTION_DETAIL_STRINGS = {
   splitwiseFieldDisabledDisconnected: 'Reconnect Splitwise to edit synced fields.',
   splitwiseBadge: 'Synced from Splitwise',
   splitwiseLocalSavedRemoteFailed: 'Saved locally. Splitwise sync failed — will retry on next sync.',
+  splitwiseEditPushOffline: "Saved locally — you're offline. Will sync with Splitwise when back online.",
   splitwiseFriendFallback: 'this friend',
   splitwiseDeleteNonPayerToast: "You can't delete expenses you didn't pay for",
 } as const;

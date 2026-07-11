@@ -403,6 +403,36 @@ export const getLastSyncedAt = async (): Promise<string | null> => {
 };
 
 // ============================================
+// RECONNECT SYNC
+// ============================================
+
+// Guards against duplicate concurrent reconnect syncs. Multiple mounted
+// useSplitwise() instances (dashboard, chat, settings, etc.) each poll device
+// connectivity independently and may detect the same reconnect event — only the
+// first call should hit the network; the rest become safe no-ops.
+let isReconnectSyncInFlight = false;
+
+/**
+ * Full (non-incremental) sync triggered when the device regains connectivity
+ * after a disconnection period. Resets `SPLITWISE_LAST_SYNCED_AT` first so the
+ * sync always runs in full mode regardless of when it last succeeded, then
+ * re-fetches all INR expenses — catching anything missed while offline.
+ *
+ * @returns null when a reconnect sync is already in flight elsewhere (no-op).
+ */
+export const syncAfterReconnect = async (): Promise<SplitwiseSyncResult | null> => {
+  if (isReconnectSyncInFlight) return null;
+
+  isReconnectSyncInFlight = true;
+  try {
+    await AsyncStorage.removeItem(AsyncStorageKeys.SPLITWISE_LAST_SYNCED_AT);
+    return await syncSplitwiseExpenses({ fullSync: true });
+  } finally {
+    isReconnectSyncInFlight = false;
+  }
+};
+
+// ============================================
 // SINGLE EXPENSE FETCH
 // ============================================
 

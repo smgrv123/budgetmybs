@@ -12,6 +12,7 @@ export {
   fetchFriendBalances,
   fetchSplitwiseExpense,
   getLastSyncedAt,
+  syncAfterReconnect,
   syncSplitwiseExpenses,
   updateSplitwiseExpenseRemote,
 } from './sync';

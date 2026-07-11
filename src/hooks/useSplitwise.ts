@@ -8,24 +8,31 @@
  *  - disconnect(): Clears tokens, flushes the outbound push queue, and resets state
  *  - isConnected, currentUser, status from TanStack Query
  *  - reconnectRequired: derived from AsyncStorage flag set by splitwiseAuth on refresh failure
+ *  - Reconnect detection: while connected, polls device connectivity; when the device
+ *    comes back online after a confirmed offline period, triggers a full sync via
+ *    useSplitwiseSync().triggerReconnectSync() so updates missed while offline are caught.
  */
 
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
+import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
   SPLITWISE_AUTH_URL,
   SPLITWISE_TOKEN_URL,
   SPLITWISE_ENDPOINTS,
+  SPLITWISE_NETWORK_POLL_INTERVAL_MS,
   SPLITWISE_REDIRECT_URI,
 } from '@/src/constants/splitwise.config';
 import { SPLITWISE_STRINGS } from '@/src/constants/splitwise.strings';
 import { flushPushQueue, splitwiseAuth } from '@/src/services/splitwise';
 import { createHttpClient } from '@/src/services/api';
+import { pollNetworkConnection } from '@/src/utils/network';
 import type { SplitwiseCurrentUserApiResponse } from '@/src/validation/splitwise';
 import type { SplitwiseConnectionStatusType, SplitwiseTokens, SplitwiseUser } from '@/src/types/splitwise';
 import { SplitwiseConnectionStatus } from '@/src/constants/splitwise-outbound.strings';
+import { useSplitwiseSync } from './useSplitwiseSync';
 
 // Enables expo-web-browser warm-up for smoother OAuth experience
 WebBrowser.maybeCompleteAuthSession();
@@ -66,6 +73,28 @@ export const useSplitwise = () => {
 
   const tokens: SplitwiseTokens | null = tokensQuery.data ?? null;
   const isConnected = Boolean(tokens?.accessToken);
+
+  // ── Reconnect detection ─────────────────────────────────────────────────────
+  // While a Splitwise account is linked, poll device connectivity. When the poll
+  // observes a transition from offline back to online, treat it as "reconnected
+  // after a disconnection period" and trigger a full (non-incremental) sync so
+  // any updates missed while offline are caught. A brief connectivity blip
+  // shorter than one poll interval is never observed as offline, so it won't
+  // trigger a redundant full sync.
+  const { triggerReconnectSync } = useSplitwiseSync();
+
+  useEffect(() => {
+    if (!isConnected) return;
+
+    const stopPolling = pollNetworkConnection(() => {}, {
+      onReconnect: triggerReconnectSync,
+      intervalMs: SPLITWISE_NETWORK_POLL_INTERVAL_MS,
+    });
+
+    return stopPolling;
+    // triggerReconnectSync is stable (no useCallback needed — React Compiler memoizes)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isConnected]);
 
   // ── Reconnect required query ──────────────────────────────────────────────
   // splitwiseAuth writes this flag to AsyncStorage when a silent refresh fails.

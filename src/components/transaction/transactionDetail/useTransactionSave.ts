@@ -9,12 +9,13 @@
 
 import { updateSplitwiseExpense } from '@/db';
 import type { SplitwiseExpense, UpdateExpenseInput } from '@/db/schema-types';
+import { SplitwisePushAction } from '@/src/constants/splitwise.config';
 import type { ToastVariantType } from '@/src/constants/theme';
 import { ToastVariant } from '@/src/constants/theme';
 import { TRANSACTION_DETAIL_STRINGS } from '@/src/constants/transactions.strings';
-import { useExpenses } from '@/src/hooks';
-import { fetchSplitwiseExpense, updateSplitwiseExpenseRemote } from '@/src/services/splitwise';
+import { useExpenses, useSplitwiseExpensePush } from '@/src/hooks';
 import { formatIndianNumber, parseFormattedNumber } from '@/src/utils/format';
+import { NetworkError } from '@/src/utils/network';
 import dayjs from 'dayjs';
 import { useState } from 'react';
 
@@ -64,6 +65,7 @@ type SaveParams = {
 
 export const useTransactionSave = ({ id, showToast, onSaveSuccess, refetchExpense }: UseTransactionSaveParams) => {
   const { updateExpense, updateExpenseAsync, isUpdatingExpense } = useExpenses();
+  const { fetchSplitwiseExpense, updateSplitwiseExpenseRemote, enqueueFailedPush } = useSplitwiseExpensePush();
   const [isSavingSplitwise, setIsSavingSplitwise] = useState(false);
 
   const isAnySaving = isUpdatingExpense || isSavingSplitwise;
@@ -174,10 +176,13 @@ export const useTransactionSave = ({ id, showToast, onSaveSuccess, refetchExpens
         refetchExpense();
 
         // 4. Push edits to Splitwise (best-effort)
+        // `payload` is declared outside the try so the catch block can still enqueue
+        // it for retry; it's only ever assigned inside the try, before the awaited push.
+        let payload: Record<string, unknown> = {};
         try {
           const oldCost = parseFloat(remoteExpense.cost);
           const newCost = parsedAmount;
-          const payload: Record<string, unknown> = {
+          payload = {
             cost: newCost.toFixed(2),
             description: editDescription || '',
             date: dayjs(editDate).toISOString(),
@@ -221,8 +226,20 @@ export const useTransactionSave = ({ id, showToast, onSaveSuccess, refetchExpens
           }
 
           showToast(TRANSACTION_DETAIL_STRINGS.splitwiseEditPushSuccess, ToastVariant.SUCCESS);
-        } catch {
-          showToast(TRANSACTION_DETAIL_STRINGS.splitwiseLocalSavedRemoteFailed, ToastVariant.WARNING);
+        } catch (error) {
+          // Local edit already saved (step 3) — queue the remote update for retry
+          // on the next drainPushQueue() run (app open / pull-to-refresh / reconnect sync).
+          await enqueueFailedPush({
+            action: SplitwisePushAction.UPDATE,
+            expenseId: id,
+            payload,
+            splitwiseId: splitwiseRow.splitwiseId,
+          });
+          const message =
+            error instanceof NetworkError
+              ? TRANSACTION_DETAIL_STRINGS.splitwiseEditPushOffline
+              : TRANSACTION_DETAIL_STRINGS.splitwiseLocalSavedRemoteFailed;
+          showToast(message, ToastVariant.WARNING);
         }
       } catch {
         showToast(TRANSACTION_DETAIL_STRINGS.saveChangesFailedToast, ToastVariant.ERROR);

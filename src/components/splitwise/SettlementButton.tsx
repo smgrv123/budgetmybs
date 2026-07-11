@@ -24,6 +24,7 @@ import { useSplitwiseSettlement } from '@/src/hooks/useSplitwiseSettlement';
 import type { SettlementMode } from '@/src/hooks/useSplitwiseSettlement';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { formatCurrency } from '@/src/utils/format';
+import { NetworkError } from '@/src/utils/network';
 
 export type SettlementButtonProps = {
   mode: SettlementMode;
@@ -97,9 +98,13 @@ const SettlementButton: FC<SettlementButtonProps> = ({
       });
       showToast(SPLITWISE_BALANCES_STRINGS.settleSuccessToast, ToastVariant.SUCCESS);
       onSettled?.();
-    } catch {
+    } catch (error) {
       // Error is logged in the hook; queue is already populated for retry.
-      showToast(SPLITWISE_BALANCES_STRINGS.settleFailureToast, ToastVariant.WARNING);
+      const message =
+        error instanceof NetworkError
+          ? SPLITWISE_BALANCES_STRINGS.settleOfflineToast
+          : SPLITWISE_BALANCES_STRINGS.settleFailureToast;
+      showToast(message, ToastVariant.WARNING);
     }
   };
 

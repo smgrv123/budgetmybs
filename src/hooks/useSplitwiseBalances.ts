@@ -23,6 +23,7 @@ import { fetchFriendBalances } from '@/src/services/splitwise';
 import type { SplitwiseFriendBalance } from '@/db/queries/splitwiseExpenses';
 import type { SplitwiseFriendBalanceEntry } from '@/src/types/splitwise';
 import { isCacheStale, readFriendBalancesCache, writeFriendBalancesCache } from '@/src/utils/splitwiseBalancesCache';
+import { SPLITWISE_FRIEND_BALANCES_QUERY_KEY } from './queryKeys';
 import { useSplitwise } from './useSplitwise';
 
 // ============================================
@@ -31,7 +32,6 @@ import { useSplitwise } from './useSplitwise';
 
 export const SPLITWISE_BALANCE_SUMMARY_QUERY_KEY = ['splitwise', 'balances', 'summary'] as const;
 export const SPLITWISE_BALANCE_BY_FRIEND_QUERY_KEY = ['splitwise', 'balances', 'byFriend'] as const;
-export const SPLITWISE_FRIEND_BALANCES_QUERY_KEY = ['splitwise', 'friendBalances'] as const;
 
 // ============================================
 // QUERY FUNCTION

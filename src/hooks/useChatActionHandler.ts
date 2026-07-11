@@ -33,6 +33,7 @@ import { formatDate as formatDbDate } from '@/db/utils';
 import { scheduleImpulseNotification } from '@/src/services/notificationService';
 import { generateUUID } from '@/src/utils/id';
 import { saveImpulsePurchase, updateNotificationId } from '@/src/utils/impulseAsyncStore';
+import { NetworkError } from '@/src/utils/network';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useState } from 'react';
@@ -332,6 +333,7 @@ export const useChatActionHandler = (pendingAction: RegistryPendingAction | null
 
     // Run mutations sequentially; bail on first failure
     let allSucceeded = true;
+    let failedDueToOffline = false;
     for (const step of entry.mutations) {
       const mutationFn = mutationMap[step.key];
       if (!mutationFn) {
@@ -354,6 +356,7 @@ export const useChatActionHandler = (pendingAction: RegistryPendingAction | null
       } catch (err) {
         console.error(step.errorLog, err);
         allSucceeded = false;
+        failedDueToOffline = err instanceof NetworkError;
         break;
       }
     }
@@ -361,7 +364,9 @@ export const useChatActionHandler = (pendingAction: RegistryPendingAction | null
     const category = INTENT_CATEGORY_MAP[pendingAction.intent] ?? 'general';
 
     if (!allSucceeded) {
-      const failureMsg = pickMessage(CHAT_ACTION_MESSAGE_POOLS[category].failure);
+      const failureMsg = failedDueToOffline
+        ? SPLITWISE_STRINGS.chatOfflineFailure
+        : pickMessage(CHAT_ACTION_MESSAGE_POOLS[category].failure);
       await replaceMessageAsync({
         id: pendingAction.messageId,
         content: failureMsg,

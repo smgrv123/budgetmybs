@@ -43,7 +43,8 @@ export const SPLITWISE_BALANCES_STRINGS = {
 
   // Toasts
   settleSuccessToast: 'Settlement recorded',
-  settleFailureToast: 'Saved locally — Splitwise sync failed, will retry automatically',
+  settleFailureToast: 'Splitwise sync failed — will retry automatically',
+  settleOfflineToast: "You're offline — this will sync with Splitwise when back online",
 
   // Settlement income description prefix (used when creating the local additional_income row)
   settlementSentIncomePrefix: 'Splitwise settlement to',

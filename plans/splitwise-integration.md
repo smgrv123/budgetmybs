@@ -356,11 +356,11 @@ Modified: `src/services/splitwise/sync.ts` (full sync on reconnect, `lastSyncedA
 
 ### Acceptance criteria
 
-- [ ] All local features work normally when offline (no crashes, no blocked UI)
-- [ ] Non-blocking "offline" toast shown when a Splitwise action is attempted without connectivity
-- [ ] On reconnect, `lastSyncedAt` is reset and a full sync (not incremental) runs
-- [ ] Full sync catches all updates missed during disconnection
-- [ ] `pnpm run lint` and `pnpm run typecheck` pass with no errors
+- [x] All local features work normally when offline (no crashes, no blocked UI)
+- [x] Non-blocking "offline" toast shown when a Splitwise action is attempted without connectivity
+- [x] On reconnect, `lastSyncedAt` is reset and a full sync (not incremental) runs
+- [x] Full sync catches all updates missed during disconnection
+- [x] `pnpm run lint` and `pnpm run typecheck` pass with no errors
 
 ---
 

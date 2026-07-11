@@ -29,9 +29,8 @@ import { enqueueFailedPush, pushSettlementExpense } from '@/src/services/splitwi
 import { buildSettlementPayload } from '@/src/utils/splitwisePushPayload';
 import type { SplitwiseUser } from '@/src/types/splitwise';
 import { generateUUID } from '@/src/utils/id';
-import { EXPENSES_QUERY_KEY, TOTAL_SPENT_QUERY_KEY } from './queryKeys';
+import { EXPENSES_QUERY_KEY, SPLITWISE_FRIEND_BALANCES_QUERY_KEY, TOTAL_SPENT_QUERY_KEY } from './queryKeys';
 import { INCOME_QUERY_KEY, MONTHLY_INCOME_SUM_QUERY_KEY } from './useIncome';
-import { SPLITWISE_FRIEND_BALANCES_QUERY_KEY } from './useSplitwiseBalances';
 import { useSplitwise } from './useSplitwise';
 
 // ============================================

@@ -55,6 +55,7 @@ budgetmybs/
 │   │   ├── usePushExpense.ts        # Thin mutation wrapper around pushExpenseToSplitwise (UI layer)
 │   │   ├── useSplitwiseReceivables.ts  # Fetch receivableAmount for a given expenseId (payer breakdown)
 │   │   ├── useSplitwiseSettlement.ts # Manual settle-up / mark-received mutation (pushes payment:true to Splitwise, creates settlement income)
+│   │   ├── useSplitwiseExpensePush.ts # Thin wrapper around fetch/update/enqueue service calls used by transaction detail save flow
 │   │   ├── queryKeys.ts          # Shared query keys (breaks circular deps between useExpenses/useCreditCards)
 │   │   ├── theme-hooks/          # Theme-related hooks
 │   │   └── index.ts              # Barrel exports with query keys

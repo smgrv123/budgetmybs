@@ -56,6 +56,15 @@ export const SPLITWISE_SYNC_ENDPOINTS = {
 export const SPLITWISE_STALE_THRESHOLD_MS = 5 * 60 * 1000;
 
 /**
+ * How often (ms) to poll device connectivity while a Splitwise account is connected,
+ * used to detect "reconnected after a disconnection period" and trigger a full sync.
+ * Longer than the 3s poll in `pollNetworkConnection` (src/utils/network.ts) since that
+ * one watches for disconnect during a single active operation, while this poll runs
+ * continuously in the background for as long as a Splitwise-aware screen is mounted.
+ */
+export const SPLITWISE_NETWORK_POLL_INTERVAL_MS = 10 * 1000;
+
+/**
  * Delay in ms between sequential Splitwise API calls to respect rate limits.
  */
 export const SPLITWISE_API_CALL_DELAY_MS = 250;

@@ -54,4 +54,5 @@ export const SPLITWISE_STRINGS = {
   chatDisconnectCancelled: 'Splitwise disconnect was cancelled.',
 
   chatConnectFirst: 'Connect Splitwise first.',
+  chatOfflineFailure: "You're offline — this will sync with Splitwise when back online.",
 } as const;
