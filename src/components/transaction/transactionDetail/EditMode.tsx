@@ -3,16 +3,17 @@
  *
  * Edit mode for the transaction detail screen.
  * Shows editable amount, details card (category, date, description),
- * and save/cancel buttons.
- * Conditional split config area deferred to Phase 14.
+ * an optional "Split with Splitwise" section (Phase 14), and save/cancel buttons.
  */
 
 import type { FC } from 'react';
 
 import type { CreditCardProvider } from '@/db/types';
 import { DetailsCard } from '@/src/components';
-import { BButton, BCard, BIcon, BInput, BText, BView } from '@/src/components/ui';
+import { SplitConfig } from '@/src/components/splitwise';
+import { BButton, BCard, BIcon, BInput, BSwitch, BText, BView } from '@/src/components/ui';
 import { CREDIT_CARD_PROVIDER_COLORS } from '@/src/constants/credit-cards.config';
+import { SPLITWISE_OUTBOUND_STRINGS } from '@/src/constants/splitwise-outbound.strings';
 import { ButtonVariant, CardVariant, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
 import {
   TRANSACTION_COMMON_STRINGS,
@@ -20,6 +21,7 @@ import {
   TRANSACTION_VALIDATION_STRINGS,
 } from '@/src/constants/transactions.strings';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
+import type { SplitFormState } from '@/src/types/splitwise-outbound';
 import { formatIndianNumber, parseFormattedNumber } from '@/src/utils/format';
 
 type EditModeExpense = {
@@ -55,6 +57,16 @@ export type EditModeProps = {
   onSave: () => void;
   onCancel: () => void;
   isBillPayment: boolean;
+
+  // Retroactive split (Phase 14)
+  /** Show the "Split with Splitwise" toggle — unlinked expense + Splitwise connected */
+  showSplitToggle: boolean;
+  isSplitEnabled: boolean;
+  onSplitToggleChange: (value: boolean) => void;
+  /** Show the SplitConfig section inline — toggled on (unlinked) or always-on (linked) */
+  showSplitConfig: boolean;
+  splitState: SplitFormState;
+  onSplitStateChange: (updates: Partial<SplitFormState>) => void;
 };
 
 const EditMode: FC<EditModeProps> = ({
@@ -74,6 +86,12 @@ const EditMode: FC<EditModeProps> = ({
   onSave,
   onCancel,
   isBillPayment,
+  showSplitToggle,
+  isSplitEnabled,
+  onSplitToggleChange,
+  showSplitConfig,
+  splitState,
+  onSplitStateChange,
 }) => {
   const themeColors = useThemeColors();
 
@@ -168,6 +186,21 @@ const EditMode: FC<EditModeProps> = ({
         descriptionPlaceholder={TRANSACTION_DETAIL_STRINGS.descriptionPlaceholder}
         noDescriptionFallback={TRANSACTION_COMMON_STRINGS.noDescriptionFallback}
       />
+
+      {/* Split with Splitwise — toggle only for unlinked expenses; SplitConfig itself is
+          always visible for already-linked expenses (pre-populated, no toggle needed). */}
+      {!isBillPayment && showSplitToggle && (
+        <BCard variant={CardVariant.ELEVATED} style={{ padding: Spacing.lg }}>
+          <BView row align="center" justify="space-between">
+            <BText variant={TextVariant.LABEL}>{SPLITWISE_OUTBOUND_STRINGS.splitToggleLabel}</BText>
+            <BSwitch value={isSplitEnabled} onValueChange={onSplitToggleChange} />
+          </BView>
+        </BCard>
+      )}
+
+      {!isBillPayment && showSplitConfig && (
+        <SplitConfig state={splitState} onChange={onSplitStateChange} totalAmount={parseFormattedNumber(editAmount)} />
+      )}
 
       <BView gap={SpacingValue.SM}>
         <BButton

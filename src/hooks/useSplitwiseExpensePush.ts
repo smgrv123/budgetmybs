@@ -6,8 +6,13 @@
  * `src/services/` directly — this hook is the boundary, matching the pattern
  * established by `useDeleteSplitwiseExpense`.
  */
-import { enqueueFailedPush, fetchSplitwiseExpense, updateSplitwiseExpenseRemote } from '@/src/services/splitwise';
+import {
+  enqueueFailedPush,
+  fetchSplitwiseExpense,
+  pushExpenseToSplitwise,
+  updateSplitwiseExpenseRemote,
+} from '@/src/services/splitwise';
 
 export const useSplitwiseExpensePush = () => {
-  return { fetchSplitwiseExpense, updateSplitwiseExpenseRemote, enqueueFailedPush };
+  return { fetchSplitwiseExpense, updateSplitwiseExpenseRemote, enqueueFailedPush, pushExpenseToSplitwise };
 };

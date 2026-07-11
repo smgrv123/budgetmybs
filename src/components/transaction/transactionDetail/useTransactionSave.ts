@@ -1,21 +1,26 @@
 /**
  * useTransactionSave
  *
- * Save logic for transaction detail screen. Handles three branches:
+ * Save logic for transaction detail screen. Handles four branches:
  * - Local-only expenses: save directly to SQLite
  * - Linked Splitwise expenses with Splitwise-relevant field changes: fetch-compare-push
  * - Linked Splitwise expenses with local-only changes (category): save directly
+ * - Unlinked expenses with "Split with Splitwise" toggled on (Phase 14): save locally,
+ *   push a brand-new expense via create_expense, then link with a splitwise_expenses row
  */
 
-import { updateSplitwiseExpense } from '@/db';
+import { insertSplitwiseExpense, updateSplitwiseExpense } from '@/db';
 import type { SplitwiseExpense, UpdateExpenseInput } from '@/db/schema-types';
+import { SplitwiseSyncStatusEnum } from '@/db/types';
 import { SplitwisePushAction } from '@/src/constants/splitwise.config';
 import type { ToastVariantType } from '@/src/constants/theme';
 import { ToastVariant } from '@/src/constants/theme';
 import { TRANSACTION_DETAIL_STRINGS } from '@/src/constants/transactions.strings';
 import { useExpenses, useSplitwiseExpensePush } from '@/src/hooks';
+import type { SplitFormState } from '@/src/types/splitwise-outbound';
 import { formatIndianNumber, parseFormattedNumber } from '@/src/utils/format';
-import { NetworkError } from '@/src/utils/network';
+import { checkNetworkConnection, NetworkError } from '@/src/utils/network';
+import { buildSplitPayload, resolveSplitParticipantIds } from '@/src/utils/splitwisePushPayload';
 import dayjs from 'dayjs';
 import { useState } from 'react';
 
@@ -45,6 +50,20 @@ type UseTransactionSaveParams = {
   refetchExpense: () => void;
 };
 
+/**
+ * Params for the retroactive "Split with Splitwise" flow (Phase 14).
+ * Only relevant when the expense is currently unlinked (no splitwise_expenses row).
+ */
+type RetroactiveSplitParams = {
+  /** Whether the user toggled "Split with Splitwise" on for this unlinked expense */
+  isEnabled: boolean;
+  splitState: SplitFormState;
+  /** Splitwise user ID of the connected account (payer) */
+  currentUserId: number | null;
+  /** Called once the remote expense + local splitwise_expenses link row are created */
+  onLinked: (row: SplitwiseExpense) => void;
+};
+
 type SaveParams = {
   editAmount: string;
   editDate: string;
@@ -61,11 +80,13 @@ type SaveParams = {
   setEditAmount: (v: string) => void;
   setEditDescription: (v: string) => void;
   setEditDate: (v: string) => void;
+  retroactiveSplit: RetroactiveSplitParams;
 };
 
 export const useTransactionSave = ({ id, showToast, onSaveSuccess, refetchExpense }: UseTransactionSaveParams) => {
   const { updateExpense, updateExpenseAsync, isUpdatingExpense } = useExpenses();
-  const { fetchSplitwiseExpense, updateSplitwiseExpenseRemote, enqueueFailedPush } = useSplitwiseExpensePush();
+  const { fetchSplitwiseExpense, updateSplitwiseExpenseRemote, enqueueFailedPush, pushExpenseToSplitwise } =
+    useSplitwiseExpensePush();
   const [isSavingSplitwise, setIsSavingSplitwise] = useState(false);
 
   const isAnySaving = isUpdatingExpense || isSavingSplitwise;
@@ -82,6 +103,109 @@ export const useTransactionSave = ({ id, showToast, onSaveSuccess, refetchExpens
     if (updatedRow) setSplitwiseRow(updatedRow);
   };
 
+  /**
+   * Retroactive "Split with Splitwise" flow (Phase 14): the expense was created locally
+   * and has no splitwise_expenses row yet. Save locally, push a brand-new expense to
+   * Splitwise via create_expense, then link the two by inserting a splitwise_expenses row.
+   *
+   * Validates participants + payload BEFORE touching the DB so an invalid split never
+   * leaves the local save half-applied.
+   */
+  const handleRetroactiveSplit = async (
+    id: string,
+    parsedAmount: number,
+    editDescription: string,
+    editDate: string,
+    editCategoryId: string | null,
+    retroactiveSplit: RetroactiveSplitParams
+  ) => {
+    const { splitState, currentUserId, onLinked } = retroactiveSplit;
+
+    if (!currentUserId) {
+      showToast(TRANSACTION_DETAIL_STRINGS.splitwiseUserRequired, ToastVariant.ERROR);
+      return;
+    }
+
+    const participantUserIds = resolveSplitParticipantIds(splitState);
+    if (participantUserIds.length === 0) {
+      showToast(TRANSACTION_DETAIL_STRINGS.splitParticipantsRequired, ToastVariant.WARNING);
+      return;
+    }
+
+    const payload = buildSplitPayload({
+      totalAmount: parsedAmount,
+      description: editDescription || '',
+      currencyCode: 'INR',
+      payerUserId: currentUserId,
+      participantUserIds,
+      splitState,
+      groupId: splitState.groupId ? Number(splitState.groupId) : undefined,
+    });
+
+    if (!payload) {
+      showToast(TRANSACTION_DETAIL_STRINGS.splitInvalidAmounts, ToastVariant.WARNING);
+      return;
+    }
+
+    setIsSavingSplitwise(true);
+    try {
+      // 1. Save locally first — always succeeds independent of the Splitwise push.
+      const localUpdateData: UpdateExpenseInput = {
+        amount: parsedAmount,
+        description: editDescription || null,
+        date: editDate,
+        categoryId: editCategoryId ?? null,
+      };
+      await updateExpenseAsync({ id, data: localUpdateData });
+      onSaveSuccess();
+      refetchExpense();
+
+      // 2. Offline — enqueue for retry, matching the Add & Split failure-handling pattern.
+      const isOnline = await checkNetworkConnection();
+      if (!isOnline) {
+        await enqueueFailedPush({ action: SplitwisePushAction.CREATE, expenseId: id, payload });
+        showToast(TRANSACTION_DETAIL_STRINGS.splitwiseEditPushOffline, ToastVariant.WARNING);
+        return;
+      }
+
+      // 3. Push the new expense to Splitwise, then link it locally (best-effort).
+      try {
+        const remoteId = await pushExpenseToSplitwise(payload);
+
+        const userPaidShare = parseFloat(String(payload['users__0__paid_share'] ?? '0'));
+        const userOwedShare = parseFloat(String(payload['users__0__owed_share'] ?? '0'));
+        const receivableAmount = userPaidShare - userOwedShare > 0 ? userPaidShare - userOwedShare : null;
+
+        const newRow = await insertSplitwiseExpense({
+          expenseId: id,
+          splitwiseId: String(remoteId),
+          splitwiseGroupId: splitState.groupId ? Number(splitState.groupId) : null,
+          paidByUserId: String(currentUserId),
+          totalAmount: parsedAmount,
+          userPaidShare,
+          userOwedShare,
+          receivableAmount,
+          receivableSettled: 0,
+          isSettlement: 0,
+          splitwiseCategory: null,
+          splitwiseUpdatedAt: null,
+          syncStatus: SplitwiseSyncStatusEnum.SYNCED,
+          lastSyncedAt: dayjs().toISOString(),
+        });
+
+        onLinked(newRow);
+        showToast(TRANSACTION_DETAIL_STRINGS.retroactiveSplitPushSuccess, ToastVariant.SUCCESS);
+      } catch {
+        await enqueueFailedPush({ action: SplitwisePushAction.CREATE, expenseId: id, payload });
+        showToast(TRANSACTION_DETAIL_STRINGS.splitwiseLocalSavedRemoteFailed, ToastVariant.WARNING);
+      }
+    } catch {
+      showToast(TRANSACTION_DETAIL_STRINGS.saveChangesFailedToast, ToastVariant.ERROR);
+    } finally {
+      setIsSavingSplitwise(false);
+    }
+  };
+
   const handleSave = async (params: SaveParams) => {
     const {
       editAmount,
@@ -95,11 +219,20 @@ export const useTransactionSave = ({ id, showToast, onSaveSuccess, refetchExpens
       setEditAmount,
       setEditDescription,
       setEditDate,
+      retroactiveSplit,
     } = params;
 
     if (!expense || !id) return;
 
     const parsedAmount = parseFormattedNumber(editAmount);
+
+    // Unlinked expense with "Split with Splitwise" toggled on — create a brand-new
+    // remote expense and link it locally. Mutually exclusive with the linked-expense
+    // branches below since it requires !isSwExpense.
+    if (!isSwExpense && retroactiveSplit.isEnabled) {
+      await handleRetroactiveSplit(id, parsedAmount, editDescription, editDate, editCategoryId, retroactiveSplit);
+      return;
+    }
 
     // Determine if Splitwise-relevant fields changed
     const splitwiseFieldsChanged =

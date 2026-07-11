@@ -15,6 +15,8 @@ import { Spacing, SpacingValue, TextVariant, ToastVariant } from '@/src/constant
 import { TRANSACTION_DETAIL_STRINGS, TRANSACTION_VALIDATION_STRINGS } from '@/src/constants/transactions.strings';
 import { useCategories, useDeleteSplitwiseExpense, useExpenseById, useSplitwise } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
+import type { SplitFormState } from '@/src/types/splitwise-outbound';
+import { INITIAL_SPLIT_STATE } from '@/src/types/splitwise-outbound';
 import { checkNetworkConnection } from '@/src/utils/network';
 import { formatIndianNumber } from '@/src/utils/format';
 import { CreditCardTxnTypeEnum } from '@/db/types';
@@ -46,7 +48,7 @@ export default function TransactionDetailRoute() {
   const themeColors = useThemeColors();
   const { allCategories } = useCategories();
   const { canDeleteSplitwiseExpense, deleteExpenseWithSplitwiseAsync } = useDeleteSplitwiseExpense();
-  const { isConnected: isSplitwiseConnected } = useSplitwise();
+  const { isConnected: isSplitwiseConnected, currentUser: splitwiseCurrentUser } = useSplitwise();
   const { expense, isExpenseLoading, refetchExpense } = useExpenseById(id);
 
   const [isEditing, setIsEditing] = useState(false);
@@ -63,6 +65,11 @@ export default function TransactionDetailRoute() {
   const [splitwiseRow, setSplitwiseRow] = useState<SplitwiseExpense | null>(null);
   const [isSplitwiseExpense, setIsSplitwiseExpense] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
+
+  // Retroactive split state (Phase 14) — toggle + config for unlinked expenses;
+  // always populated (no toggle) for already-linked expenses.
+  const [isSplitEnabled, setIsSplitEnabled] = useState(false);
+  const [splitState, setSplitState] = useState<SplitFormState>(INITIAL_SPLIT_STATE);
 
   const showToast = (msg: string, v: ToastVariantType = ToastVariant.WARNING) => {
     setToastMessage(msg);
@@ -108,7 +115,21 @@ export default function TransactionDetailRoute() {
     setEditDescription(expense.description ?? '');
     setEditDate(expense.date);
     setEditCategoryId(expense.categoryId ?? null);
+    setIsSplitEnabled(false);
+    // Pre-populate the split config for already-linked expenses with what we know locally
+    // (the group, if any) — per-participant shares live remotely and aren't stored locally.
+    setSplitState(
+      isSplitwiseExpense && splitwiseRow?.splitwiseGroupId
+        ? { ...INITIAL_SPLIT_STATE, groupId: String(splitwiseRow.splitwiseGroupId) }
+        : INITIAL_SPLIT_STATE
+    );
     setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setIsSplitEnabled(false);
+    setSplitState(INITIAL_SPLIT_STATE);
   };
 
   const onSave = async () => {
@@ -142,6 +163,17 @@ export default function TransactionDetailRoute() {
       setEditAmount,
       setEditDescription,
       setEditDate,
+      retroactiveSplit: {
+        isEnabled: isSplitEnabled,
+        splitState,
+        currentUserId: splitwiseCurrentUser?.id ?? null,
+        onLinked: (row) => {
+          setSplitwiseRow(row);
+          setIsSplitwiseExpense(true);
+          setIsSplitEnabled(false);
+          setSplitState(INITIAL_SPLIT_STATE);
+        },
+      },
     });
   };
 
@@ -227,6 +259,12 @@ export default function TransactionDetailRoute() {
 
   const isBillPayment = expense.creditCardTxnType === CreditCardTxnTypeEnum.PAYMENT;
 
+  // Retroactive split (Phase 14): toggle only for unlinked expenses while connected;
+  // already-linked expenses always show SplitConfig (pre-populated, no toggle), but only
+  // while connected — matches Phase 11a's "no edit/split actions when disconnected" rule.
+  const showSplitToggle = isSplitwiseConnected && !isSplitwiseExpense;
+  const showSplitConfig = isSplitEnabled || (isSplitwiseExpense && isSplitwiseConnected);
+
   return (
     <BSafeAreaView edges={['top', 'left', 'right']}>
       <BView paddingX={SpacingValue.LG}>
@@ -271,8 +309,14 @@ export default function TransactionDetailRoute() {
             splitwiseFieldsDisabledMessage={splitwiseFieldsDisabledMessage}
             isAnySaving={isAnySaving}
             onSave={onSave}
-            onCancel={() => setIsEditing(false)}
+            onCancel={handleCancelEdit}
             isBillPayment={isBillPayment}
+            showSplitToggle={showSplitToggle}
+            isSplitEnabled={isSplitEnabled}
+            onSplitToggleChange={setIsSplitEnabled}
+            showSplitConfig={showSplitConfig}
+            splitState={splitState}
+            onSplitStateChange={(updates) => setSplitState((prev) => ({ ...prev, ...updates }))}
           />
         ) : (
           <ViewMode

@@ -54,6 +54,18 @@ const userFields = (index: number, userId: number, paidShare: string, owedShare:
   [`users__${index}__owed_share`]: owedShare,
 });
 
+/**
+ * Resolve numeric Splitwise user IDs for a split form's participants:
+ * group members (`selectedMemberIds`) unioned with direct friends (`friendIds`),
+ * deduplicated. The payer is added separately by `buildSplitPayload`.
+ */
+export const resolveSplitParticipantIds = (splitState: SplitFormState): number[] => {
+  const toNumericIds = (ids: string[]): number[] => ids.map((id) => parseInt(id, 10)).filter((id) => !isNaN(id));
+  const groupMemberIds = toNumericIds(splitState.selectedMemberIds);
+  const directFriendIds = toNumericIds(splitState.friendIds ?? []);
+  return [...new Set([...groupMemberIds, ...directFriendIds])];
+};
+
 // ============================================
 // PAYLOAD BUILDER
 // ============================================

@@ -470,14 +470,14 @@ Modified: `src/components/transaction/transactionDetail/EditMode.tsx` (retroacti
 
 ### Acceptance criteria
 
-- [ ] "Split with Splitwise" toggle visible in edit mode for unlinked (non-Splitwise) expenses
-- [ ] Toggle hidden when Splitwise is disconnected
-- [ ] Toggle hidden when expense already has a `splitwise_expenses` row
-- [ ] Toggling on reveals `SplitConfig` inline
-- [ ] Save creates remote Splitwise expense + local `splitwise_expenses` row + updates `sourceType`
-- [ ] For linked expenses, split config is pre-populated and always visible
-- [ ] Save on linked expenses triggers conflict detection + `update_expense` push
-- [ ] `pnpm run lint` and `pnpm run typecheck` pass with no errors
+- [x] "Split with Splitwise" toggle visible in edit mode for unlinked (non-Splitwise) expenses
+- [x] Toggle hidden when Splitwise is disconnected
+- [x] Toggle hidden when expense already has a `splitwise_expenses` row
+- [x] Toggling on reveals `SplitConfig` inline
+- [x] Save creates remote Splitwise expense + local `splitwise_expenses` row (linkage signal — `expenses.sourceType` is unrelated, it's `'fixed_expense' | 'debt_emi' | null` for recurring-transaction tracking only; this plan bullet was stale)
+- [x] For linked expenses, split config is pre-populated and always visible (hidden alongside other Splitwise fields when disconnected, per Phase 11a)
+- [x] Save on linked expenses triggers conflict detection + `update_expense` push
+- [x] `pnpm run lint` and `pnpm run typecheck` pass with no errors
 
 ---
 

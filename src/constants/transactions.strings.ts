@@ -94,6 +94,12 @@ export const TRANSACTION_DETAIL_STRINGS = {
   splitwiseEditPushOffline: "Saved locally — you're offline. Will sync with Splitwise when back online.",
   splitwiseFriendFallback: 'this friend',
   splitwiseDeleteNonPayerToast: "You can't delete expenses you didn't pay for",
+
+  // Retroactive split (Phase 14)
+  retroactiveSplitPushSuccess: 'Expense split with Splitwise.',
+  splitParticipantsRequired: 'Select at least one person to split with.',
+  splitInvalidAmounts: "Split amounts don't add up to the total. Please check and try again.",
+  splitwiseUserRequired: 'Could not verify your Splitwise account. Please try again.',
 } as const;
 
 export const ADD_TRANSACTION_STRINGS = {
