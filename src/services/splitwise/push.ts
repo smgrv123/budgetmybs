@@ -6,6 +6,7 @@
  *  - deleteExpenseOnSplitwise(): POST /api/v3.0/delete_expense/:id
  *  - enqueueFailedPush(): append to AsyncStorage SPLITWISE_PUSH_QUEUE
  *  - drainPushQueue(): retry all queued items, routing to correct endpoint by action
+ *  - flushPushQueue(): abandon all queued items (used on disconnect)
  *
  * Callers own the offline-first contract:
  *   1. Save locally first (always succeeds).
@@ -126,6 +127,14 @@ export const enqueueFailedPush = async (request: SplitwisePushRequest): Promise<
   const queuedAt = dayjs().toISOString();
   const item: SplitwisePushQueueItem = { ...request, queuedAt, attempts: 0 };
   await writeQueue([...queue, item]);
+};
+
+/**
+ * Flush (abandon) the outbound push queue without retrying.
+ * Called on disconnect so stale operations aren't retried after reconnection.
+ */
+export const flushPushQueue = async (): Promise<void> => {
+  await AsyncStorage.removeItem(AsyncStorageKeys.SPLITWISE_PUSH_QUEUE);
 };
 
 /**

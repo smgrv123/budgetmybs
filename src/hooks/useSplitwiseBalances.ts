@@ -3,7 +3,8 @@
  *
  * TanStack Query hook for Splitwise balance data derived from the /get_friends
  * Splitwise API. Results are cached in AsyncStorage and refreshed when stale
- * (older than SPLITWISE_STALE_THRESHOLD_MS).
+ * (older than SPLITWISE_STALE_THRESHOLD_MS). When Splitwise is disconnected the
+ * query is disabled and empty balances are returned.
  *
  * Provides:
  *  - totalOwedToYou: sum of positive netAmount entries (others owe you)
@@ -22,6 +23,7 @@ import { fetchFriendBalances } from '@/src/services/splitwise';
 import type { SplitwiseFriendBalance } from '@/db/queries/splitwiseExpenses';
 import type { SplitwiseFriendBalanceEntry } from '@/src/types/splitwise';
 import { isCacheStale, readFriendBalancesCache, writeFriendBalancesCache } from '@/src/utils/splitwiseBalancesCache';
+import { useSplitwise } from './useSplitwise';
 
 // ============================================
 // QUERY KEYS
@@ -69,13 +71,18 @@ const toFriendBalance = (entry: SplitwiseFriendBalanceEntry): SplitwiseFriendBal
 // ============================================
 
 export const useSplitwiseBalances = () => {
+  const { isConnected } = useSplitwise();
+
   const balancesQuery = useQuery({
     queryKey: SPLITWISE_FRIEND_BALANCES_QUERY_KEY,
     queryFn: loadFriendBalances,
     staleTime: SPLITWISE_STALE_THRESHOLD_MS,
+    enabled: isConnected,
   });
 
-  const entries = balancesQuery.data ?? [];
+  // When disconnected, ignore any previously cached data so balance-driven UI
+  // (hero card "in transit", balance chips, settlement lists) is hidden.
+  const entries = isConnected ? (balancesQuery.data ?? []) : [];
 
   const totalOwedToYou = entries.reduce((sum, entry) => (entry.netAmount > 0 ? sum + entry.netAmount : sum), 0);
 

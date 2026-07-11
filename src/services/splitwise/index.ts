@@ -3,6 +3,7 @@ export {
   deleteExpenseOnSplitwise,
   drainPushQueue,
   enqueueFailedPush,
+  flushPushQueue,
   pushExpenseToSplitwise,
   pushSettlementExpense,
 } from './push';

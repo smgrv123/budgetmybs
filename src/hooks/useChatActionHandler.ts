@@ -15,7 +15,11 @@
  *  - If granted: saves to AsyncStorage + schedules a notification
  *  - If denied:  logs directly to DB with wasImpulse: 1
  */
-import { ImpulseCooldownFieldKey, INTENT_REGISTRY } from '@/src/constants/chatRegistry.config';
+import {
+  ImpulseCooldownFieldKey,
+  INTENT_REGISTRY,
+  SPLITWISE_CONNECTION_REQUIRED_INTENTS,
+} from '@/src/constants/chatRegistry.config';
 import {
   CHAT_ACTION_MESSAGE_POOLS,
   CHAT_REGISTRY_STRINGS,
@@ -43,6 +47,7 @@ import { useIncome } from './useIncome';
 import { useMutationMap } from './useMutationMap';
 import { useProfile } from './useProfile';
 import { useSavingsGoals } from './useSavingsGoals';
+import { useSplitwise } from './useSplitwise';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -70,6 +75,9 @@ export const useChatActionHandler = (pendingAction: RegistryPendingAction | null
 
   const mutationMap = useMutationMap();
 
+  // Splitwise connection state — gates connection-requiring Splitwise intents
+  const { isConnected: isSplitwiseConnected } = useSplitwise();
+
   // Impulse permission — called unconditionally per hooks rules
   const { onImpulseToggleActivated } = useImpulsePermission();
 
@@ -80,6 +88,18 @@ export const useChatActionHandler = (pendingAction: RegistryPendingAction | null
 
     const entry = INTENT_REGISTRY[pendingAction.intent];
     if (!entry) return;
+
+    // ── Splitwise connection gate ─────────────────────────────────────────────
+    // Connection-requiring Splitwise intents respond "Connect Splitwise first."
+    // when disconnected instead of executing.
+    if (!isSplitwiseConnected && SPLITWISE_CONNECTION_REQUIRED_INTENTS.has(pendingAction.intent)) {
+      await replaceMessageAsync({
+        id: pendingAction.messageId,
+        content: SPLITWISE_STRINGS.chatConnectFirst,
+        actionStatus: ChatActionStatusEnum.CANCELLED,
+      });
+      return;
+    }
 
     setIsSubmitting(true);
 

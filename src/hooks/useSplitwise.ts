@@ -5,7 +5,7 @@
  *
  * Features:
  *  - connect(): Opens OAuth browser, exchanges code, stores tokens, fetches currentUser
- *  - disconnect(): Clears tokens and resets state
+ *  - disconnect(): Clears tokens, flushes the outbound push queue, and resets state
  *  - isConnected, currentUser, status from TanStack Query
  *  - reconnectRequired: derived from AsyncStorage flag set by splitwiseAuth on refresh failure
  */
@@ -21,7 +21,7 @@ import {
   SPLITWISE_REDIRECT_URI,
 } from '@/src/constants/splitwise.config';
 import { SPLITWISE_STRINGS } from '@/src/constants/splitwise.strings';
-import { splitwiseAuth } from '@/src/services/splitwise';
+import { flushPushQueue, splitwiseAuth } from '@/src/services/splitwise';
 import { createHttpClient } from '@/src/services/api';
 import type { SplitwiseCurrentUserApiResponse } from '@/src/validation/splitwise';
 import type { SplitwiseConnectionStatusType, SplitwiseTokens, SplitwiseUser } from '@/src/types/splitwise';
@@ -151,6 +151,8 @@ export const useSplitwise = () => {
     mutationFn: async () => {
       await splitwiseAuth.clearTokens();
       await splitwiseAuth.clearReconnectRequired();
+      // Abandon pending pushes so stale operations aren't retried after reconnection
+      await flushPushQueue();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: SPLITWISE_CONNECTION_QUERY_KEY });

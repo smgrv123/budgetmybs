@@ -13,7 +13,7 @@ import { BIcon, BSafeAreaView, BText, BToast, BView, ScreenHeader } from '@/src/
 import type { ToastVariantType } from '@/src/constants/theme';
 import { Spacing, SpacingValue, TextVariant, ToastVariant } from '@/src/constants/theme';
 import { TRANSACTION_DETAIL_STRINGS, TRANSACTION_VALIDATION_STRINGS } from '@/src/constants/transactions.strings';
-import { useCategories, useDeleteSplitwiseExpense, useExpenseById } from '@/src/hooks';
+import { useCategories, useDeleteSplitwiseExpense, useExpenseById, useSplitwise } from '@/src/hooks';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { checkNetworkConnection } from '@/src/utils/network';
 import { formatIndianNumber } from '@/src/utils/format';
@@ -46,6 +46,7 @@ export default function TransactionDetailRoute() {
   const themeColors = useThemeColors();
   const { allCategories } = useCategories();
   const { canDeleteSplitwiseExpense, deleteExpenseWithSplitwiseAsync } = useDeleteSplitwiseExpense();
+  const { isConnected: isSplitwiseConnected } = useSplitwise();
   const { expense, isExpenseLoading, refetchExpense } = useExpenseById(id);
 
   const [isEditing, setIsEditing] = useState(false);
@@ -201,8 +202,11 @@ export default function TransactionDetailRoute() {
     );
   }
 
-  // Splitwise-relevant fields are non-editable when offline
-  const splitwiseFieldsDisabled = isSplitwiseExpense && !isOnline;
+  // Splitwise-relevant fields are non-editable when offline or when Splitwise is disconnected
+  const splitwiseFieldsDisabled = isSplitwiseExpense && (!isOnline || !isSplitwiseConnected);
+  const splitwiseFieldsDisabledMessage = !isSplitwiseConnected
+    ? TRANSACTION_DETAIL_STRINGS.splitwiseFieldDisabledDisconnected
+    : TRANSACTION_DETAIL_STRINGS.splitwiseFieldDisabledOffline;
 
   const headerActions = !isEditing
     ? [
@@ -264,6 +268,7 @@ export default function TransactionDetailRoute() {
             setEditCategoryId={setEditCategoryId}
             categoryOptions={categoryOptions}
             splitwiseFieldsDisabled={splitwiseFieldsDisabled}
+            splitwiseFieldsDisabledMessage={splitwiseFieldsDisabledMessage}
             isAnySaving={isAnySaving}
             onSave={onSave}
             onCancel={() => setIsEditing(false)}

@@ -88,6 +88,7 @@ export const TRANSACTION_DETAIL_STRINGS = {
   splitwiseEditPushSuccess: 'Expense updated on Splitwise.',
   splitwiseFetchFailed: 'Could not check Splitwise for updates. Please try again.',
   splitwiseFieldDisabledOffline: 'Connect to the internet to edit Splitwise-synced fields.',
+  splitwiseFieldDisabledDisconnected: 'Reconnect Splitwise to edit synced fields.',
   splitwiseBadge: 'Synced from Splitwise',
   splitwiseLocalSavedRemoteFailed: 'Saved locally. Splitwise sync failed — will retry on next sync.',
   splitwiseFriendFallback: 'this friend',

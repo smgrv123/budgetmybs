@@ -19,6 +19,7 @@ import { BButton, BModal, BText, BToast, BView } from '@/src/components/ui';
 import { SPLITWISE_BALANCES_STRINGS } from '@/src/constants/splitwise-balances.strings';
 import { ButtonVariant, ModalPosition, Spacing, SpacingValue, TextVariant, ToastVariant } from '@/src/constants/theme';
 import type { ButtonVariantType, ToastVariantType } from '@/src/constants/theme';
+import { useSplitwise } from '@/src/hooks';
 import { useSplitwiseSettlement } from '@/src/hooks/useSplitwiseSettlement';
 import type { SettlementMode } from '@/src/hooks/useSplitwiseSettlement';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
@@ -46,6 +47,7 @@ const SettlementButton: FC<SettlementButtonProps> = ({
   buttonVariant,
 }) => {
   const themeColors = useThemeColors();
+  const { isConnected } = useSplitwise();
   const { settleSplitwiseAsync, isSettling } = useSplitwiseSettlement();
   const [isWarningOpen, setIsWarningOpen] = useState(false);
   const [toastVisible, setToastVisible] = useState(false);
@@ -79,6 +81,9 @@ const SettlementButton: FC<SettlementButtonProps> = ({
     if (amount <= 0) return;
     setIsWarningOpen(true);
   };
+
+  // Settlements are Splitwise-only actions — hide entirely when disconnected
+  if (!isConnected) return null;
 
   const handleConfirm = async () => {
     setIsWarningOpen(false);

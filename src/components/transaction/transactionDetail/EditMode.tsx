@@ -49,6 +49,8 @@ export type EditModeProps = {
   setEditCategoryId: (v: string | null) => void;
   categoryOptions: { label: string; value: string }[];
   splitwiseFieldsDisabled: boolean;
+  /** Warning shown when Splitwise fields are locked (offline vs disconnected copy) */
+  splitwiseFieldsDisabledMessage?: string;
   isAnySaving: boolean;
   onSave: () => void;
   onCancel: () => void;
@@ -67,6 +69,7 @@ const EditMode: FC<EditModeProps> = ({
   setEditCategoryId,
   categoryOptions,
   splitwiseFieldsDisabled,
+  splitwiseFieldsDisabledMessage = TRANSACTION_DETAIL_STRINGS.splitwiseFieldDisabledOffline,
   isAnySaving,
   onSave,
   onCancel,
@@ -76,7 +79,7 @@ const EditMode: FC<EditModeProps> = ({
 
   return (
     <>
-      {/* Offline warning for Splitwise expenses in edit mode */}
+      {/* Warning when Splitwise-synced fields are locked (offline or disconnected) */}
       {splitwiseFieldsDisabled && (
         <BView
           row
@@ -89,7 +92,7 @@ const EditMode: FC<EditModeProps> = ({
         >
           <BIcon name="cloud-offline-outline" size="sm" color={themeColors.warning} />
           <BText variant={TextVariant.CAPTION} color={themeColors.warning}>
-            {TRANSACTION_DETAIL_STRINGS.splitwiseFieldDisabledOffline}
+            {splitwiseFieldsDisabledMessage}
           </BText>
         </BView>
       )}

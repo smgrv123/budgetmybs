@@ -331,16 +331,16 @@ Modified: `src/hooks/useSplitwise.ts` (disconnect side-effects: flush queue, cle
 
 ### Acceptance criteria
 
-- [ ] Disconnect clears tokens and flushes the outbound push queue
-- [ ] Previously synced expenses and settlements remain in the transaction list after disconnect
-- [ ] Splitwise badges still shown on synced expenses after disconnect
-- [ ] Splitwise-relevant fields locked (non-editable) on synced expenses after disconnect
-- [ ] Hero card "in transit" label hidden when disconnected
-- [ ] Split CTAs hidden in Add Expense modal when disconnected
-- [ ] Transaction detail for synced expenses shows Splitwise data read-only, no edit/split actions
-- [ ] Add expense form shows only "Add Expense" when disconnected (no "Split this →")
-- [ ] Chat intents respond "Connect Splitwise first" when disconnected
-- [ ] `pnpm run lint` and `pnpm run typecheck` pass with no errors
+- [x] Disconnect clears tokens and flushes the outbound push queue
+- [x] Previously synced expenses and settlements remain in the transaction list after disconnect
+- [x] Splitwise badges still shown on synced expenses after disconnect
+- [x] Splitwise-relevant fields locked (non-editable) on synced expenses after disconnect
+- [x] Hero card "in transit" label hidden when disconnected
+- [x] Split CTAs hidden in Add Expense modal when disconnected
+- [x] Transaction detail for synced expenses shows Splitwise data read-only, no edit/split actions
+- [x] Add expense form shows only "Add Expense" when disconnected (no "Split this →")
+- [x] Chat intents respond "Connect Splitwise first" when disconnected
+- [x] `pnpm run lint` and `pnpm run typecheck` pass with no errors
 
 ---
 

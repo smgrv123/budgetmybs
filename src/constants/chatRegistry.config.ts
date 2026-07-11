@@ -2601,3 +2601,16 @@ export const INTENT_REGISTRY: Readonly<Record<string, IntentRegistryEntry>> = {
 
 /** The set of intent values that have been migrated to the registry. */
 export const REGISTRY_INTENTS = new Set<string>(Object.keys(INTENT_REGISTRY));
+
+/**
+ * Splitwise intents that require an active connection. When Splitwise is
+ * disconnected these respond with SPLITWISE_STRINGS.chatConnectFirst instead
+ * of executing.
+ */
+export const SPLITWISE_CONNECTION_REQUIRED_INTENTS = new Set<string>([
+  ChatIntentEnum.SYNC_SPLITWISE,
+  ChatIntentEnum.SPLIT_EXPENSE,
+  ChatIntentEnum.SETTLE_SPLITWISE,
+  ChatIntentEnum.DELETE_SPLITWISE_EXPENSE,
+  ChatIntentEnum.CHECK_BALANCES,
+]);

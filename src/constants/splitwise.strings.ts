@@ -52,4 +52,6 @@ export const SPLITWISE_STRINGS = {
   chatDisconnectSuccess: 'Your Splitwise account has been disconnected.',
   chatDisconnectFailure: 'Failed to disconnect from Splitwise.',
   chatDisconnectCancelled: 'Splitwise disconnect was cancelled.',
+
+  chatConnectFirst: 'Connect Splitwise first.',
 } as const;
