@@ -65,6 +65,8 @@ export type EditModeProps = {
   onSplitToggleChange: (value: boolean) => void;
   /** Show the SplitConfig section inline — toggled on (unlinked) or always-on (linked) */
   showSplitConfig: boolean;
+  /** True for already-linked expenses — SplitConfig is rendered read-only (reference only, edited on Splitwise) */
+  isSplitConfigReadOnly: boolean;
   splitState: SplitFormState;
   onSplitStateChange: (updates: Partial<SplitFormState>) => void;
 };
@@ -90,6 +92,7 @@ const EditMode: FC<EditModeProps> = ({
   isSplitEnabled,
   onSplitToggleChange,
   showSplitConfig,
+  isSplitConfigReadOnly,
   splitState,
   onSplitStateChange,
 }) => {
@@ -188,7 +191,8 @@ const EditMode: FC<EditModeProps> = ({
       />
 
       {/* Split with Splitwise — toggle only for unlinked expenses; SplitConfig itself is
-          always visible for already-linked expenses (pre-populated, no toggle needed). */}
+          always visible for already-linked expenses (pre-populated, no toggle needed), but
+          rendered read-only there since split details are edited on Splitwise directly. */}
       {!isBillPayment && showSplitToggle && (
         <BCard variant={CardVariant.ELEVATED} style={{ padding: Spacing.lg }}>
           <BView row align="center" justify="space-between">
@@ -199,7 +203,19 @@ const EditMode: FC<EditModeProps> = ({
       )}
 
       {!isBillPayment && showSplitConfig && (
-        <SplitConfig state={splitState} onChange={onSplitStateChange} totalAmount={parseFormattedNumber(editAmount)} />
+        <BView gap={SpacingValue.XS}>
+          <SplitConfig
+            state={splitState}
+            onChange={onSplitStateChange}
+            totalAmount={parseFormattedNumber(editAmount)}
+            disabled={isSplitConfigReadOnly}
+          />
+          {isSplitConfigReadOnly && (
+            <BText variant={TextVariant.CAPTION} muted>
+              {TRANSACTION_DETAIL_STRINGS.splitConfigReadOnlyCaption}
+            </BText>
+          )}
+        </BView>
       )}
 
       <BView gap={SpacingValue.SM}>

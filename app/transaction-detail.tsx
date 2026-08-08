@@ -263,7 +263,8 @@ export default function TransactionDetailRoute() {
   // already-linked expenses always show SplitConfig (pre-populated, no toggle), but only
   // while connected — matches Phase 11a's "no edit/split actions when disconnected" rule.
   const showSplitToggle = isSplitwiseConnected && !isSplitwiseExpense;
-  const showSplitConfig = isSplitEnabled || (isSplitwiseExpense && isSplitwiseConnected);
+  const isSplitConfigReadOnly = isSplitwiseExpense && isSplitwiseConnected;
+  const showSplitConfig = isSplitEnabled || isSplitConfigReadOnly;
 
   return (
     <BSafeAreaView edges={['top', 'left', 'right']}>
@@ -315,6 +316,7 @@ export default function TransactionDetailRoute() {
             isSplitEnabled={isSplitEnabled}
             onSplitToggleChange={setIsSplitEnabled}
             showSplitConfig={showSplitConfig}
+            isSplitConfigReadOnly={isSplitConfigReadOnly}
             splitState={splitState}
             onSplitStateChange={(updates) => setSplitState((prev) => ({ ...prev, ...updates }))}
           />

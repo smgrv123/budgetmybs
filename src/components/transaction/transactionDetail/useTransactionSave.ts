@@ -43,6 +43,31 @@ const hasSplitwiseFieldChanges = (
   return false;
 };
 
+/**
+ * Computes the amount the user is owed back (their paid share minus their owed share),
+ * or null when there's no positive receivable (they didn't overpay).
+ */
+const computeReceivableAmount = (paidShare: number, owedShare: number): number | null => {
+  const diff = paidShare - owedShare;
+  return diff > 0 ? diff : null;
+};
+
+/**
+ * Builds the local SQLite update payload shared by all three save branches
+ * (retroactive split, linked-expense fetch-compare-push, and local-only save).
+ */
+const buildLocalUpdateData = (
+  amount: number,
+  description: string,
+  date: string,
+  categoryId: string | null
+): UpdateExpenseInput => ({
+  amount,
+  description: description || null,
+  date,
+  categoryId: categoryId ?? null,
+});
+
 type UseTransactionSaveParams = {
   id: string | undefined;
   showToast: (msg: string, v?: ToastVariantType) => void;
@@ -62,6 +87,19 @@ type RetroactiveSplitParams = {
   currentUserId: number | null;
   /** Called once the remote expense + local splitwise_expenses link row are created */
   onLinked: (row: SplitwiseExpense) => void;
+};
+
+/**
+ * Params for handleRetroactiveSplit. Bundled into a single object (matching handleSave's
+ * SaveParams convention) rather than passed positionally.
+ */
+type HandleRetroactiveSplitParams = {
+  expenseId: string;
+  parsedAmount: number;
+  editDescription: string;
+  editDate: string;
+  editCategoryId: string | null;
+  retroactiveSplit: RetroactiveSplitParams;
 };
 
 type SaveParams = {
@@ -111,14 +149,14 @@ export const useTransactionSave = ({ id, showToast, onSaveSuccess, refetchExpens
    * Validates participants + payload BEFORE touching the DB so an invalid split never
    * leaves the local save half-applied.
    */
-  const handleRetroactiveSplit = async (
-    id: string,
-    parsedAmount: number,
-    editDescription: string,
-    editDate: string,
-    editCategoryId: string | null,
-    retroactiveSplit: RetroactiveSplitParams
-  ) => {
+  const handleRetroactiveSplit = async ({
+    expenseId,
+    parsedAmount,
+    editDescription,
+    editDate,
+    editCategoryId,
+    retroactiveSplit,
+  }: HandleRetroactiveSplitParams) => {
     const { splitState, currentUserId, onLinked } = retroactiveSplit;
 
     if (!currentUserId) {
@@ -150,20 +188,15 @@ export const useTransactionSave = ({ id, showToast, onSaveSuccess, refetchExpens
     setIsSavingSplitwise(true);
     try {
       // 1. Save locally first — always succeeds independent of the Splitwise push.
-      const localUpdateData: UpdateExpenseInput = {
-        amount: parsedAmount,
-        description: editDescription || null,
-        date: editDate,
-        categoryId: editCategoryId ?? null,
-      };
-      await updateExpenseAsync({ id, data: localUpdateData });
+      const localUpdateData = buildLocalUpdateData(parsedAmount, editDescription, editDate, editCategoryId);
+      await updateExpenseAsync({ id: expenseId, data: localUpdateData });
       onSaveSuccess();
       refetchExpense();
 
       // 2. Offline — enqueue for retry, matching the Add & Split failure-handling pattern.
       const isOnline = await checkNetworkConnection();
       if (!isOnline) {
-        await enqueueFailedPush({ action: SplitwisePushAction.CREATE, expenseId: id, payload });
+        await enqueueFailedPush({ action: SplitwisePushAction.CREATE, expenseId, payload });
         showToast(TRANSACTION_DETAIL_STRINGS.splitwiseEditPushOffline, ToastVariant.WARNING);
         return;
       }
@@ -174,10 +207,10 @@ export const useTransactionSave = ({ id, showToast, onSaveSuccess, refetchExpens
 
         const userPaidShare = parseFloat(String(payload['users__0__paid_share'] ?? '0'));
         const userOwedShare = parseFloat(String(payload['users__0__owed_share'] ?? '0'));
-        const receivableAmount = userPaidShare - userOwedShare > 0 ? userPaidShare - userOwedShare : null;
+        const receivableAmount = computeReceivableAmount(userPaidShare, userOwedShare);
 
         const newRow = await insertSplitwiseExpense({
-          expenseId: id,
+          expenseId,
           splitwiseId: String(remoteId),
           splitwiseGroupId: splitState.groupId ? Number(splitState.groupId) : null,
           paidByUserId: String(currentUserId),
@@ -196,7 +229,7 @@ export const useTransactionSave = ({ id, showToast, onSaveSuccess, refetchExpens
         onLinked(newRow);
         showToast(TRANSACTION_DETAIL_STRINGS.retroactiveSplitPushSuccess, ToastVariant.SUCCESS);
       } catch {
-        await enqueueFailedPush({ action: SplitwisePushAction.CREATE, expenseId: id, payload });
+        await enqueueFailedPush({ action: SplitwisePushAction.CREATE, expenseId, payload });
         showToast(TRANSACTION_DETAIL_STRINGS.splitwiseLocalSavedRemoteFailed, ToastVariant.WARNING);
       }
     } catch {
@@ -230,7 +263,14 @@ export const useTransactionSave = ({ id, showToast, onSaveSuccess, refetchExpens
     // remote expense and link it locally. Mutually exclusive with the linked-expense
     // branches below since it requires !isSwExpense.
     if (!isSwExpense && retroactiveSplit.isEnabled) {
-      await handleRetroactiveSplit(id, parsedAmount, editDescription, editDate, editCategoryId, retroactiveSplit);
+      await handleRetroactiveSplit({
+        expenseId: id,
+        parsedAmount,
+        editDescription,
+        editDate,
+        editCategoryId,
+        retroactiveSplit,
+      });
       return;
     }
 
@@ -297,12 +337,7 @@ export const useTransactionSave = ({ id, showToast, onSaveSuccess, refetchExpens
         }
 
         // 3. Save to local DB first
-        const localUpdateData: UpdateExpenseInput = {
-          amount: parsedAmount,
-          description: editDescription || null,
-          date: editDate,
-          categoryId: editCategoryId ?? null,
-        };
+        const localUpdateData = buildLocalUpdateData(parsedAmount, editDescription, editDate, editCategoryId);
 
         await updateExpenseAsync({ id, data: localUpdateData });
         onSaveSuccess();
@@ -347,10 +382,10 @@ export const useTransactionSave = ({ id, showToast, onSaveSuccess, refetchExpens
                 ? {
                     userPaidShare: parseFloat(userEntry.paid_share),
                     userOwedShare: parseFloat(userEntry.owed_share),
-                    receivableAmount:
-                      parseFloat(userEntry.paid_share) - parseFloat(userEntry.owed_share) > 0
-                        ? parseFloat(userEntry.paid_share) - parseFloat(userEntry.owed_share)
-                        : null,
+                    receivableAmount: computeReceivableAmount(
+                      parseFloat(userEntry.paid_share),
+                      parseFloat(userEntry.owed_share)
+                    ),
                   }
                 : {}),
               splitwiseGroupId: updatedRemote.group_id ?? null,
@@ -383,12 +418,7 @@ export const useTransactionSave = ({ id, showToast, onSaveSuccess, refetchExpens
     }
 
     // Non-Splitwise expense OR only local-only fields changed — save directly
-    const updateData: UpdateExpenseInput = {
-      amount: parsedAmount,
-      description: editDescription || null,
-      date: editDate,
-      categoryId: editCategoryId ?? null,
-    };
+    const updateData = buildLocalUpdateData(parsedAmount, editDescription, editDate, editCategoryId);
 
     updateExpense(
       { id, data: updateData },

@@ -47,6 +47,8 @@ export type SplitConfigProps = {
   state: SplitFormState;
   onChange: (updates: Partial<SplitFormState>) => void;
   totalAmount: number;
+  /** When true, renders all inputs as non-interactive (already-linked expense — split is reference-only). */
+  disabled?: boolean;
 };
 
 // ============================================
@@ -65,7 +67,7 @@ const parseTargetValue = (val: string): ParsedTarget | null => {
 // COMPONENT
 // ============================================
 
-const SplitConfig: FC<SplitConfigProps> = ({ state, onChange, totalAmount }) => {
+const SplitConfig: FC<SplitConfigProps> = ({ state, onChange, totalAmount, disabled = false }) => {
   const themeColors = useThemeColors();
   const { friends, isFriendsLoading, groups, isGroupsLoading } = useSplitTargets();
   const { currentUser } = useSplitwise();
@@ -192,6 +194,7 @@ const SplitConfig: FC<SplitConfigProps> = ({ state, onChange, totalAmount }) => 
               value={state.exactAmounts[memberId] ?? ''}
               onChangeText={(val) => updateMemberMap('exactAmounts', memberId, val)}
               keyboardType="decimal-pad"
+              editable={!disabled}
             />
           </BView>
         );
@@ -204,6 +207,7 @@ const SplitConfig: FC<SplitConfigProps> = ({ state, onChange, totalAmount }) => 
               value={state.percentages[memberId] ?? ''}
               onChangeText={(val) => updateMemberMap('percentages', memberId, val)}
               keyboardType="decimal-pad"
+              editable={!disabled}
             />
           </BView>
         );
@@ -216,6 +220,7 @@ const SplitConfig: FC<SplitConfigProps> = ({ state, onChange, totalAmount }) => 
               value={state.shares[memberId] ?? ''}
               onChangeText={(val) => updateMemberMap('shares', memberId, val)}
               keyboardType="decimal-pad"
+              editable={!disabled}
             />
           </BView>
         );
@@ -231,7 +236,7 @@ const SplitConfig: FC<SplitConfigProps> = ({ state, onChange, totalAmount }) => 
         <BView row align="center" justify="space-between">
           <BText variant={TextVariant.LABEL}>{SPLITWISE_OUTBOUND_STRINGS.groupOnlyPickerLabel}</BText>
           {state.groupId && (
-            <BButton variant="ghost" size="sm" onPress={handleGroupClear}>
+            <BButton variant="ghost" size="sm" onPress={handleGroupClear} disabled={disabled}>
               <BText variant={TextVariant.CAPTION} color={themeColors.primary}>
                 {SPLITWISE_OUTBOUND_STRINGS.groupOnlyPickerClear}
               </BText>
@@ -251,7 +256,7 @@ const SplitConfig: FC<SplitConfigProps> = ({ state, onChange, totalAmount }) => 
           }
           modalTitle={SPLITWISE_OUTBOUND_STRINGS.groupOnlyPickerModalTitle}
           searchable={true}
-          disabled={isLoading || groupOptions.length === 0}
+          disabled={disabled || isLoading || groupOptions.length === 0}
         />
       </BView>
 
@@ -273,7 +278,7 @@ const SplitConfig: FC<SplitConfigProps> = ({ state, onChange, totalAmount }) => 
             placeholder={SPLITWISE_OUTBOUND_STRINGS.groupMemberPickerPlaceholder}
             modalTitle={SPLITWISE_OUTBOUND_STRINGS.groupMemberPickerModalTitle}
             searchable={true}
-            disabled={allGroupMemberOptions.length === 0}
+            disabled={disabled || allGroupMemberOptions.length === 0}
           />
         </BView>
       )}
@@ -294,7 +299,7 @@ const SplitConfig: FC<SplitConfigProps> = ({ state, onChange, totalAmount }) => 
           }
           modalTitle={SPLITWISE_OUTBOUND_STRINGS.friendsMultiSelectModalTitle}
           searchable={true}
-          disabled={isLoading || friendOptions.length === 0}
+          disabled={disabled || isLoading || friendOptions.length === 0}
         />
       </BView>
 
@@ -306,6 +311,7 @@ const SplitConfig: FC<SplitConfigProps> = ({ state, onChange, totalAmount }) => 
           value={state.splitType}
           onValueChange={(val) => onChange({ splitType: val as SplitFormState['splitType'] })}
           modalTitle={SPLITWISE_OUTBOUND_STRINGS.splitTypeLabel}
+          disabled={disabled}
         />
       </BView>
 
