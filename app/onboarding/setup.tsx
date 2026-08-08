@@ -68,7 +68,7 @@ export default function SetupScreen() {
     }
   };
 
-  const RenderStep = () => {
+  const renderStep = () => {
     switch (currentStep) {
       case OnboardingStepId.PROFILE:
         return (
@@ -93,7 +93,7 @@ export default function SetupScreen() {
 
   return (
     <BOnboardingLayout title={getScreenTitle()} currentStep={stepIndex} showBack={true} onBack={handleBack}>
-      <RenderStep />
+      {renderStep()}
     </BOnboardingLayout>
   );
 }

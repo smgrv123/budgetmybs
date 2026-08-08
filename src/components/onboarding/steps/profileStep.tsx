@@ -1,12 +1,12 @@
-import { FlatList, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 
-import { OnboardingStrings } from '@/src/constants/onboarding.strings';
-import { Spacing } from '@/src/constants/theme';
 import { BButton, BIcon, BInput, BText, BView } from '@/src/components/ui';
+import { OnboardingStrings } from '@/src/constants/onboarding.strings';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { ProfileData } from '@/src/types';
 import { parseFormattedNumber } from '@/src/utils/format';
 import { profileSchema, validateForm } from '@/src/validation/onboarding';
+import { Fragment } from 'react';
 import { createProfileFields } from './profile';
 
 const { profile: profileStrings } = OnboardingStrings;
@@ -67,66 +67,63 @@ function ProfileStep({
   const isButtonDisabled = !profile.name || !profile.salary;
 
   return (
-    <BView flex gap="xl" style={styles.stepContainer}>
-      <BView>
-        <BText variant="heading">{heading}</BText>
-        <BText variant="body" muted>
-          {subheading}
-        </BText>
-      </BView>
-
-      <FlatList
-        data={profileFields}
-        keyExtractor={(item) => item.key}
-        renderItem={({ item }) => (
-          <BView gap="xs">
-            {item.icon && (
-              <BView row gap="xs" align="center">
-                <BIcon name={item.icon as any} size="sm" color={themeColors.textMuted} />
-                <BText variant="label">{item.label}</BText>
-              </BView>
-            )}
-            <BInput
-              label={item.icon ? undefined : item.label}
-              placeholder={item.placeholder}
-              value={item.value}
-              onChangeText={item.onChangeText}
-              keyboardType={item.keyboardType}
-              autoCapitalize={item.autoCapitalize}
-              error={item.error}
-              helperText={item.helperText}
-              leftIcon={item.leftIcon}
-            />
-          </BView>
-        )}
-        scrollEnabled={false}
-        contentContainerStyle={styles.fields}
-      />
-
-      <BView>
-        <BButton
-          fullWidth
-          onPress={handleContinue}
-          disabled={isButtonDisabled}
-          rounded="lg"
-          paddingY="sm"
-          style={isButtonDisabled ? { backgroundColor: themeColors.muted } : undefined}
-        >
-          <BText color="#FFFFFF" variant="label">
-            {submitLabel}
+    <ScrollView>
+      <BView flex gap="xl" style={styles.stepContainer}>
+        <BView>
+          <BText variant="heading">{heading}</BText>
+          <BText variant="body" muted>
+            {subheading}
           </BText>
-        </BButton>
+        </BView>
+
+        {profileFields.map((item, index) => {
+          return (
+            <Fragment key={index}>
+              <BView gap="xs">
+                {item.icon && (
+                  <BView row gap="xs" align="center">
+                    <BIcon name={item.icon as any} size="sm" color={themeColors.textMuted} />
+                    <BText variant="label">{item.label}</BText>
+                  </BView>
+                )}
+                <BInput
+                  label={item.icon ? undefined : item.label}
+                  placeholder={item.placeholder}
+                  value={item.value}
+                  onChangeText={item.onChangeText}
+                  keyboardType={item.keyboardType}
+                  autoCapitalize={item.autoCapitalize}
+                  error={item.error}
+                  helperText={item.helperText}
+                  leftIcon={item.leftIcon}
+                />
+              </BView>
+            </Fragment>
+          );
+        })}
+
+        <BView>
+          <BButton
+            fullWidth
+            onPress={handleContinue}
+            disabled={isButtonDisabled}
+            rounded="lg"
+            paddingY="sm"
+            style={isButtonDisabled ? { backgroundColor: themeColors.muted } : undefined}
+          >
+            <BText color="#FFFFFF" variant="label">
+              {submitLabel}
+            </BText>
+          </BButton>
+        </BView>
       </BView>
-    </BView>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   stepContainer: {
     flex: 1,
-  },
-  fields: {
-    gap: Spacing.md,
   },
 });
 
