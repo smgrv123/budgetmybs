@@ -100,6 +100,7 @@ export const TRANSACTION_DETAIL_STRINGS = {
   splitParticipantsRequired: 'Select at least one person to split with.',
   splitInvalidAmounts: "Split amounts don't add up to the total. Please check and try again.",
   splitwiseUserRequired: 'Could not verify your Splitwise account. Please try again.',
+  splitConfigReadOnlyCaption: 'Shown for reference only. Edit the split directly on Splitwise.',
 } as const;
 
 export const ADD_TRANSACTION_STRINGS = {
