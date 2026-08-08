@@ -53,6 +53,7 @@ const ExtraIncomeSection: FC<ExtraIncomeSectionProps> = ({ incomeEntries }) => {
               date={entry.date}
               isSaving
               categoryIcon="cash-outline"
+              isSettlement={entry.type === IncomeTypeEnum.SPLITWISE_SETTLEMENT}
             />
           </BLink>
         );

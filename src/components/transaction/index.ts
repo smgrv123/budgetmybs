@@ -1,5 +1,7 @@
 export { default as ActiveFilterChips } from './activeFilterChips';
-export { default as AddTransactionModal } from './addTransactionModal';
+export { AddTransactionModal } from './addTransactionModal';
+export { default as ExpenseFormFields } from './ExpenseFormFields';
+export type { ExpenseFormFieldsProps } from './ExpenseFormFields';
 export { default as ImpulseCooldownSection } from './ImpulseCooldownSection';
 export type { ImpulseCooldownSectionProps } from './ImpulseCooldownSection';
 export { default as TransactionCard } from './transactionCard';

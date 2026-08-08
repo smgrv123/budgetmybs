@@ -10,6 +10,7 @@ export const SETTINGS_SCREEN_STRINGS = {
   appearanceTitle: 'Appearance',
   financialDataTitle: 'Financial Data',
   budgetOverviewTitle: 'Budget Overview',
+  integrationsTitle: 'Integrations',
   editProfileButton: 'Edit Profile',
   userFallback: 'User',
   perMonthSuffix: '/month',

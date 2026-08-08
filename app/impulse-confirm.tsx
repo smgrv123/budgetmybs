@@ -10,7 +10,11 @@ import { IMPULSE_STRINGS } from '@/src/constants/impulse.strings';
 import { ButtonVariant, CardVariant, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import type { PendingImpulsePurchase } from '@/src/types/impulse';
-import { getExpiredImpulsePurchases, getAllImpulsePurchases, removeImpulsePurchase } from '@/src/utils/impulseAsyncStore';
+import {
+  getExpiredImpulsePurchases,
+  getAllImpulsePurchases,
+  removeImpulsePurchase,
+} from '@/src/utils/impulseAsyncStore';
 import { formatCurrency } from '@/src/utils/format';
 import dayjs from 'dayjs';
 
@@ -64,9 +68,7 @@ export default function ImpulseConfirmScreen() {
       });
       await removeImpulsePurchase(entry.id);
       await cancelNotificationIfPresent(
-        entry.notificationId
-          ? entry.notificationId
-          : `${IMPULSE_NOTIFICATION_ID_PREFIX}${entry.id}`
+        entry.notificationId ? entry.notificationId : `${IMPULSE_NOTIFICATION_ID_PREFIX}${entry.id}`
       );
 
       const remaining = items.filter((item) => item.id !== entry.id);
@@ -92,9 +94,7 @@ export default function ImpulseConfirmScreen() {
     try {
       await removeImpulsePurchase(entry.id);
       await cancelNotificationIfPresent(
-        entry.notificationId
-          ? entry.notificationId
-          : `${IMPULSE_NOTIFICATION_ID_PREFIX}${entry.id}`
+        entry.notificationId ? entry.notificationId : `${IMPULSE_NOTIFICATION_ID_PREFIX}${entry.id}`
       );
 
       const remaining = items.filter((item) => item.id !== entry.id);
@@ -120,9 +120,7 @@ export default function ImpulseConfirmScreen() {
     for (const entry of items) {
       try {
         await removeImpulsePurchase(entry.id);
-        await cancelNotificationIfPresent(
-          entry.notificationId ?? `${IMPULSE_NOTIFICATION_ID_PREFIX}${entry.id}`
-        );
+        await cancelNotificationIfPresent(entry.notificationId ?? `${IMPULSE_NOTIFICATION_ID_PREFIX}${entry.id}`);
       } catch (error) {
         console.error(IMPULSE_STRINGS.skipErrorLog, error);
       }
@@ -141,9 +139,7 @@ export default function ImpulseConfirmScreen() {
         for (const entry of items) {
           try {
             await removeImpulsePurchase(entry.id);
-            await cancelNotificationIfPresent(
-              entry.notificationId ?? `${IMPULSE_NOTIFICATION_ID_PREFIX}${entry.id}`
-            );
+            await cancelNotificationIfPresent(entry.notificationId ?? `${IMPULSE_NOTIFICATION_ID_PREFIX}${entry.id}`);
           } catch (error) {
             console.error(IMPULSE_STRINGS.skipErrorLog, error);
           }
@@ -249,9 +245,7 @@ export default function ImpulseConfirmScreen() {
                 <BText variant={TextVariant.CAPTION} muted>
                   {IMPULSE_STRINGS.dateLabel}
                 </BText>
-                <BText variant={TextVariant.BODY}>
-                  {dayjs(entry.purchaseData.date).format('DD MMM YYYY')}
-                </BText>
+                <BText variant={TextVariant.BODY}>{dayjs(entry.purchaseData.date).format('DD MMM YYYY')}</BText>
               </BView>
 
               {/* Action Buttons */}

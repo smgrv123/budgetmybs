@@ -57,6 +57,8 @@ export const ALL_TRANSACTIONS_STRINGS = {
 
 export const TRANSACTION_DETAIL_STRINGS = {
   screenTitle: 'Transaction Details',
+  splitwisePaidLabel: 'paid',
+  splitwiseShareLabel: 'your share',
   loadingLabel: 'Loading transaction...',
   notFoundLabel: 'Transaction not found',
   recurringReadOnlyBadge: 'Auto-generated · Read-only',
@@ -79,6 +81,25 @@ export const TRANSACTION_DETAIL_STRINGS = {
   deleteAlertCancel: 'Cancel',
   deleteAlertConfirm: 'Delete',
   creditCardLabel: 'Credit Card',
+
+  // Splitwise edit conflict
+  splitwiseConflictToast: 'This expense was updated on Splitwise. The form has been refreshed with the latest data.',
+  splitwiseEditPushFailed: 'Failed to update expense on Splitwise. Please try again.',
+  splitwiseEditPushSuccess: 'Expense updated on Splitwise.',
+  splitwiseFetchFailed: 'Could not check Splitwise for updates. Please try again.',
+  splitwiseFieldDisabledOffline: 'Connect to the internet to edit Splitwise-synced fields.',
+  splitwiseFieldDisabledDisconnected: 'Reconnect Splitwise to edit synced fields.',
+  splitwiseBadge: 'Synced from Splitwise',
+  splitwiseLocalSavedRemoteFailed: 'Saved locally. Splitwise sync failed — will retry on next sync.',
+  splitwiseEditPushOffline: "Saved locally — you're offline. Will sync with Splitwise when back online.",
+  splitwiseFriendFallback: 'this friend',
+  splitwiseDeleteNonPayerToast: "You can't delete expenses you didn't pay for",
+
+  // Retroactive split (Phase 14)
+  retroactiveSplitPushSuccess: 'Expense split with Splitwise.',
+  splitParticipantsRequired: 'Select at least one person to split with.',
+  splitInvalidAmounts: "Split amounts don't add up to the total. Please check and try again.",
+  splitwiseUserRequired: 'Could not verify your Splitwise account. Please try again.',
 } as const;
 
 export const ADD_TRANSACTION_STRINGS = {

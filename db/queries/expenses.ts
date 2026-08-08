@@ -6,6 +6,7 @@ import {
   creditCardPaymentsTable,
   creditCardsTable,
   expensesTable,
+  splitwiseExpensesTable,
 } from '../schema';
 import type { CreateExpenseInput, CreateOneOffSavingInput, Expense, UpdateExpenseInput } from '../schema-types';
 import type { RecurringSourceType } from '../types';
@@ -150,10 +151,12 @@ export const getExpenseById = async (id: string) => {
         last4: creditCardsTable.last4,
         provider: creditCardsTable.provider,
       },
+      receivableAmount: splitwiseExpensesTable.receivableAmount,
     })
     .from(expensesTable)
     .leftJoin(categoriesTable, eq(expensesTable.categoryId, categoriesTable.id))
     .leftJoin(creditCardsTable, eq(expensesTable.creditCardId, creditCardsTable.id))
+    .leftJoin(splitwiseExpensesTable, eq(expensesTable.id, splitwiseExpensesTable.expenseId))
     .where(eq(expensesTable.id, id))
     .limit(1);
 
@@ -421,6 +424,9 @@ export const deleteExpense = async (id: string): Promise<{ newUsedAmount: number
       }
     }
 
+    // Delete linked splitwise_expenses row first (FK cleanup)
+    await tx.delete(splitwiseExpensesTable).where(eq(splitwiseExpensesTable.expenseId, id));
+
     await tx.delete(expensesTable).where(eq(expensesTable.id, id));
 
     return { newUsedAmount };
@@ -449,6 +455,7 @@ export const getOneOffSavings = async (month?: string) => {
  * server-side filtering and offset-based pagination.
  */
 export const getAllExpensesWithCategory = async (filter?: {
+  month?: string;
   categoryId?: string;
   creditCardId?: string;
   startDate?: string;
@@ -485,12 +492,15 @@ export const getAllExpensesWithCategory = async (filter?: {
         last4: creditCardsTable.last4,
         provider: creditCardsTable.provider,
       },
+      isFromSplitwise: sql<number>`CASE WHEN ${splitwiseExpensesTable.expenseId} IS NOT NULL THEN 1 ELSE 0 END`,
     })
     .from(expensesTable)
     .leftJoin(categoriesTable, eq(expensesTable.categoryId, categoriesTable.id))
     .leftJoin(creditCardsTable, eq(expensesTable.creditCardId, creditCardsTable.id))
+    .leftJoin(splitwiseExpensesTable, eq(expensesTable.id, splitwiseExpensesTable.expenseId))
     .where(
       and(
+        filter?.month ? like(expensesTable.date, `${filter.month}%`) : undefined,
         filter?.categoryId ? eq(expensesTable.categoryId, filter.categoryId) : undefined,
         filter?.creditCardId ? eq(expensesTable.creditCardId, filter.creditCardId) : undefined,
         filter?.startDate ? sql`${expensesTable.date} >= ${filter.startDate}` : undefined,
@@ -617,4 +627,32 @@ export const getLastProcessedRecurringMonth = async (): Promise<string | null> =
     .limit(1);
 
   return result[0]?.sourceMonth ?? null;
+};
+
+// ============================================
+// GET MOST RECENT SPLITWISE-LINKED EXPENSE BY DESCRIPTION
+// ============================================
+
+/**
+ * Find the most recent expense whose description contains the given fragment
+ * AND has a linked splitwise_expenses row. Used by the chat delete-expense
+ * intent to resolve a natural-language description into a concrete expense.
+ * Returns null if no match exists.
+ */
+export const getMostRecentSplitwiseLinkedExpense = async (
+  descriptionFragment: string
+): Promise<{ expenseId: string; splitwiseId: string | null; paidByUserId: string } | null> => {
+  const rows = await db
+    .select({
+      expenseId: expensesTable.id,
+      splitwiseId: splitwiseExpensesTable.splitwiseId,
+      paidByUserId: splitwiseExpensesTable.paidByUserId,
+    })
+    .from(expensesTable)
+    .innerJoin(splitwiseExpensesTable, eq(splitwiseExpensesTable.expenseId, expensesTable.id))
+    .where(and(isNotNull(expensesTable.description), like(expensesTable.description, `%${descriptionFragment}%`)))
+    .orderBy(desc(expensesTable.date))
+    .limit(1);
+
+  return rows[0] ?? null;
 };

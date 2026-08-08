@@ -13,7 +13,7 @@ Durable decisions that apply across all phases:
 - **Chat intent**: New `ChatIntentEnum` entry for impulse purchases, following the existing declarative registry pattern.
 - **Filter**: Extend existing `ExpenseFilter` type with a `wasImpulse` option.
 - **Strings**: All user-facing text in a dedicated strings constants file, per project convention.
-- **Components**: All UI built with B* components, theme tokens, no raw styles.
+- **Components**: All UI built with B\* components, theme tokens, no raw styles.
 
 ---
 
@@ -42,7 +42,7 @@ The submit button text does NOT change. The disclaimer and override within it co
 - [x] Non-override submit saves the pending purchase to AsyncStorage via the impulse store
 - [x] Pending purchases survive app restarts (AsyncStorage persistence verified)
 - [x] Impulse store exposes `save`, `getAll`, `getExpired`, `remove` interface
-- [x] All strings in a constants file, all UI uses B* components and theme tokens
+- [x] All strings in a constants file, all UI uses B\* components and theme tokens
 - [x] `pnpm run lint`, `pnpm run typecheck` pass
 
 ---

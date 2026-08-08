@@ -15,18 +15,25 @@
  *  - If granted: saves to AsyncStorage + schedules a notification
  *  - If denied:  logs directly to DB with wasImpulse: 1
  */
-import { ImpulseCooldownFieldKey, INTENT_REGISTRY } from '@/src/constants/chatRegistry.config';
+import {
+  ImpulseCooldownFieldKey,
+  INTENT_REGISTRY,
+  SPLITWISE_CONNECTION_REQUIRED_INTENTS,
+} from '@/src/constants/chatRegistry.config';
 import {
   CHAT_ACTION_MESSAGE_POOLS,
   CHAT_REGISTRY_STRINGS,
   INTENT_CATEGORY_MAP,
   pickMessage,
 } from '@/src/constants/chat.registry.strings';
+import { SPLITWISE_STRINGS } from '@/src/constants/splitwise.strings';
+import { SPLITWISE_BALANCES_STRINGS } from '@/src/constants/splitwise-balances.strings';
 import { ChatActionStatusEnum, ChatIntentEnum, CreditCardTxnTypeEnum } from '@/db/types';
 import { formatDate as formatDbDate } from '@/db/utils';
 import { scheduleImpulseNotification } from '@/src/services/notificationService';
 import { generateUUID } from '@/src/utils/id';
 import { saveImpulsePurchase, updateNotificationId } from '@/src/utils/impulseAsyncStore';
+import { NetworkError } from '@/src/utils/network';
 import { useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useState } from 'react';
@@ -41,6 +48,7 @@ import { useIncome } from './useIncome';
 import { useMutationMap } from './useMutationMap';
 import { useProfile } from './useProfile';
 import { useSavingsGoals } from './useSavingsGoals';
+import { useSplitwise } from './useSplitwise';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -68,6 +76,9 @@ export const useChatActionHandler = (pendingAction: RegistryPendingAction | null
 
   const mutationMap = useMutationMap();
 
+  // Splitwise connection state — gates connection-requiring Splitwise intents
+  const { isConnected: isSplitwiseConnected } = useSplitwise();
+
   // Impulse permission — called unconditionally per hooks rules
   const { onImpulseToggleActivated } = useImpulsePermission();
 
@@ -78,6 +89,18 @@ export const useChatActionHandler = (pendingAction: RegistryPendingAction | null
 
     const entry = INTENT_REGISTRY[pendingAction.intent];
     if (!entry) return;
+
+    // ── Splitwise connection gate ─────────────────────────────────────────────
+    // Connection-requiring Splitwise intents respond "Connect Splitwise first."
+    // when disconnected instead of executing.
+    if (!isSplitwiseConnected && SPLITWISE_CONNECTION_REQUIRED_INTENTS.has(pendingAction.intent)) {
+      await replaceMessageAsync({
+        id: pendingAction.messageId,
+        content: SPLITWISE_STRINGS.chatConnectFirst,
+        actionStatus: ChatActionStatusEnum.CANCELLED,
+      });
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -207,8 +230,110 @@ export const useChatActionHandler = (pendingAction: RegistryPendingAction | null
       return;
     }
 
+    // ── Special case: CONNECT_SPLITWISE ───────────────────────────────────────
+    // Triggers the OAuth browser flow via the mutation map.
+    if (pendingAction.intent === ChatIntentEnum.CONNECT_SPLITWISE) {
+      const connectFn = mutationMap['connectSplitwise'];
+      let connectSucceeded = true;
+
+      if (!connectFn) {
+        console.error('[useChatActionHandler] connectSplitwise mutation not found in map');
+        connectSucceeded = false;
+      } else {
+        try {
+          await connectFn(undefined);
+        } catch (err) {
+          console.error('[useChatActionHandler] CONNECT_SPLITWISE failed:', err);
+          connectSucceeded = false;
+        }
+      }
+
+      if (!connectSucceeded) {
+        await replaceMessageAsync({
+          id: pendingAction.messageId,
+          content: SPLITWISE_STRINGS.chatConnectFailure,
+          actionStatus: ChatActionStatusEnum.CANCELLED,
+        });
+      } else {
+        await replaceMessageAsync({
+          id: pendingAction.messageId,
+          content: SPLITWISE_STRINGS.chatConnectSuccess,
+          actionStatus: ChatActionStatusEnum.COMPLETED,
+        });
+      }
+
+      setIsSubmitting(false);
+      return;
+    }
+
+    // ── Special case: DISCONNECT_SPLITWISE ────────────────────────────────────
+    // Clears stored tokens via the mutation map.
+    if (pendingAction.intent === ChatIntentEnum.DISCONNECT_SPLITWISE) {
+      const disconnectFn = mutationMap['disconnectSplitwise'];
+      let disconnectSucceeded = true;
+
+      if (!disconnectFn) {
+        console.error('[useChatActionHandler] disconnectSplitwise mutation not found in map');
+        disconnectSucceeded = false;
+      } else {
+        try {
+          await disconnectFn(undefined);
+        } catch (err) {
+          console.error('[useChatActionHandler] DISCONNECT_SPLITWISE failed:', err);
+          disconnectSucceeded = false;
+        }
+      }
+
+      if (!disconnectSucceeded) {
+        await replaceMessageAsync({
+          id: pendingAction.messageId,
+          content: SPLITWISE_STRINGS.chatDisconnectFailure,
+          actionStatus: ChatActionStatusEnum.CANCELLED,
+        });
+      } else {
+        await replaceMessageAsync({
+          id: pendingAction.messageId,
+          content: SPLITWISE_STRINGS.chatDisconnectSuccess,
+          actionStatus: ChatActionStatusEnum.COMPLETED,
+        });
+      }
+
+      setIsSubmitting(false);
+      return;
+    }
+
+    // ── Special case: CHECK_BALANCES ──────────────────────────────────────────
+    // Reads balance data via the mutation map and returns a formatted summary string.
+    if (pendingAction.intent === ChatIntentEnum.CHECK_BALANCES) {
+      const checkFn = mutationMap['checkBalances'];
+      let resultMessage: string = SPLITWISE_BALANCES_STRINGS.checkBalancesEmpty;
+
+      if (!checkFn) {
+        console.error('[useChatActionHandler] checkBalances not found in mutation map');
+      } else {
+        try {
+          const result = await checkFn(undefined);
+          if (typeof result === 'string' && result.length > 0) {
+            resultMessage = result;
+          }
+        } catch (err) {
+          console.error('[useChatActionHandler] CHECK_BALANCES failed:', err);
+        }
+      }
+
+      await replaceMessageAsync({
+        id: pendingAction.messageId,
+        content: resultMessage,
+        actionStatus: ChatActionStatusEnum.COMPLETED,
+      });
+
+      setIsSubmitting(false);
+      return;
+    }
+
     // Run mutations sequentially; bail on first failure
     let allSucceeded = true;
+    let failedDueToOffline = false;
     for (const step of entry.mutations) {
       const mutationFn = mutationMap[step.key];
       if (!mutationFn) {
@@ -231,6 +356,7 @@ export const useChatActionHandler = (pendingAction: RegistryPendingAction | null
       } catch (err) {
         console.error(step.errorLog, err);
         allSucceeded = false;
+        failedDueToOffline = err instanceof NetworkError;
         break;
       }
     }
@@ -238,8 +364,14 @@ export const useChatActionHandler = (pendingAction: RegistryPendingAction | null
     const category = INTENT_CATEGORY_MAP[pendingAction.intent] ?? 'general';
 
     if (!allSucceeded) {
-      const failureMsg = pickMessage(CHAT_ACTION_MESSAGE_POOLS[category].failure);
-      await replaceMessageAsync({ id: pendingAction.messageId, content: failureMsg, actionStatus: ChatActionStatusEnum.CANCELLED });
+      const failureMsg = failedDueToOffline
+        ? SPLITWISE_STRINGS.chatOfflineFailure
+        : pickMessage(CHAT_ACTION_MESSAGE_POOLS[category].failure);
+      await replaceMessageAsync({
+        id: pendingAction.messageId,
+        content: failureMsg,
+        actionStatus: ChatActionStatusEnum.CANCELLED,
+      });
       setIsSubmitting(false);
       return;
     }
@@ -252,7 +384,11 @@ export const useChatActionHandler = (pendingAction: RegistryPendingAction | null
     // Replace original message with success text — single message per action
     const successMsg = pickMessage(CHAT_ACTION_MESSAGE_POOLS[category].success);
     try {
-      await replaceMessageAsync({ id: pendingAction.messageId, content: successMsg, actionStatus: ChatActionStatusEnum.COMPLETED });
+      await replaceMessageAsync({
+        id: pendingAction.messageId,
+        content: successMsg,
+        actionStatus: ChatActionStatusEnum.COMPLETED,
+      });
     } catch (err) {
       console.error('Failed to replace message with success:', err);
     }
@@ -267,7 +403,11 @@ export const useChatActionHandler = (pendingAction: RegistryPendingAction | null
     const cancelMsg = pickMessage(CHAT_ACTION_MESSAGE_POOLS[category].cancel);
 
     try {
-      await replaceMessageAsync({ id: pendingAction.messageId, content: cancelMsg, actionStatus: ChatActionStatusEnum.CANCELLED });
+      await replaceMessageAsync({
+        id: pendingAction.messageId,
+        content: cancelMsg,
+        actionStatus: ChatActionStatusEnum.CANCELLED,
+      });
     } catch (err) {
       console.error('Failed to replace message on cancel:', err);
     }

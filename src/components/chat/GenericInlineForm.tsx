@@ -104,8 +104,8 @@ const GenericInlineForm: FC<GenericInlineFormProps> = ({
           {CHAT_REGISTRY_STRINGS.DELETE_CONFIRM_BODY_SUFFIX}
         </BText>
 
-        <BView row gap={SpacingValue.SM}>
-          <BButton variant={ButtonVariant.OUTLINE} onPress={onCancel} disabled={isSubmitting} fullWidth>
+        <BView row gap={SpacingValue.SM} flex>
+          <BButton variant={ButtonVariant.OUTLINE} onPress={onCancel} disabled={isSubmitting} style={{ flex: 1 }}>
             <BText variant={TextVariant.LABEL}>{CHAT_REGISTRY_STRINGS.FORM_CANCEL}</BText>
           </BButton>
           <BButton
@@ -113,7 +113,7 @@ const GenericInlineForm: FC<GenericInlineFormProps> = ({
             onPress={handleSubmit}
             loading={isSubmitting}
             disabled={isSubmitting}
-            fullWidth
+            style={{ flex: 1 }}
           >
             <BText variant={TextVariant.LABEL} color={themeColors.white}>
               {isSubmitting ? CHAT_REGISTRY_STRINGS.FORM_DELETING : entry.submitLabel}

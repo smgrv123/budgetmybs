@@ -43,7 +43,7 @@ export const OnboardingSteps: OnboardingStepConfig[] = [
 
 export const getEnabledSteps = () => OnboardingSteps.filter((step) => step.enabled).sort((a, b) => a.order - b.order);
 
-export const getTotalSteps = () => getEnabledSteps().length + 1; // +1 for confirmation
+export const getTotalSteps = () => getEnabledSteps().length + 2; // +1 for splitwise-connect, +1 for confirmation (AI)
 
 // ============================================
 // DROPDOWN OPTIONS

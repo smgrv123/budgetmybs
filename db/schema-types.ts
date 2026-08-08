@@ -8,6 +8,7 @@ import type { FinancialPlan } from '@/src/types/financialPlan';
 import type { DebtData, FixedExpenseData, ProfileData, SavingsGoalData } from '@/src/types/onboarding';
 
 import type {
+  additionalIncomeTable,
   categoriesTable,
   chatMessagesTable,
   creditCardExpensesTable,
@@ -17,10 +18,10 @@ import type {
   expensesTable,
   financialPlansTable,
   fixedExpensesTable,
-  additionalIncomeTable,
   monthlySnapshotsTable,
   profileTable,
   savingsGoalsTable,
+  splitwiseExpensesTable,
 } from './schema';
 
 // ============================================
@@ -161,6 +162,12 @@ export type MonthlyGoalDeposit = {
 // ============================================
 // CHAT MESSAGE TYPES
 // ============================================
+
+export type SplitwiseExpense = typeof splitwiseExpensesTable.$inferSelect;
+
+// Input types for Splitwise expenses
+export type CreateSplitwiseExpenseInput = Omit<SplitwiseExpense, 'id' | 'createdAt' | 'updatedAt'>;
+export type UpdateSplitwiseExpenseInput = Partial<Omit<SplitwiseExpense, 'id' | 'createdAt' | 'updatedAt'>>;
 
 export type ChatMessage = typeof chatMessagesTable.$inferSelect;
 export type NewChatMessage = typeof chatMessagesTable.$inferInsert;

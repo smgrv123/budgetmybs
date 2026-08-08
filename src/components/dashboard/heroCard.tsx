@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { AsyncStorageKeys } from '@/src/constants/asyncStorageKeys';
 import { INCOME_SETTINGS_STRINGS } from '@/src/constants/income.strings';
+import { SPLITWISE_BALANCES_STRINGS } from '@/src/constants/splitwise-balances.strings';
 import { BorderRadius, ButtonVariant, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
 import { useThemeColors } from '@/src/hooks/theme-hooks/use-theme-color';
 import { HealthScoreWeights } from '@/src/types';
@@ -19,6 +20,16 @@ type DashboardHeroCardProps = {
   budgetRemaining: number;
   budgetUsedPercent: number;
   carouselLength: boolean;
+  /** Total unsettled receivable amount from Splitwise (shown as green "in transit" segment) */
+  totalReceivable?: number;
+  /** Effective monthly budget used to compute in-transit segment width */
+  effectiveBudget?: number;
+  /** Total amount others owe you — shown as balance chips below the progress bar */
+  totalOwedToYou?: number;
+  /** Total amount you owe others — shown as balance chips below the progress bar */
+  totalYouOwe?: number;
+  /** Called when user taps the balance section to navigate to balances screen */
+  onBalancesPress?: () => void;
 };
 
 const DashboardHeroCard: FC<DashboardHeroCardProps> = ({
@@ -30,8 +41,14 @@ const DashboardHeroCard: FC<DashboardHeroCardProps> = ({
   budgetRemaining,
   budgetUsedPercent,
   carouselLength,
+  totalReceivable = 0,
+  effectiveBudget = 0,
+  totalOwedToYou = 0,
+  totalYouOwe = 0,
+  onBalancesPress,
 }) => {
   const themeColors = useThemeColors();
+  const netBalance = totalOwedToYou - totalYouOwe;
 
   const [healthScoreWeights, sethealthScoreWeights] = useState<HealthScoreWeights>();
 
@@ -43,6 +60,21 @@ const DashboardHeroCard: FC<DashboardHeroCardProps> = ({
     };
     getHealthScoreWeights();
   }, []);
+
+  const balanceChips = [
+    {
+      label: SPLITWISE_BALANCES_STRINGS.youAreOwedLabel,
+      amount: totalOwedToYou,
+      color: themeColors.success,
+      backgroundColor: themeColors.successBackground,
+    },
+    {
+      label: SPLITWISE_BALANCES_STRINGS.youOweLabel,
+      amount: totalYouOwe,
+      color: themeColors.error,
+      backgroundColor: themeColors.errorBackground,
+    },
+  ].filter((chip) => chip.amount > 0);
 
   return (
     <BView style={{ width: carouselCardWidth, marginRight: carouselLength ? Spacing.md : 0 }}>
@@ -88,10 +120,49 @@ const DashboardHeroCard: FC<DashboardHeroCardProps> = ({
               { width: `${Math.min(budgetUsedPercent, 100)}%`, backgroundColor: themeColors.primary },
             ]}
           />
+          {netBalance > 0 && effectiveBudget > 0 && (
+            <View
+              style={[
+                styles.progressBarInTransit,
+                {
+                  width: `${Math.min((netBalance / effectiveBudget) * 100, Math.max(0, 100 - budgetUsedPercent))}%`,
+                  backgroundColor: themeColors.success,
+                  left: `${Math.min(budgetUsedPercent, 100)}%`,
+                },
+              ]}
+            />
+          )}
         </View>
         <BText variant={TextVariant.CAPTION} muted style={{ marginTop: Spacing.xs }}>
           {budgetUsedPercent}% used
+          {netBalance !== 0 && (
+            <BText
+              variant={TextVariant.CAPTION}
+              style={{ color: netBalance > 0 ? themeColors.success : themeColors.error }}
+            >
+              {'  ·  '}
+              {netBalance < 0 ? '-' : ''}
+              {formatCurrency(Math.abs(netBalance))} {SPLITWISE_BALANCES_STRINGS.inTransitLabel}
+            </BText>
+          )}
         </BText>
+
+        {balanceChips.length > 0 && (
+          <BButton variant={ButtonVariant.GHOST} onPress={onBalancesPress} style={styles.balanceButton}>
+            <BView row gap={SpacingValue.SM} style={styles.balanceRow}>
+              {balanceChips.map((chip) => (
+                <BView key={chip.label} flex style={[styles.balanceChip, { backgroundColor: chip.backgroundColor }]}>
+                  <BText variant={TextVariant.CAPTION} style={{ color: chip.color }}>
+                    {chip.label}
+                  </BText>
+                  <BText variant={TextVariant.LABEL} style={{ color: chip.color }}>
+                    {formatCurrency(chip.amount)}
+                  </BText>
+                </BView>
+              ))}
+            </BView>
+          </BButton>
+        )}
 
         {/* <HealthScoreCard /> */}
       </BView>
@@ -115,6 +186,22 @@ const styles = StyleSheet.create({
   progressBarFill: {
     height: '100%',
     borderRadius: BorderRadius.xs,
+  },
+  progressBarInTransit: {
+    position: 'absolute',
+    height: '100%',
+    borderRadius: BorderRadius.xs,
+  },
+  balanceButton: {
+    marginTop: Spacing.md,
+    padding: 0,
+  },
+  balanceRow: {
+    width: '100%',
+  },
+  balanceChip: {
+    borderRadius: BorderRadius.base,
+    padding: Spacing.sm,
   },
 });
 

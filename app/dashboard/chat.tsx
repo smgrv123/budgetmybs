@@ -3,12 +3,7 @@ import type { ChatResponse } from '@/src/types';
 import { ChatIntentEnum, ChatRoleEnum, DebtPayoffPreferenceEnum, SavingsLabels } from '@/db/types';
 import { ChatBubble, ChatHeader, ChatInput, GenericInlineForm } from '@/src/components/chat';
 import { BButton, BIcon, BSafeAreaView, BText, BView } from '@/src/components/ui';
-import {
-  CHAT_ALERT_STRINGS,
-  CHAT_LOG_STRINGS,
-  CHAT_MESSAGE_STRINGS,
-  CHAT_STRINGS,
-} from '@/src/constants/chat';
+import { CHAT_ALERT_STRINGS, CHAT_LOG_STRINGS, CHAT_MESSAGE_STRINGS, CHAT_STRINGS } from '@/src/constants/chat';
 import { INTENT_REGISTRY } from '@/src/constants/chatRegistry.config';
 import { ButtonVariant, Spacing, SpacingValue, TextVariant } from '@/src/constants/theme';
 import {
@@ -77,11 +72,7 @@ export default function ChatScreen() {
   const { expenses } = useExpenses();
   const { income: incomeEntries } = useIncome();
 
-  const {
-    savingsGoals,
-    savingsBalancesAllGoals,
-    adHocSavingsBalances,
-  } = useSavingsGoals();
+  const { savingsGoals, savingsBalancesAllGoals, adHocSavingsBalances } = useSavingsGoals();
 
   const {
     messages,

@@ -11,3 +11,8 @@ export const TOTAL_SAVED_QUERY_KEY = ['savings', 'totalSaved'] as const;
 
 export const CREDIT_CARDS_QUERY_KEY = ['creditCards'] as const;
 export const CREDIT_CARD_SUMMARIES_QUERY_KEY = ['creditCards', 'summaries'] as const;
+
+// Extracted here (rather than declared in useSplitwiseBalances) to break a circular
+// import: useSplitwiseSync needs this key but must not depend on useSplitwiseBalances,
+// which itself depends on useSplitwise (which useSplitwiseSync is used by, transitively).
+export const SPLITWISE_FRIEND_BALANCES_QUERY_KEY = ['splitwise', 'friendBalances'] as const;

@@ -52,6 +52,7 @@ export {
   getExpensesWithCategory,
   getImpulsePurchaseStats,
   getLastProcessedRecurringMonth,
+  getMostRecentSplitwiseLinkedExpense,
   getOneOffSavings,
   getProcessedRecurringByMonth,
   getProcessedRecurringKeys,
@@ -128,6 +129,20 @@ export {
 
 // Account queries (delete/reset)
 export { clearUserData } from './account';
+
+// Splitwise expenses queries
+export {
+  getSplitwiseBalancesByFriend,
+  getSplitwiseBalanceSummary,
+  getSplitwiseExpenseByExpenseId,
+  getSplitwiseExpenseBySplitwiseId,
+  getUnsettledReceivablesByPaidByUser,
+  insertSplitwiseExpense,
+  markReceivableSettledBySplitwiseId,
+  updateSplitwiseExpense,
+  upsertSplitwiseExpense,
+} from './splitwiseExpenses';
+export type { SplitwiseBalanceSummary, SplitwiseFriendBalance } from './splitwiseExpenses';
 
 // Chat queries
 export {

@@ -48,8 +48,8 @@ export default function SetupScreen() {
       setCurrentStep(STEPS[currentIndex + 1]);
       setErrors({});
     } else {
-      // Last step - go to confirmation
-      router.push('/onboarding/confirmation');
+      // Last step - go to Splitwise connect before AI confirmation
+      router.push('/onboarding/splitwise-connect');
     }
   }, [currentStep]);
 

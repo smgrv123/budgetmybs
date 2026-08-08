@@ -5,6 +5,7 @@ export {
   EXPENSE_BY_ID_QUERY_KEY,
   EXPENSES_QUERY_KEY,
   ONE_OFF_SAVINGS_QUERY_KEY,
+  SPLITWISE_FRIEND_BALANCES_QUERY_KEY,
   TOTAL_SAVED_QUERY_KEY,
   TOTAL_SPENT_QUERY_KEY,
 } from './queryKeys';
@@ -18,6 +19,7 @@ export { useChatActionHandler } from './useChatActionHandler';
 export type { RegistryPendingAction } from './useChatActionHandler';
 export { useCreditCards } from './useCreditCards';
 export { DEBTS_QUERY_KEY, TOTAL_EMI_QUERY_KEY, TOTAL_REMAINING_QUERY_KEY, useDebts } from './useDebts';
+export { useDeleteSplitwiseExpense } from './useDeleteSplitwiseExpense';
 export { useExpenseById, useExpenses } from './useExpenses';
 export { FIXED_EXPENSES_QUERY_KEY, TOTAL_FIXED_EXPENSES_QUERY_KEY, useFixedExpenses } from './useFixedExpenses';
 export { useFormOptionSources } from './useFormOptionSources';
@@ -30,6 +32,24 @@ export {
 } from './useIncome';
 export { MONTHLY_BUDGET_QUERY_KEY, useMonthlyBudget } from './useMonthlyBudget';
 export { useMutationMap } from './useMutationMap';
+export {
+  SPLITWISE_CONNECTION_QUERY_KEY,
+  SPLITWISE_CURRENT_USER_QUERY_KEY,
+  SPLITWISE_RECONNECT_REQUIRED_QUERY_KEY,
+  useSplitwise,
+} from './useSplitwise';
+export { SPLITWISE_LAST_SYNCED_AT_QUERY_KEY, useSplitwiseSync } from './useSplitwiseSync';
+export {
+  SPLITWISE_BALANCE_BY_FRIEND_QUERY_KEY,
+  SPLITWISE_BALANCE_SUMMARY_QUERY_KEY,
+  useSplitwiseBalances,
+} from './useSplitwiseBalances';
+export { SPLITWISE_FRIENDS_QUERY_KEY, SPLITWISE_GROUPS_QUERY_KEY, useSplitTargets } from './useSplitTargets';
+export { useSplitExpense } from './useSplitExpense';
+export { usePushExpense } from './usePushExpense';
+export { useSplitwiseSettlement } from './useSplitwiseSettlement';
+export type { SettlementArgs, SettlementMode } from './useSplitwiseSettlement';
+export { useSplitwiseExpensePush } from './useSplitwiseExpensePush';
 export { useExpiredImpulseCheck } from './useExpiredImpulseCheck';
 export { useImpulsePermission } from './useImpulsePermission';
 export { useNotificationPermissions } from './useNotificationPermissions';

@@ -28,6 +28,7 @@ export type AllExpense = {
     last4: string;
     provider: CreditCardProvider;
   } | null;
+  isFromSplitwise: number;
   transactionType: TransactionTypeValue;
 };
 
